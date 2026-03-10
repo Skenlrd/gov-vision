@@ -1,0 +1,12 @@
+# environment variables
+server/.env
+
+# node modules
+node_modules/
+
+# logs
+*.log
+
+# python cache
+__pycache__/
+*.pyc
