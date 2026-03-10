@@ -5,3 +5,5 @@ pandas
 numpy
 prophet
 joblib
+pymongo
+python-dotenv

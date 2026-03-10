@@ -1,37 +1,37 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IKpiSnapshot extends Document {
+  department: mongoose.Types.ObjectId;
   snapshotDate: Date;
-  department: string;
   totalDecisions: number;
   approvedCount: number;
   rejectedCount: number;
   pendingCount: number;
   avgCycleTimeHours: number;
   complianceRate: number;
-  violationCount: number;
-  anomalyCount: number;
   riskScore: number;
-  riskLevel: string;
+  riskLevel: "Low" | "Medium" | "High" | "Critical";
 }
 
 const KpiSnapshotSchema: Schema = new Schema({
+  department: {
+    type: Schema.Types.ObjectId,
+    ref: "departments",
+    required: true
+  },
   snapshotDate: { type: Date, required: true },
-  department: { type: String, required: true },
-
-  totalDecisions: Number,
-  approvedCount: Number,
-  rejectedCount: Number,
-  pendingCount: Number,
-
-  avgCycleTimeHours: Number,
-  complianceRate: Number,
-  violationCount: Number,
-
-  anomalyCount: Number,
-
-  riskScore: Number,
-  riskLevel: String
+  totalDecisions: { type: Number, required: true },
+  approvedCount: { type: Number, required: true },
+  rejectedCount: { type: Number, required: true },
+  pendingCount: { type: Number, required: true },
+  avgCycleTimeHours: { type: Number, required: true },
+  complianceRate: { type: Number, required: true },
+  riskScore: { type: Number, required: true },
+  riskLevel: {
+    type: String,
+    enum: ["Low", "Medium", "High", "Critical"],
+    required: true
+  }
 });
 
 export default mongoose.model<IKpiSnapshot>(

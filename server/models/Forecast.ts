@@ -1,23 +1,29 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+interface IForecastPoint {
+  ds: Date;
+  yhat: number;
+  yhat_lower: number;
+  yhat_upper: number;
+}
+
 export interface IForecast extends Document {
-  department: string;
-  forecastDate: Date;
-  horizon: number;
-  forecastData: any[];
+  department: mongoose.Types.ObjectId;
+  generatedAt: Date;
+  horizon: 7 | 14 | 30;
+  forecastData: IForecastPoint[];
 }
 
 const ForecastSchema: Schema = new Schema({
-  department: String,
-  forecastDate: Date,
-  horizon: Number,
-
+  department: { type: Schema.Types.ObjectId, ref: "departments", required: true },
+  generatedAt: { type: Date, required: true, default: Date.now },
+  horizon: { type: Number, enum: [7, 14, 30], required: true },
   forecastData: [
     {
-      ds: Date,
-      yhat: Number,
-      yhat_lower: Number,
-      yhat_upper: Number
+      ds: { type: Date, required: true },
+      yhat: { type: Number, required: true },
+      yhat_lower: { type: Number, required: true },
+      yhat_upper: { type: Number, required: true }
     }
   ]
 });

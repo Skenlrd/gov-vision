@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReportSchedule extends Document {
   name: string;
-  frequency: string;
   cronExpression: string;
   reportType: string;
   format: string;
@@ -13,20 +12,16 @@ export interface IReportSchedule extends Document {
 }
 
 const ReportScheduleSchema: Schema = new Schema({
-  name: String,
-  frequency: String,
-  cronExpression: String,
-
-  reportType: String,
-  format: String,
-
-  recipients: [String],
-
+  name: { type: String, required: true },
+  cronExpression: { type: String, required: true },
+  reportType: { type: String, required: true },
+  format: { type: String, required: true },
+  recipients: [{ type: String, required: true }],
   isActive: {
     type: Boolean,
+    required: true,
     default: true
   },
-
   lastRun: Date,
   nextRun: Date
 });

@@ -183,3 +183,12 @@ export default mongoose.model<IReportSchedule>(
 
 
 **11-03-2026 SETUP**
+
+A Python Environment has been configured.  
+Following is the information about the Python environment:
+1. Environment Type: system
+2. Version: 3.12.10
+
+3. Command Prefix to run Python in a terminal is: `C:/Users/win/AppData/Local/Programs/Python/Python312/python.exe`
+Instead of running `Python sample.py` in the terminal, you will now run: `C:/Users/win/AppData/Local/Programs/Python/Python312/python.exe sample.py`
+Similarly instead of running `Python -c "import sys;...."` in the terminal, you will now run: `C:/Users/win/AppData/Local/Programs/Python/Python312/python.exe -c "import sys;...."`
