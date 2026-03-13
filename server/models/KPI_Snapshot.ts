@@ -1,40 +1,107 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose"
 
-export interface IKpiSnapshot extends Document {
-  department: mongoose.Types.ObjectId;
-  snapshotDate: Date;
-  totalDecisions: number;
-  approvedCount: number;
-  rejectedCount: number;
-  pendingCount: number;
-  avgCycleTimeHours: number;
-  complianceRate: number;
-  riskScore: number;
-  riskLevel: "Low" | "Medium" | "High" | "Critical";
-}
+/*
+  Module 3's primary analytics collection.
 
-const KpiSnapshotSchema: Schema = new Schema({
-  department: {
-    type: Schema.Types.ObjectId,
-    ref: "departments",
-    required: true
+  Each document represents one day's KPI state
+  for one department (or null for org-wide aggregate).
+
+  Documents are upserted — one document per
+  (department + snapshotDate) pair.
+  Calling aggregateKPI() twice on the same day
+  updates the existing document rather than
+  creating a duplicate.
+*/
+
+const kpiSnapshotSchema = new Schema(
+  {
+
+    /*
+      null means this is an org-wide aggregate snapshot.
+      ObjectId means this is a department-specific snapshot.
+    */
+    department: {
+      type: Schema.Types.ObjectId,
+      ref: "departments",
+      default: null
+    },
+
+    snapshotDate: {
+      type: Date,
+      required: true
+    },
+
+    // Decision counts from m1_decisions
+    totalDecisions: {
+      type: Number,
+      default: 0
+    },
+
+    approvedCount: {
+      type: Number,
+      default: 0
+    },
+
+    rejectedCount: {
+      type: Number,
+      default: 0
+    },
+
+    pendingCount: {
+      type: Number,
+      default: 0
+    },
+
+    // Average of (completedAt - createdAt) in hours
+    // Only computed for decisions that have completedAt set
+    avgCycleTimeHours: {
+      type: Number,
+      default: 0
+    },
+
+    // Violation counts from m2_violations
+    violationCount: {
+      type: Number,
+      default: 0
+    },
+
+    openViolations: {
+      type: Number,
+      default: 0
+    },
+
+    // ((totalDecisions - violationCount) / totalDecisions) * 100
+    complianceRate: {
+      type: Number,
+      default: 100
+    },
+
+    // Filled in later by anomaly detection cron job (Day 7)
+    anomalyCount: {
+      type: Number,
+      default: 0
+    },
+
+    // Filled in later by risk scoring cron job (Day 9)
+    riskScore: {
+      type: Number,
+      default: 0
+    },
+
+    // Filled in later by risk scoring cron job (Day 9)
+    riskLevel: {
+      type: String,
+      enum: ["low", "medium", "high", "critical"],
+      default: "low"
+    }
+
   },
-  snapshotDate: { type: Date, required: true },
-  totalDecisions: { type: Number, required: true },
-  approvedCount: { type: Number, required: true },
-  rejectedCount: { type: Number, required: true },
-  pendingCount: { type: Number, required: true },
-  avgCycleTimeHours: { type: Number, required: true },
-  complianceRate: { type: Number, required: true },
-  riskScore: { type: Number, required: true },
-  riskLevel: {
-    type: String,
-    enum: ["Low", "Medium", "High", "Critical"],
-    required: true
+  {
+    collection: "m3_kpi_snapshots"
   }
-});
+)
 
-export default mongoose.model<IKpiSnapshot>(
-  "m3_kpi_snapshots",
-  KpiSnapshotSchema
-);
+// Compound index so upsert matching is fast
+kpiSnapshotSchema.index({ department: 1, snapshotDate: 1 })
+
+export default mongoose.model("KPI_Snapshot", kpiSnapshotSchema)

@@ -1,0 +1,7 @@
+Department ObjectIds for Postman testing:
+  finance: 69b18569d20664db9a51ce00
+  hr: 69b18569d20664db9a51ce01
+  legal: 69b18569d20664db9a51ce02
+  operations: 69b18569d20664db9a51ce03
+
+npx ts-node scripts/testAggregator.ts

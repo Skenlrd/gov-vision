@@ -1,46 +1,69 @@
-import "dotenv/config";
+import dotenv from "dotenv"
+dotenv.config()
 
-import cors from "cors";
-import express, { Request, Response } from "express";
-import helmet from "helmet";
-import morgan from "morgan";
+import express from "express"
+import cors from "cors"
+import helmet from "helmet"
+import morgan from "morgan"
 
-import { connectMongo } from "./config/db";
-import { connectRedis } from "./config/redis";
+import { connectMongo } from "./config/db"
+import { connectRedis } from "./config/redis"
 
-const app = express();
-const port = Number(process.env.PORT || 5002);
+import analyticsRoutes from "./routes/analyticsRoutes"
+import eventRoutes     from "./routes/eventRoutes"
+import aiRoutes        from "./routes/aiRoutes"
 
-app.use(helmet());
-app.use(cors());
-app.use(morgan("dev"));
-app.use(express.json());
+const app  = express()
+const PORT = process.env.PORT || 5002
 
-app.get("/health", (_req: Request, res: Response) => {
-	res.status(200).json({
-		status: "ok",
-		service: "gov-vision-backend",
-		timestamp: new Date().toISOString()
-	});
-});
+/*
+  Security and utility middleware.
+  These must come BEFORE your routes.
+*/
+app.use(helmet())
+app.use(cors({ origin: "http://localhost:5173" }))
+app.use(morgan("dev"))
+app.use(express.json())
 
-const startServer = async (): Promise<void> => {
-	try {
-		await connectMongo();
+/*
+  Mount routes.
+  Analytics and AI routes are protected by JWT inside
+  the route files themselves.
+  Event routes are protected by SERVICE_KEY inside
+  the route files themselves.
+*/
+app.use("/api/analytics", analyticsRoutes)
+app.use("/api/events",    eventRoutes)
+app.use("/api/ai",        aiRoutes)
 
-		try {
-			await connectRedis();
-		} catch (error) {
-			console.warn("Redis unavailable. Continuing without Redis cache.", error);
-		}
+/*
+  Health check — useful to confirm the server is running
+  before testing in Postman.
+*/
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", module: "Module 3", port: PORT })
+})
 
-		app.listen(port, () => {
-			console.log(`Server listening on port ${port}`);
-		});
-	} catch (error) {
-		console.error("Failed to start backend server", error);
-		process.exit(1);
-	}
-};
+/*
+  Connect to MongoDB and Redis, then start the server.
+*/
+async function startServer() {
+  try {
+    await connectMongo()
 
-void startServer();
+    try {
+      await connectRedis()
+    } catch (error) {
+      console.warn("Redis unavailable, running without cache:", error)
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Module 3 server running on port ${PORT}`)
+    })
+  } catch (error) {
+    console.error("Server startup failed:", error)
+    process.exit(1)
+  }
+}
+
+startServer()
