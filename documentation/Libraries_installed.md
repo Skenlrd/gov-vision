@@ -30,6 +30,8 @@ Automatically adds browser compatibility prefixes to CSS.
 npm install -D @types/node
 Provides TypeScript type definitions for Node.js APIs during development.
 
+Tailwind to v3.4.17 t
+
 **SERVER SIDE LIBRARIES**
 npm install express
 npm install mongoose

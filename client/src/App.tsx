@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom"
+import Dashboard from "./pages/Dashboard"
+import Sidebar from "./components/Sidebar"
 
-function App() {
-  const [count, setCount] = useState(0)
-
+/*
+  Layout wraps every page with the fixed sidebar.
+  Additional pages (AI Insights, Risk Heatmap, Reports)
+  are added as more routes here on Day 8–10.
+*/
+function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <Sidebar />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {children}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={
+        <Layout>
+          <Dashboard />
+        </Layout>
+      } />
+      <Route path="/dashboard" element={
+        <Layout>
+          <Dashboard />
+        </Layout>
+      } />
+      {/* Day 8 — AI Insights */}
+      {/* <Route path="/ai-insights" element={<Layout><AIInsights /></Layout>} /> */}
+      {/* Day 9 — Risk Heatmap */}
+      {/* <Route path="/risk" element={<Layout><RiskHeatmap /></Layout>} /> */}
+      {/* Day 10 — Reports */}
+      {/* <Route path="/reports" element={<Layout><Reports /></Layout>} /> */}
+    </Routes>
+  )
+}
