@@ -105,7 +105,7 @@ router.get("/kpi-summary/:deptId", /* validateJWT, */ async (req: Request, res: 
 //   granularity: "daily" | "weekly" | "monthly"
 //   dateFrom: ISO date string
 //   dateTo:   ISO date string
-//   deptId:   ObjectId string (optional)
+//   deptId:   canonical department string (optional)
 // ─────────────────────────────────────────────
 
 router.get("/decision-volume", /* validateJWT, */ async (req: Request, res: Response) => {
@@ -260,7 +260,8 @@ router.get("/cycle-time-histogram", /* validateJWT, */ async (req: Request, res:
 // Query params:
 //   dateFrom: ISO date string
 //   dateTo:   ISO date string
-//   depts:    comma-separated ObjectId strings (optional)
+//   depts:    comma-separated department strings (optional)
+//   deptId:   single department string (optional)
 // ─────────────────────────────────────────────
 
 router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Response) => {
@@ -277,11 +278,12 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
 
     /*
       depts query param is a comma-separated list of
-      department ObjectId strings.
-      Example: ?depts=abc123,def456
+      department strings.
+      Example: ?depts=finance,operations
       If not provided, return all departments.
     */
     const deptsParam = req.query.depts as string | undefined
+    const deptIdParam = req.query.deptId as string | undefined
 
     const matchStage: Record<string, unknown> = {
       snapshotDate: { $gte: dateFrom, $lte: dateTo },
@@ -292,6 +294,8 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
       matchStage.department = {
         $in: deptsParam.split(",")
       }
+    } else if (deptIdParam) {
+      matchStage.department = deptIdParam
     }
 
     const snapshots = await KPISnapshot.find(matchStage)

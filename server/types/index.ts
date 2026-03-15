@@ -1,4 +1,3 @@
-import { Types } from "mongoose"
 import { Request } from "express"
 
 /*
@@ -16,7 +15,7 @@ export interface IUser {
   and served by the KPI endpoints.
 */
 export interface IKpiSummary {
-  department:         Types.ObjectId | null
+  department:         string | null
   snapshotDate:       Date
   totalDecisions:     number
   approvedCount:      number

@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAnomaly extends Document {
   decisionId: mongoose.Types.ObjectId;
-  department: mongoose.Types.ObjectId;
+  department: string;
   anomalyScore: number;
   severity: "Low" | "Medium" | "High" | "Critical" | "Normal";
   isAcknowledged: boolean;
@@ -14,7 +14,7 @@ export interface IAnomaly extends Document {
 
 const AnomalySchema: Schema = new Schema({
   decisionId: { type: Schema.Types.ObjectId, ref: "m1_decisions", required: true },
-  department: { type: Schema.Types.ObjectId, ref: "departments", required: true },
+  department: { type: String, required: true },
   anomalyScore: { type: Number, required: true },
   severity: {
     type: String,

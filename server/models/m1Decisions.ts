@@ -20,13 +20,13 @@ const decisionSchema = new Schema(
     },
 
     /*
-      department is an ObjectId referencing the shared
-      departments collection.
-      Used to group KPIs by department.
+      department is stored as a canonical plain string
+      (for example: "finance", "human resources").
+      Used to group KPIs by department without requiring
+      a separate departments collection.
     */
     department: {
-      type: Schema.Types.ObjectId,
-      ref: "departments"
+      type: String
     },
 
     createdAt: {

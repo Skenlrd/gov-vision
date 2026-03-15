@@ -5,3 +5,15 @@ Department ObjectIds for Postman testing:
   operations: 69b18569d20664db9a51ce03
 
 npx ts-node scripts/testAggregator.ts
+
+train 
+cd ml_service
+python training/train_isolation_forest.py
+
+Start ML API and verify service is up
+python -m uvicorn main:app --port 8000 --reload
+
+command to free a port 
+$port=8000; Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }
+Check if it is free:
+Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue

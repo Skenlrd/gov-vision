@@ -13,13 +13,11 @@ const violationSchema = new Schema(
   {
 
     /*
-      department is ObjectId referencing departments.
-      Must match the type used in m1_decisions.department
-      so grouping by department works consistently.
+      department is stored as a canonical plain string
+      to match m1_decisions.department.
     */
     department: {
-      type: Schema.Types.ObjectId,
-      ref: "departments"
+      type: String
     },
 
     severity: {

@@ -8,7 +8,7 @@ export interface IReport extends Document {
   filePath: string;
   dateFrom: Date;
   dateTo: Date;
-  departments: mongoose.Types.ObjectId[];
+  departments: string[];
   generatedAt: Date;
   generatedBy: mongoose.Types.ObjectId;
 }
@@ -30,7 +30,7 @@ const ReportSchema: Schema = new Schema({
   filePath: { type: String, required: true },
   dateFrom: { type: Date, required: true },
   dateTo: { type: Date, required: true },
-  departments: [{ type: Schema.Types.ObjectId, ref: "departments", required: true }],
+  departments: [{ type: String, required: true }],
   generatedAt: { type: Date, required: true, default: Date.now },
   generatedBy: { type: Schema.Types.ObjectId, ref: "users", required: true }
 });

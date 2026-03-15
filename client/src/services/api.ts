@@ -62,7 +62,8 @@ export const getDeptKpiSummary = async (
     dateTo: filters.dateTo
   }
 
-  const res = await api.get(`/api/analytics/kpi-summary/${deptId}`, { params })
+  const encodedDept = encodeURIComponent(deptId)
+  const res = await api.get(`/api/analytics/kpi-summary/${encodedDept}`, { params })
   return res.data.data
 }
 

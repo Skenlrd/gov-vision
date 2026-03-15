@@ -8,14 +8,14 @@ interface IForecastPoint {
 }
 
 export interface IForecast extends Document {
-  department: mongoose.Types.ObjectId;
+  department: string;
   generatedAt: Date;
   horizon: 7 | 14 | 30;
   forecastData: IForecastPoint[];
 }
 
 const ForecastSchema: Schema = new Schema({
-  department: { type: Schema.Types.ObjectId, ref: "departments", required: true },
+  department: { type: String, required: true },
   generatedAt: { type: Date, required: true, default: Date.now },
   horizon: { type: Number, enum: [7, 14, 30], required: true },
   forecastData: [

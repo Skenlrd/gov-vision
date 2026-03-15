@@ -18,11 +18,10 @@ const kpiSnapshotSchema = new Schema(
 
     /*
       null means this is an org-wide aggregate snapshot.
-      ObjectId means this is a department-specific snapshot.
+      A canonical string means this is a department-specific snapshot.
     */
     department: {
-      type: Schema.Types.ObjectId,
-      ref: "departments",
+      type: String,
       default: null
     },
 

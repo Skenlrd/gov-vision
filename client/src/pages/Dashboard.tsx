@@ -10,6 +10,8 @@ import TopBar from "../components/TopBar"
 import DecisionVolumeChart from "../components/charts/DecisionVolumeChart"
 import CycleTimeHistogram from "../components/charts/CycleTimeHistogram"
 import ComplianceTrendChart from "../components/charts/ComplianceTrendChart"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 
 const Icons = {
   decisions:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="15" height="15"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
@@ -32,12 +34,11 @@ function getDefaultFilters(): IFilter {
 
 const DEPARTMENTS = [
   { label: "All Departments", value: "" },
-  { label: "Finance", value: "REPLACE_WITH_FINANCE_ID" },
-  { label: "Human Resources", value: "REPLACE_WITH_HR_ID" },
-  { label: "Legal", value: "REPLACE_WITH_LEGAL_ID" },
-  { label: "Operations", value: "REPLACE_WITH_OPERATIONS_ID" },
-  { label: "Information Technology", value: "REPLACE_WITH_IT_ID" },
-  { label: "Procurement", value: "REPLACE_WITH_PROCUREMENT_ID" }
+  { label: "Finance", value: "FI001" },
+  { label: "Human Resources", value: "HR002" },
+  { label: "Operations", value: "OP003" },
+  { label: "Information Technology", value: "IT004" },
+  { label: "Customer Service", value: "CS005" }
 ]
 
 export default function Dashboard() {
@@ -120,16 +121,96 @@ export default function Dashboard() {
               </h1>
             </div>
 
-            <div style={{ display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               <select
                 value={timeframe}
                 onChange={e => applyPreset(Number(e.target.value))}
-                style={{ padding:"7px 12px", borderRadius:"8px", border:"1px solid #E2E8F4", background:"white", fontSize:"12px", fontWeight:600, color:"#374151", fontFamily:"'Outfit',sans-serif", outline:"none", cursor:"pointer" }}
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #E2E6ED",
+                  background: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontFamily: "'Outfit', sans-serif",
+                  outline: "none",
+                  cursor: "pointer"
+                }}
               >
                 <option value="7">Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 90 Days</option>
+                <option value="365">Last 1 Year</option>
               </select>
+
+
+              <span style={{ color: "#CBD5E1" }}>—</span>
+
+              <span style={{ color: "#94A3B8", fontSize: "11px", fontWeight: 600 }}>From</span>
+
+              <DatePicker
+                selected={new Date(filters.dateFrom)}
+                onChange={(date: Date | null) => {
+                  if (date) setFilters(f => ({
+                    ...f, dateFrom: date.toISOString().split("T")[0]
+                  }))
+                }}
+                dateFormat="dd MMM yyyy"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                maxDate={new Date(filters.dateTo)}
+                minDate={new Date("2025-01-01")}
+                customInput={
+                  <input
+                    style={{
+                      background: "white",
+                      border: "1px solid #E2E6ED",
+                      borderRadius: "8px",
+                      padding: "7px 12px",
+                      fontSize: "12px",
+                      fontFamily: "'Outfit', sans-serif",
+                      cursor: "pointer",
+                      width: "120px",
+                      outline: "none"
+                    }}
+                  />
+                }
+              />
+
+              <span style={{ color: "#94A3B8", fontSize: "11px", fontWeight: 600 }}>To</span>
+
+              <DatePicker
+                selected={new Date(filters.dateTo)}
+                onChange={(date: Date | null) => {
+                  if (date) setFilters(f => ({
+                    ...f, dateTo: date.toISOString().split("T")[0]
+                  }))
+                }}
+                dateFormat="dd MMM yyyy"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                minDate={new Date(filters.dateFrom)}
+                maxDate={new Date("2026-12-31")}
+                customInput={
+                  <input
+                    style={{
+                      background: "white",
+                      border: "1px solid #E2E6ED",
+                      borderRadius: "8px",
+                      padding: "7px 12px",
+                      fontSize: "12px",
+                      fontFamily: "'Outfit', sans-serif",
+                      cursor: "pointer",
+                      width: "120px",
+                      outline: "none"
+                    }}
+                  />
+                }
+              />
+
               <select value={filters.deptId ?? ""} onChange={e => setFilters(f => ({ ...f, deptId: e.target.value || null }))}
                 style={{ padding:"7px 12px", borderRadius:"8px", border:"1px solid #E2E8F4", background:"white", fontSize:"12px", fontWeight:600, color:"#374151", fontFamily:"'Outfit',sans-serif", outline:"none", cursor:"pointer" }}>
                 {DEPARTMENTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}

@@ -10,3 +10,6 @@ node_modules/
 # python cache
 __pycache__/
 *.pyc
+
+# ml model artifacts
+ml_service/models/*.pkl

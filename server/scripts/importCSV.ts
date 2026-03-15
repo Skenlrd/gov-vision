@@ -2,7 +2,7 @@ import fs from "fs"
 import path from "path"
 import readline from "readline"
 import dotenv from "dotenv"
-import mongoose, { Types } from "mongoose"
+import mongoose from "mongoose"
 
 import m1Decision from "../models/m1Decisions"
 
@@ -56,9 +56,21 @@ function parseDate(value: string | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
-function shiftDate(date: Date | null, offsetMs: number): Date | null {
-  if (!date) return null
-  return new Date(date.getTime() + offsetMs)
+function mapStartTimeToTargetWindow(
+  start: Date,
+  sourceMinMs: number,
+  sourceMaxMs: number,
+  targetMinMs: number,
+  targetMaxMs: number
+): Date {
+  if (sourceMaxMs <= sourceMinMs) {
+    return new Date(targetMinMs)
+  }
+
+  const ratio = (start.getTime() - sourceMinMs) / (sourceMaxMs - sourceMinMs)
+  const mappedMs = targetMinMs + ratio * (targetMaxMs - targetMinMs)
+
+  return new Date(mappedMs)
 }
 
 function parseNumber(value: string | undefined): number {
@@ -88,34 +100,80 @@ function normalize(value: unknown): string {
   return String(value ?? "").trim().toLowerCase()
 }
 
-function departmentCandidateNames(doc: Record<string, unknown>): string[] {
-  return [
-    normalize(doc.name),
-    normalize(doc.department),
-    normalize(doc.departmentName),
-    normalize(doc.title),
-    normalize(doc.deptName),
-    normalize(doc.code)
-  ].filter(Boolean)
+type DepartmentMeta = {
+  departmentId: string
+  departmentName: string
 }
 
-async function buildDepartmentMap(): Promise<Map<string, Types.ObjectId>> {
-  const map = new Map<string, Types.ObjectId>()
-  const docs = await mongoose.connection.collection("departments").find({}).toArray()
-
-  for (const raw of docs) {
-    const doc = raw as Record<string, unknown>
-    const id = doc._id as Types.ObjectId | undefined
-    if (!id) continue
-
-    for (const key of departmentCandidateNames(doc)) {
-      if (!map.has(key)) {
-        map.set(key, id)
-      }
-    }
+const DEPT_CANONICAL_META: Record<string, DepartmentMeta> = {
+  "finance": {
+    departmentId: "FI001",
+    departmentName: "Finance"
+  },
+  "human resources": {
+    departmentId: "HR002",
+    departmentName: "Human Resources"
+  },
+  "operations": {
+    departmentId: "OP003",
+    departmentName: "Operations"
+  },
+  "information technology": {
+    departmentId: "IT004",
+    departmentName: "Information Technology"
+  },
+  "customer service": {
+    departmentId: "CS005",
+    departmentName: "Customer Service"
   }
+}
 
-  return map
+const DEPT_ALIAS_TO_CANONICAL: Record<string, keyof typeof DEPT_CANONICAL_META> = {
+  "finance": "finance",
+  "fin": "finance",
+  "financial": "finance",
+
+  "hr": "human resources",
+  "h r": "human resources",
+  "h.r": "human resources",
+  "h.r.": "human resources",
+  "human resources": "human resources",
+  "human resource": "human resources",
+
+  "operations": "operations",
+  "operation": "operations",
+  "ops": "operations",
+
+  "it": "information technology",
+  "i t": "information technology",
+  "i.t": "information technology",
+  "i.t.": "information technology",
+  "information technology": "information technology",
+  "technology": "information technology",
+  "tech": "information technology",
+
+  "customer service": "customer service",
+  "customer services": "customer service",
+  "customer support": "customer service",
+  "support": "customer service",
+  "cs": "customer service"
+}
+
+function normalizeDepartmentKey(value: unknown): string {
+  return normalize(value)
+    .replace(/[._-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function mapDepartmentMeta(value: unknown): DepartmentMeta | null {
+  const normalizedKey = normalizeDepartmentKey(value)
+  if (!normalizedKey) return null
+
+  const canonical = DEPT_ALIAS_TO_CANONICAL[normalizedKey]
+  if (!canonical) return null
+
+  return DEPT_CANONICAL_META[canonical] ?? null
 }
 
 async function readCsvRows(filePath: string): Promise<CsvRow[]> {
@@ -156,44 +214,69 @@ async function main() {
     await mongoose.connect(process.env.MONGODB_URI)
     console.log("Connected to MongoDB")
 
-    const departmentMap = await buildDepartmentMap()
-    console.log(`Loaded ${departmentMap.size} department lookup keys`)
-
     const csvRows = await readCsvRows(CSV_PATH)
     console.log(`Parsed ${csvRows.length} CSV rows`)
 
-    const latestSourceTime = csvRows.reduce((latest, row) => {
-      const start = parseDate(row.Task_Start_Time)?.getTime() ?? 0
-      const end = parseDate(row.Task_End_Time)?.getTime() ?? 0
-      return Math.max(latest, start, end)
-    }, 0)
+    const sourceStartTimes = csvRows
+      .map(row => parseDate(row.Task_Start_Time)?.getTime())
+      .filter((t): t is number => typeof t === "number")
 
-    if (!latestSourceTime) {
+    if (sourceStartTimes.length === 0) {
       throw new Error("No valid timestamps found in CSV")
     }
 
-    const offsetMs = Date.now() - latestSourceTime
+    const sourceMinMs = Math.min(...sourceStartTimes)
+    const sourceMaxMs = Math.max(...sourceStartTimes)
+
+    const targetMinMs = new Date(2025, 0, 1, 0, 0, 0, 0).getTime()
+    const targetMaxMs = new Date(2026, 2, 15, 0, 0, 0, 0).getTime()
 
     await m1Decision.deleteMany({})
     console.log("Cleared existing m1_decisions collection")
 
     const docs: Record<string, unknown>[] = []
+    let unknownDepartmentCount = 0
 
     for (let i = 0; i < csvRows.length; i++) {
       const row = csvRows[i]
 
-      const createdAt = shiftDate(parseDate(row.Task_Start_Time), offsetMs)
-      const completedAt = shiftDate(parseDate(row.Task_End_Time), offsetMs)
+      const originalStart = parseDate(row.Task_Start_Time)
+      const originalEnd = parseDate(row.Task_End_Time)
+
+      const createdAt = originalStart
+        ? mapStartTimeToTargetWindow(
+            originalStart,
+            sourceMinMs,
+            sourceMaxMs,
+            targetMinMs,
+            targetMaxMs
+          )
+        : null
+
+      const durationMs =
+        originalStart && originalEnd
+          ? originalEnd.getTime() - originalStart.getTime()
+          : null
+
+      const completedAt =
+        createdAt && durationMs !== null
+          ? new Date(createdAt.getTime() + durationMs)
+          : null
 
       const actualMinutes = parseNumber(row.Actual_Time_Minutes)
       const estimatedMinutes = parseNumber(row.Estimated_Time_Minutes)
 
-      const departmentName = normalize(row.Department)
-      const departmentId = departmentMap.get(departmentName) ?? null
+      const departmentMeta = mapDepartmentMeta(row.Department)
+
+      if (!departmentMeta) {
+        unknownDepartmentCount += 1
+      }
 
       docs.push({
         status: mapStatus(row.Task_Type),
-        department: departmentId,
+        department: departmentMeta?.departmentId ?? null,
+        departmentId: departmentMeta?.departmentId ?? null,
+        departmentName: departmentMeta?.departmentName ?? null,
         createdAt,
         completedAt,
         cycleTimeHours: actualMinutes / 60,
@@ -209,6 +292,10 @@ async function main() {
       if (prepared % 100 === 0) {
         console.log(`Prepared ${prepared} rows`)
       }
+    }
+
+    if (unknownDepartmentCount > 0) {
+      console.warn(`Rows with unknown department mapping: ${unknownDepartmentCount}`)
     }
 
     let insertedTotal = 0
