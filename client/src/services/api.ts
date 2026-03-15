@@ -3,9 +3,9 @@ import type {
   IKpiSummary,
   IAnomaly,
   IFilter,
-  IDecisionVolume,
+  IDecisionVolumePoint,
   ICycleTimeBucket,
-  IComplianceTrend,
+  IComplianceTrendSeries,
   IReport
 } from "../types"
 
@@ -14,8 +14,14 @@ import type {
   Base URL points to Module 3 backend.
   If the port changes, update it here only.
 */
+const apiHost = window.location.hostname || "localhost"
+const apiProtocol = window.location.protocol
+const apiPort = import.meta.env.VITE_API_PORT || "5002"
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL || `${apiProtocol}//${apiHost}:${apiPort}`
+
 const api = axios.create({
-  baseURL: "http://localhost:5002"
+  baseURL: apiBaseUrl
 })
 
 /*
@@ -65,7 +71,7 @@ export const getDeptKpiSummary = async (
 export const getDecisionVolume = async (
   filters: IFilter,
   granularity: string = "daily"
-): Promise<IDecisionVolume[]> => {
+): Promise<IDecisionVolumePoint[]> => {
   const params: Record<string, string> = {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
@@ -92,11 +98,13 @@ export const getCycleTimeHistogram = async (
 
 export const getComplianceTrend = async (
   filters: IFilter
-): Promise<IComplianceTrend[]> => {
+): Promise<IComplianceTrendSeries[]> => {
   const params: Record<string, string> = {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo
   }
+
+  if (filters.deptId) params.deptId = filters.deptId
 
   const res = await api.get("/api/analytics/compliance-trend", { params })
   return res.data.data

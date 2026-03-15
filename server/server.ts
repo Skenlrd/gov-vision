@@ -21,7 +21,30 @@ const PORT = process.env.PORT || 5002
   These must come BEFORE your routes.
 */
 app.use(helmet())
-app.use(cors({ origin: "http://localhost:5173" }))
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true)
+      return
+    }
+
+    try {
+      const url = new URL(origin)
+      const isLocalhost =
+        url.hostname === "localhost" ||
+        url.hostname === "127.0.0.1"
+
+      if (isLocalhost) {
+        callback(null, true)
+        return
+      }
+    } catch {
+      // Ignore malformed origins and fall through to rejection.
+    }
+
+    callback(new Error("Not allowed by CORS"))
+  }
+}))
 app.use(morgan("dev"))
 app.use(express.json())
 

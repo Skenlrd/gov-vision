@@ -71,3 +71,23 @@ export interface IReport {
 */
 export type Severity = "Low" | "Medium" | "High" | "Critical" | "Normal"
 export type RiskLevel = "Low" | "Medium" | "High" | "Critical"
+
+export interface IDecisionVolumePoint {
+  date: string
+  count: number
+}
+
+export interface ICycleTimeBucket {
+  bucket: string
+  count: number
+}
+
+export interface IComplianceTrendPoint {
+  date: string
+  complianceRate: number
+}
+
+export interface IComplianceTrendSeries {
+  department: string
+  data: IComplianceTrendPoint[]
+}

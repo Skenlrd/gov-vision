@@ -2,15 +2,14 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import type { IKpiSummary, IAnomaly, IFilter } from "../types"
 import {
   getKpiSummary, getDeptKpiSummary, getAnomalies,
-  acknowledgeAnomaly, getDecisionVolume, getCycleTimeHistogram
+  acknowledgeAnomaly
 } from "../services/api"
 import KPICard from "../components/KPICard"
 import AnomalyFeed from "../components/AnomalyFeed"
 import TopBar from "../components/TopBar"
-import {
-  ResponsiveContainer, AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, Tooltip, CartesianGrid, Cell
-} from "recharts"
+import DecisionVolumeChart from "../components/charts/DecisionVolumeChart"
+import CycleTimeHistogram from "../components/charts/CycleTimeHistogram"
+import ComplianceTrendChart from "../components/charts/ComplianceTrendChart"
 
 const Icons = {
   decisions:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="15" height="15"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
@@ -31,21 +30,6 @@ function getDefaultFilters(): IFilter {
   return { dateFrom: thirty.toISOString().split("T")[0], dateTo: today.toISOString().split("T")[0], deptId: null }
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background:"white", border:"1px solid #E2E8F4", borderRadius:"10px", padding:"10px 14px", boxShadow:"0 8px 24px rgba(0,0,0,0.1)", fontFamily:"'Outfit',sans-serif" }}>
-      <p style={{ fontSize:"12px", color:"#64748B", marginBottom:"4px" }}>{label}</p>
-      {payload.map((e: any) => (
-        <p key={e.name} style={{ fontSize:"13px", fontWeight:700, color:e.color, margin:0 }}>
-          {e.name}: <span style={{ color:"#1E293B" }}>{e.value?.toLocaleString()}</span>
-        </p>
-      ))}
-    </div>
-  )
-}
-
-const cycleColors = ["#10B981","#F59E0B","#F97316","#EF4444"]
 const DEPARTMENTS = [
   { label: "All Departments", value: "" },
   { label: "Finance", value: "REPLACE_WITH_FINANCE_ID" },
@@ -60,29 +44,22 @@ export default function Dashboard() {
   const [filters,     setFilters]     = useState<IFilter>(getDefaultFilters())
   const [kpi,         setKpi]         = useState<IKpiSummary | null>(null)
   const [anomalies,   setAnomalies]   = useState<IAnomaly[]>([])
-  const [volumeData,  setVolumeData]  = useState<{ date:string; count:number }[]>([])
-  const [cycleData,   setCycleData]   = useState<{ bucket:string; count:number }[]>([])
-  const [loading,     setLoading]     = useState(true)
   const [isLive,      setIsLive]      = useState(true)
   const [timeframe,   setTimeframe]   = useState("30")
-  const [granularity, setGranularity] = useState<"daily"|"weekly"|"monthly">("daily")
   const [heatmapReady] = useState(false)
   const lastFetchRef = useRef<number>(Date.now())
 
   const fetchAll = useCallback(async () => {
     try {
-      setLoading(true)
       const kpiData = filters.deptId ? await getDeptKpiSummary(filters.deptId, filters) : await getKpiSummary(filters)
       setKpi(kpiData)
       const anomalyData = await getAnomalies()
       setAnomalies(anomalyData.filter(a => !a.isAcknowledged))
-      const [vol, cycle] = await Promise.all([getDecisionVolume(filters, granularity), getCycleTimeHistogram(filters)])
-      setVolumeData(vol); setCycleData(cycle)
       lastFetchRef.current = Date.now(); setIsLive(true)
     } catch (err) {
       console.error("Dashboard fetch error:", err); setIsLive(false)
-    } finally { setLoading(false) }
-  }, [filters, granularity])
+    }
+  }, [filters])
 
   useEffect(() => {
     fetchAll()
@@ -110,12 +87,6 @@ export default function Dashboard() {
     setTimeframe(String(d))
     setFilters(f => ({ ...f, dateFrom: from.toISOString().split("T")[0], dateTo: today.toISOString().split("T")[0] }))
   }
-
-  const Spinner = () => (
-    <div style={{ height:"220px", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:"32px", height:"32px", border:"3px solid #E2E8F4", borderTop:"3px solid #3B82F6", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
-    </div>
-  )
 
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:"#F5F6FA", fontFamily:"'Outfit',sans-serif" }}>
@@ -191,80 +162,21 @@ export default function Dashboard() {
             <KPICard title="AI Risk Score"      value={kpi?.riskLevel??"Low"}                       icon={Icons.risk}       accentColor="#8B5CF6" bgGradient="linear-gradient(135deg,#8B5CF6,#6D28D9)" isBadge />
           </div>
 
-          {/* Charts + Anomaly Feed */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"16px", alignItems:"stretch" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 320px", gap: "16px", alignItems: "start" }}>
 
-            {/* Area Chart — Decision Volume */}
-            <div style={{ background:"white", borderRadius:"14px", padding:"20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04)", height:"360px", display:"flex", flexDirection:"column" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
-                <div>
-                  <h2 style={{ fontSize:"14px", fontWeight:700, color:"#1E293B", margin:0 }}>Decision Throughput & Volume</h2>
-                  <p style={{ fontSize:"12px", color:"#94A3B8", margin:"2px 0 0", fontWeight:400 }}>Trend analysis</p>
-                </div>
-                <div style={{ display:"flex", background:"#F1F5F9", borderRadius:"8px", padding:"3px" }}>
-                  {(["daily","weekly","monthly"] as const).map(g => (
-                    <button key={g} onClick={() => setGranularity(g)} style={{ padding:"4px 10px", borderRadius:"6px", border:"none", background:granularity===g?"white":"transparent", fontSize:"11px", fontWeight:granularity===g?700:500, color:granularity===g?"#1E293B":"#94A3B8", cursor:"pointer", boxShadow:granularity===g?"0 1px 4px rgba(0,0,0,0.08)":"none", fontFamily:"'Outfit',sans-serif" }}>
-                      {g.charAt(0).toUpperCase()+g.slice(1,3)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {loading ? <Spinner /> : (
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={volumeData} margin={{ top:5, right:5, bottom:0, left:-10 }}>
-                    <defs>
-                      <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#3B82F6" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                    <XAxis dataKey="date" tick={{ fontSize:10, fill:"#94A3B8", fontFamily:"Outfit" }} tickFormatter={d => d.slice(5)} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize:10, fill:"#94A3B8", fontFamily:"Outfit" }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="count" name="Decisions" stroke="#3B82F6" strokeWidth={2.5} fill="url(#volGrad)" dot={false} activeDot={{ r:5, fill:"#3B82F6", stroke:"white", strokeWidth:2 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+            <DecisionVolumeChart filters={filters} />
 
-            {/* Bar Chart — Cycle Time */}
-            <div style={{ background:"white", borderRadius:"14px", padding:"20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04)", height:"360px", display:"flex", flexDirection:"column" }}>
-              <div style={{ marginBottom:"16px" }}>
-                <h2 style={{ fontSize:"14px", fontWeight:700, color:"#1E293B", margin:0 }}>Avg Approval Time Distribution</h2>
-                <p style={{ fontSize:"12px", color:"#94A3B8", margin:"2px 0 0", fontWeight:400 }}>Decisions bucketed by resolution time</p>
-              </div>
-              {loading ? <Spinner /> : (
-                <>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={cycleData} margin={{ top:5, right:5, bottom:0, left:-10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                      <XAxis dataKey="bucket" tick={{ fontSize:10, fill:"#94A3B8", fontFamily:"Outfit" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize:10, fill:"#94A3B8", fontFamily:"Outfit" }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="count" name="Decisions" radius={[6,6,0,0]}>
-                        {cycleData.map((_, i) => <Cell key={i} fill={cycleColors[i % cycleColors.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                  {/* Legend */}
-                  <div style={{ display:"flex", gap:"12px", marginTop:"12px", justifyContent:"center", flexWrap:"wrap" }}>
-                    {["0–24h","24–48h","48–72h",">72h"].map((l,i) => (
-                      <div key={l} style={{ display:"flex", alignItems:"center", gap:"5px" }}>
-                        <span style={{ width:"10px", height:"10px", borderRadius:"3px", background:cycleColors[i], display:"inline-block" }}/>
-                        <span style={{ fontSize:"11px", color:"#64748B", fontFamily:"'Outfit',sans-serif" }}>{l}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <CycleTimeHistogram filters={filters} />
 
-            {/* Anomaly Feed */}
-            <div style={{ height:"360px" }}>
+            {/* Anomaly Feed — unchanged */}
+            <div style={{ height: "360px" }}>
               <AnomalyFeed anomalies={anomalies} onAcknowledge={handleAcknowledge} />
             </div>
+
           </div>
+
+          {/* Compliance Trend — full width */}
+          <ComplianceTrendChart filters={filters} />
 
           {/* Risk Heatmap placeholder (Day 9) */}
           <div style={{ background:"white", borderRadius:"14px", padding:"20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04)" }}>
