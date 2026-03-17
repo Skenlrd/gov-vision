@@ -79,9 +79,13 @@ function parseNumber(value: string | undefined): number {
   return Number.isFinite(n) ? n : 0
 }
 
-function mapStatus(taskType: string | undefined): "approved" | "rejected" | "pending" {
+function mapStatus(
+  taskType: string | undefined,
+  completedAt: Date | null
+): "approved" | "rejected" | "pending" {
   if (taskType === "Approval") return "approved"
   if (taskType === "Escalation") return "rejected"
+  if (completedAt !== null) return "approved"
   return "pending"
 }
 
@@ -373,13 +377,20 @@ async function main() {
         stageCount: baseStageCount
       })
 
-      const cycleTimeHours = enriched.cycleTimeHours
+      const cycleTimeHours = createdAt && completedAt
+        ? parseFloat(
+            (
+              (completedAt.getTime() - createdAt.getTime())
+              / 1000 / 3600
+            ).toFixed(2)
+          )
+        : parseFloat((actualMinutes / 60).toFixed(2))
       const rejectionCount = enriched.rejectionCount
       const revisionCount = enriched.revisionCount
       const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, revisionCount)
 
       docs.push({
-        status: mapStatus(row.Task_Type),
+        status: mapStatus(row.Task_Type, completedAt),
         departmentId: departmentMeta?.departmentId ?? null,
         departmentName: departmentMeta?.departmentName ?? null,
         createdAt,

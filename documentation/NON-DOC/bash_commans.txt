@@ -36,6 +36,9 @@ open mongosh using your env URI
 cd server
 mongosh "$env:MONGODB_URI"
 
+testAggregator
+cd server; npx ts-node scripts/testAggregator.ts
+
 
 RUN ISOLATION
 cd C:/Users/win/Desktop/GithubUploads/gov_vision/server
@@ -44,3 +47,15 @@ npx ts-node scripts/inject.ts
 
 cd ../ml_service
 python training/train_isolation_forest.py
+
+
+Run order now: (17-3-2026)
+Start ML service first:
+cd ml_service
+python -m uvicorn main:app --port 8000 --reload
+Start backend:
+cd server
+npm run dev
+Start frontend:
+cd client
+npm run dev

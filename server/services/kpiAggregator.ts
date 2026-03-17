@@ -1,201 +1,202 @@
 import m1Decision from "../models/m1Decisions"
 import m2Violation from "../models/m2Violations"
 import KPISnapshot from "../models/KPI_Snapshot"
+import Anomaly from "../models/Anomaly"
 
 import { IKpiSummary } from "../types"
 
-/*
-  aggregateKPI computes KPIs for a single department
-  over a given date range and upserts the result
-  into m3_kpi_snapshots.
+const DEPARTMENTS = ["FI001", "HR002", "OP003", "IT004", "CS005"] as const
+const COMPLIANCE_SLA_GRACE_DAYS = 0
 
-  Called:
-  - By the webhook receiver (POST /api/events/decision-update)
-    whenever a decision changes state
-  - By the GET /api/analytics/kpi-summary/:deptId endpoint
-    when the Redis cache is expired
-*/
+function dayStart(date: Date): Date {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function getSlaDays(decision: Record<string, unknown>): number {
+  const slaDays = Number((decision as any).slaDays)
+  if (Number.isFinite(slaDays) && slaDays > 0) {
+    return slaDays
+  }
+
+  const stageCount = Number((decision as any).stageCount ?? 1)
+  return Math.max(1, stageCount * 2)
+}
+
+function getPendingDaysOverSLA(decision: Record<string, unknown>, now: Date): number {
+  const createdAtRaw = (decision as any).createdAt
+  if (!createdAtRaw) {
+    return 0
+  }
+
+  const createdAt = new Date(createdAtRaw)
+  if (Number.isNaN(createdAt.getTime())) {
+    return 0
+  }
+
+  const elapsedDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  const slaDays = getSlaDays(decision)
+  return Math.max(0, elapsedDays - slaDays)
+}
+
+async function calculateKPIs(
+  startDate: Date,
+  endDate: Date,
+  departmentId?: string
+): Promise<Record<string, unknown>> {
+  const decisionFilter: Record<string, unknown> = {
+    createdAt: { $gte: startDate, $lte: endDate }
+  }
+
+  if (departmentId && departmentId !== "ORG") {
+    decisionFilter.departmentId = departmentId
+  }
+
+  const decisions = await m1Decision.find(decisionFilter)
+
+  const totalDecisions = decisions.length
+  const approvedCount = decisions.filter(d => d.status === "approved").length
+  const rejectedCount = decisions.filter(d => d.status === "rejected").length
+  const pendingCount = decisions.filter(d => d.status === "pending").length
+
+  const completed = decisions.filter(d => d.completedAt)
+  const compliantDecisionCount = decisions.filter(
+    d => d.status === "approved" && Number(d.daysOverSLA ?? 0) <= COMPLIANCE_SLA_GRACE_DAYS
+  ).length
+
+  const avgCycleTimeHours =
+    completed.reduce((sum, d) => {
+      const diff =
+        (new Date(d.completedAt!).getTime() -
+          new Date(d.createdAt!).getTime()) / (1000 * 60 * 60)
+
+      return sum + diff
+    }, 0) / (completed.length || 1)
+
+  const violationFilter: Record<string, unknown> = {
+    createdAt: { $gte: startDate, $lte: endDate }
+  }
+
+  if (departmentId && departmentId !== "ORG") {
+    violationFilter.department = departmentId
+  }
+
+  const violations = await m2Violation.find(violationFilter)
+  const violationCount = violations.length
+  const openViolations = violations.filter(v => v.status === "open").length
+
+  const decisionIds = decisions.map((d) => (d as any)._id)
+  const anomalyCount = decisionIds.length
+    ? await Anomaly.countDocuments({
+      decisionId: { $in: decisionIds },
+      isAcknowledged: false
+    })
+    : 0
+
+  const complianceRate =
+    (compliantDecisionCount / (totalDecisions || 1)) * 100
+
+  const bottleneckThresholds: Record<string, number> = {}
+  const now = new Date()
+
+  const bottleneckCount = decisions.filter((d) => {
+    if (String(d.status ?? "").toLowerCase() !== "pending") {
+      return false
+    }
+
+    return getPendingDaysOverSLA(d as unknown as Record<string, unknown>, now) > 0
+  }).length
+
+  const bottleneckRate = totalDecisions
+    ? Math.round(((bottleneckCount / totalDecisions) * 100) * 10) / 10
+    : 0
+
+  return {
+    totalDecisions,
+    approvedCount,
+    rejectedCount,
+    pendingCount,
+    avgCycleTimeHours,
+    violationCount,
+    openViolations,
+    anomalyCount,
+    complianceRate,
+    bottleneckRate,
+    bottleneckCount,
+    bottleneckThresholds
+  }
+}
+
+async function saveSnapshot(
+  scopeId: string,
+  kpis: Record<string, unknown>
+): Promise<IKpiSummary> {
+  const today = dayStart(new Date())
+  const snapshot = await KPISnapshot.findOneAndUpdate(
+    {
+      departmentId: scopeId,
+      snapshotDate: today
+    },
+    {
+      $set: {
+        ...kpis,
+        departmentId: scopeId,
+        snapshotDate: today
+      }
+    },
+    {
+      upsert: true,
+      returnDocument: "after"
+    }
+  )
+
+  return snapshot as unknown as IKpiSummary
+}
+
+async function removeLegacyNullSnapshots(): Promise<void> {
+  await KPISnapshot.deleteMany({
+    $or: [
+      { departmentId: { $exists: true, $eq: null } },
+      { department: { $exists: true, $eq: null } }
+    ]
+  })
+}
+
+export async function aggregateAllDepartments(
+  dateFrom: Date,
+  dateTo: Date
+): Promise<IKpiSummary[]> {
+  const snapshots: IKpiSummary[] = []
+
+  for (const deptId of DEPARTMENTS) {
+    const kpis = await calculateKPIs(dateFrom, dateTo, deptId)
+    const snapshot = await saveSnapshot(deptId, kpis)
+    snapshots.push(snapshot)
+  }
+
+  await removeLegacyNullSnapshots()
+
+  return snapshots
+}
 
 export async function aggregateKPI(
   deptId: string,
   dateFrom: Date,
   dateTo: Date
 ): Promise<IKpiSummary> {
-
-  const decisions = await m1Decision.find({
-    departmentId: deptId,
-    createdAt: { $gte: dateFrom, $lte: dateTo }
-  })
-
-  const totalDecisions = decisions.length
-
-  const approvedCount =
-    decisions.filter(d => d.status === "approved").length
-
-  const rejectedCount =
-    decisions.filter(d => d.status === "rejected").length
-
-  const pendingCount =
-    decisions.filter(d => d.status === "pending").length
-
-  const completed = decisions.filter(d => d.completedAt)
-  const compliantCompletedCount = completed.filter(
-    d => d.status === "approved" && Number(d.daysOverSLA ?? 0) === 0
-  ).length
-
-  const avgCycleTimeHours =
-    completed.reduce((sum, d) => {
-
-      const diff =
-        (new Date(d.completedAt!).getTime() -
-          new Date(d.createdAt!).getTime()) / (1000 * 60 * 60)
-
-      return sum + diff
-
-    }, 0) / (completed.length || 1)
-
-  const violations = await m2Violation.find({
-    department: deptId,
-    createdAt: { $gte: dateFrom, $lte: dateTo }
-  })
-
-  const violationCount = violations.length
-
-  const openViolations =
-    violations.filter(v => v.status === "open").length
-
-  const complianceRate =
-    (compliantCompletedCount / (completed.length || 1)) * 100
-
-  const today = new Date().toISOString().split("T")[0]
-
-  const snapshot = await KPISnapshot.findOneAndUpdate(
-
-    {
-      departmentId: deptId,
-      snapshotDate: today
-    },
-
-    {
-      departmentId: deptId,
-      snapshotDate: new Date(),
-
-      totalDecisions,
-      approvedCount,
-      rejectedCount,
-      pendingCount,
-
-      avgCycleTimeHours,
-
-      violationCount,
-      openViolations,
-
-      complianceRate
-    },
-
-  {
-  upsert: true,
-  returnDocument: "after"
+  const kpis = await calculateKPIs(dateFrom, dateTo, deptId)
+  const snapshot = await saveSnapshot(deptId, kpis)
+  await removeLegacyNullSnapshots()
+  return snapshot
 }
-
-  )
-
-  return snapshot as unknown as IKpiSummary
-
-}
-
-/*
-  aggregateOrgKPI computes KPIs across all departments.
-
-  The departmentId field is stored as null to indicate
-  this is an org-wide aggregate, not department-specific.
-
-  Called by:
-  - GET /api/analytics/kpi-summary (no deptId param)
-  - The webhook receiver on every decision state change
-*/
 
 export async function aggregateOrgKPI(
   dateFrom: Date,
   dateTo: Date
 ): Promise<IKpiSummary> {
-
-  const decisions = await m1Decision.find({
-    createdAt: { $gte: dateFrom, $lte: dateTo }
-  })
-
-  const totalDecisions = decisions.length
-
-  const approvedCount =
-    decisions.filter(d => d.status === "approved").length
-
-  const rejectedCount =
-    decisions.filter(d => d.status === "rejected").length
-
-  const pendingCount =
-    decisions.filter(d => d.status === "pending").length
-
-  const completed = decisions.filter(d => d.completedAt)
-  const compliantCompletedCount = completed.filter(
-    d => d.status === "approved" && Number(d.daysOverSLA ?? 0) === 0
-  ).length
-
-  const avgCycleTimeHours =
-    completed.reduce((sum, d) => {
-
-      const diff =
-        (new Date(d.completedAt!).getTime() -
-          new Date(d.createdAt!).getTime()) / (1000 * 60 * 60)
-
-      return sum + diff
-
-    }, 0) / (completed.length || 1)
-
-  const violations = await m2Violation.find({
-    createdAt: { $gte: dateFrom, $lte: dateTo }
-  })
-
-  const violationCount = violations.length
-
-  const openViolations =
-    violations.filter(v => v.status === "open").length
-
-  const complianceRate =
-    (compliantCompletedCount / (completed.length || 1)) * 100
-
-  const today = new Date().toISOString().split("T")[0]
-
-  const snapshot = await KPISnapshot.findOneAndUpdate(
-
-    {
-      departmentId: null,
-      snapshotDate: today
-    },
-
-    {
-      departmentId: null,
-      snapshotDate: new Date(),
-
-      totalDecisions,
-      approvedCount,
-      rejectedCount,
-      pendingCount,
-
-      avgCycleTimeHours,
-
-      violationCount,
-      openViolations,
-
-      complianceRate
-    },
-
-    {
-      upsert: true,
-      new: true
-    }
-
-  )
-
-  return snapshot as unknown as IKpiSummary
-
+  const orgKpis = await calculateKPIs(dateFrom, dateTo)
+  const snapshot = await saveSnapshot("ORG", orgKpis)
+  await removeLegacyNullSnapshots()
+  return snapshot
 }

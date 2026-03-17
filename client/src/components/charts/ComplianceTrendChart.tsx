@@ -25,12 +25,56 @@ export default function ComplianceTrendChart({ filters }: Props) {
   const [data, setData] = useState<IComplianceTrendSeries[]>([])
   const [loading, setLoading] = useState(true)
 
+  const dayRange = Math.max(
+    1,
+    Math.ceil((new Date(filters.dateTo).getTime() - new Date(filters.dateFrom).getTime()) / 86400000)
+  )
+
+  const granularity: "daily" | "weekly" | "monthly" =
+    dayRange <= 90 ? "daily" : dayRange <= 365 ? "weekly" : "monthly"
+
+  const formatAxisLabel = (periodKey: string): string => {
+    if (granularity === "monthly") {
+      const [year, month] = periodKey.split("-")
+      const date = new Date(Number(year), Number(month) - 1, 1)
+      return date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    }
+
+    if (granularity === "weekly") {
+      const [year, weekPart] = periodKey.split("-W")
+      return `W${weekPart} ${year}`
+    }
+
+    const date = new Date(`${periodKey}T00:00:00`)
+    return date.toLocaleDateString("en-US", { month: "short", day: "2-digit" })
+  }
+
+  const formatTooltipTitle = (periodKey: string): string => {
+    if (granularity === "monthly") {
+      const [year, month] = periodKey.split("-")
+      const date = new Date(Number(year), Number(month) - 1, 1)
+      return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    }
+
+    if (granularity === "weekly") {
+      const [year, weekPart] = periodKey.split("-W")
+      return `Week ${weekPart}, ${year}`
+    }
+
+    const date = new Date(`${periodKey}T00:00:00`)
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    })
+  }
+
   useEffect(() => {
     let cancelled = false
     const fetch = async () => {
       try {
         setLoading(true)
-        const result = await getComplianceTrend(filters)
+        const result = await getComplianceTrend(filters, granularity)
         if (!cancelled) setData(result)
       } catch (err) {
         console.error("ComplianceTrendChart fetch error:", err)
@@ -41,14 +85,13 @@ export default function ComplianceTrendChart({ filters }: Props) {
     }
     fetch()
     return () => { cancelled = true }
-  }, [filters])
+  }, [filters, granularity])
 
-  /*
-    X-axis dates come from the first department's data array.
-    All departments share the same date range so this is safe.
-    Slice to MM-DD for display compactness.
-  */
-  const xAxisDates = data[0]?.data.map(d => d.date.slice(5)) ?? []
+  const periodKeys = Array.from(
+    new Set(data.flatMap((dept) => dept.data.map((point) => point.date)))
+  ).sort()
+
+  const xAxisDates = periodKeys.map(formatAxisLabel)
 
   /*
     Build one ECharts series per department.
@@ -60,7 +103,10 @@ export default function ComplianceTrendChart({ filters }: Props) {
     type: "line",
     smooth: true,
     color: DEPT_COLORS[idx % DEPT_COLORS.length],
-    data: dept.data.map(d => d.complianceRate),
+    data: periodKeys.map((periodKey) => {
+      const point = dept.data.find((d) => d.date === periodKey)
+      return point ? point.complianceRate : null
+    }),
     symbol: "circle",
     symbolSize: 5,
     lineStyle: { width: 2 },
@@ -96,11 +142,12 @@ export default function ComplianceTrendChart({ filters }: Props) {
         color: "#1E293B"
       },
       formatter: (params: any) => {
+        const periodKey = periodKeys[params[0]?.dataIndex] ?? ""
         const lines = params.map((p: any) =>
           `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:6px"></span>` +
-          `${p.seriesName}: <b>${p.value?.toFixed(1)}%</b>`
+          `${p.seriesName}: <b>${(p.value ?? 0).toFixed(1)}%</b>`
         ).join("<br/>")
-        return `<div style="font-family:Outfit;font-size:12px"><div style="color:#64748B;margin-bottom:4px">${params[0].axisValue}</div>${lines}</div>`
+        return `<div style="font-family:Outfit;font-size:12px"><div style="color:#64748B;margin-bottom:4px">${formatTooltipTitle(periodKey)}</div>${lines}</div>`
       }
     },
     legend: {
@@ -114,7 +161,12 @@ export default function ComplianceTrendChart({ filters }: Props) {
       data: xAxisDates,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { fontFamily: "Outfit", fontSize: 10, color: "#94A3B8" },
+      axisLabel: {
+        fontFamily: "Outfit",
+        fontSize: 10,
+        color: "#94A3B8",
+        rotate: granularity === "monthly" ? 20 : 0
+      },
       splitLine: { show: false }
     },
     yAxis: {
@@ -147,7 +199,7 @@ export default function ComplianceTrendChart({ filters }: Props) {
           Compliance Rate Trend
         </h2>
         <p style={{ fontSize: "12px", color: "#94A3B8", margin: "2px 0 0", fontFamily: "'Outfit', sans-serif" }}>
-          Target: 95% — by department
+          Target: 95% — by department ({granularity})
         </p>
       </div>
 

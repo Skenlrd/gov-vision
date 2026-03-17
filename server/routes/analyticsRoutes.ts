@@ -284,49 +284,102 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
     */
     const deptsParam = req.query.depts as string | undefined
     const deptIdParam = req.query.deptId as string | undefined
+    const granularityParam = (req.query.granularity as string | undefined) ?? "daily"
 
-    const matchStage: Record<string, unknown> = {
-      snapshotDate: { $gte: dateFrom, $lte: dateTo },
-      departmentId: { $ne: null }
+    const formatMap: Record<string, string> = {
+      daily: "%Y-%m-%d",
+      weekly: "%G-W%V",
+      monthly: "%Y-%m"
+    }
+
+    const dateFormat = formatMap[granularityParam] ?? formatMap.daily
+
+    const decisionMatch: Record<string, unknown> = {
+      createdAt: { $gte: dateFrom, $lte: dateTo }
     }
 
     if (deptsParam) {
-      matchStage.departmentId = {
-        $in: deptsParam.split(",")
-      }
+      decisionMatch.departmentId = { $in: deptsParam.split(",") }
     } else if (deptIdParam) {
-      matchStage.departmentId = deptIdParam
+      decisionMatch.departmentId = deptIdParam
     }
 
-    const snapshots = await KPISnapshot.find(matchStage)
-      .sort({ snapshotDate: 1 })
-      .lean()
+    const seriesPoints = await m1Decision.aggregate([
+      { $match: decisionMatch },
+      {
+        $addFields: {
+          normalizedDept: { $ifNull: ["$departmentId", "$department"] },
+          isCompleted: {
+            $cond: [{ $ifNull: ["$completedAt", false] }, 1, 0]
+          },
+          isCompliantCompleted: {
+            $cond: [
+              {
+                $and: [
+                  { $ifNull: ["$completedAt", false] },
+                  { $eq: ["$status", "approved"] },
+                  { $eq: [{ $ifNull: ["$daysOverSLA", 0] }, 0] }
+                ]
+              },
+              1,
+              0
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            department: "$normalizedDept",
+            date: {
+              $dateToString: {
+                format: dateFormat,
+                date: "$createdAt"
+              }
+            }
+          },
+          completedCount: { $sum: "$isCompleted" },
+          compliantCompletedCount: { $sum: "$isCompliantCompleted" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id.department",
+          date: "$_id.date",
+          complianceRate: {
+            $cond: [
+              { $gt: ["$completedCount", 0] },
+              {
+                $multiply: [
+                  { $divide: ["$compliantCompletedCount", "$completedCount"] },
+                  100
+                ]
+              },
+              0
+            ]
+          }
+        }
+      },
+      { $sort: { department: 1, date: 1 } }
+    ])
 
-    /*
-      Group by department into separate series.
-      Each series is one line on the ECharts multi-line chart.
-    */
     const seriesMap: Record<string, { date: string, complianceRate: number }[]> = {}
 
-    snapshots.forEach(snap => {
-
-      const deptKey = snap.departmentId
-        ? snap.departmentId.toString()
-        : "org"
-
+    seriesPoints.forEach((point) => {
+      const deptKey = String(point.department ?? "Unknown")
       if (!seriesMap[deptKey]) {
         seriesMap[deptKey] = []
       }
 
       seriesMap[deptKey].push({
-        date:           snap.snapshotDate.toISOString().split("T")[0],
-        complianceRate: snap.complianceRate
+        date: String(point.date),
+        complianceRate: Number(point.complianceRate ?? 0)
       })
-
     })
 
-    const data = Object.entries(seriesMap).map(([departmentId, points]) => ({
-      department: departmentId,
+    const data = Object.entries(seriesMap).map(([department, points]) => ({
+      department,
       data: points
     }))
 

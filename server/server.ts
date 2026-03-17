@@ -8,6 +8,7 @@ import morgan from "morgan"
 
 import { connectMongo } from "./config/db"
 import { connectRedis } from "./config/redis"
+import { runAnomalyDetection } from "./jobs/anomalyJob"
 
 import analyticsRoutes from "./routes/analyticsRoutes"
 import eventRoutes     from "./routes/eventRoutes"
@@ -73,6 +74,7 @@ app.get("/health", (req, res) => {
 async function startServer() {
   try {
     await connectMongo()
+    void runAnomalyDetection()
 
     try {
       await connectRedis()

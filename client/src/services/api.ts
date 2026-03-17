@@ -98,11 +98,13 @@ export const getCycleTimeHistogram = async (
 }
 
 export const getComplianceTrend = async (
-  filters: IFilter
+  filters: IFilter,
+  granularity: "daily" | "weekly" | "monthly" = "daily"
 ): Promise<IComplianceTrendSeries[]> => {
   const params: Record<string, string> = {
     dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo
+    dateTo: filters.dateTo,
+    granularity
   }
 
   if (filters.deptId) params.deptId = filters.deptId

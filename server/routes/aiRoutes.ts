@@ -1,30 +1,28 @@
 import { Router, Request, Response } from "express"
-import { validateJWT } from "../middleware/validateJWT"
-import { requireRole } from "../middleware/requireRole"
+import Anomaly from "../models/Anomaly"
 
 const router = Router()
 
-/*
-  Stubs only — handlers filled in on Day 7
-  when the Isolation Forest model is ready.
-*/
+router.get("/anomalies", async (req: Request, res: Response) => {
+  const anomalies = await Anomaly.find({ isAcknowledged: false })
+    .sort({ anomalyScore: -1 })
 
-router.get(
-  "/anomalies",
-  validateJWT,
-  requireRole(["manager", "admin", "executive"]),
-  async (req: Request, res: Response) => {
-    res.json({ message: "AI routes coming Day 7" })
-  }
-)
+  res.json(anomalies)
+})
 
-router.put(
-  "/anomalies/:id/acknowledge",
-  validateJWT,
-  requireRole(["manager", "admin", "executive"]),
-  async (req: Request, res: Response) => {
-    res.json({ message: "AI routes coming Day 7" })
-  }
-)
+router.put("/anomalies/:id/acknowledge", async (req: Request, res: Response) => {
+  const updated = await Anomaly.findByIdAndUpdate(
+    req.params.id,
+    {
+      $set: {
+        isAcknowledged: true,
+        acknowledgedAt: new Date()
+      }
+    },
+    { new: true }
+  )
+
+  res.json(updated)
+})
 
 export default router

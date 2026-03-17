@@ -15,6 +15,8 @@ export interface IKpiSummary {
   violationCount: number
   openViolations: number
   complianceRate: number
+  bottleneckRate?: number
+  bottleneckCount?: number
   anomalyCount?: number
   riskScore?: number
   riskLevel?: string

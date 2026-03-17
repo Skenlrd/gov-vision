@@ -2,20 +2,32 @@ import dotenv from "dotenv"
 dotenv.config()
 
 import mongoose from "mongoose"
-import { aggregateOrgKPI } from "../services/kpiAggregator"
+import {
+  aggregateOrgKPI,
+  aggregateAllDepartments
+} from "../services/kpiAggregator"
 
 async function test() {
 
   await mongoose.connect(process.env.MONGODB_URI!)
   console.log("Connected")
 
-  const result = await aggregateOrgKPI(
-    new Date("2026-01-01"),
-    new Date()
+  const startDate = new Date("2025-01-01")
+  const endDate = new Date()
+
+  const orgResult = await aggregateOrgKPI(
+    startDate,
+    endDate
   )
 
-  console.log("\n--- KPI Result ---")
-  console.log(JSON.stringify(result, null, 2))
+  await aggregateAllDepartments(
+    startDate,
+    endDate
+  )
+
+  console.log("\n--- ORG KPI ---")
+  console.log(JSON.stringify(orgResult, null, 2))
+  console.log("\n--- All department snapshots saved ---")
 
   process.exit(0)
 

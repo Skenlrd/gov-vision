@@ -75,6 +75,21 @@ const kpiSnapshotSchema = new Schema(
       default: 100
     },
 
+    bottleneckRate: {
+      type: Number,
+      default: 0
+    },
+
+    bottleneckCount: {
+      type: Number,
+      default: 0
+    },
+
+    bottleneckThresholds: {
+      type: Schema.Types.Mixed,
+      default: {}
+    },
+
     // Filled in later by anomaly detection cron job (Day 7)
     anomalyCount: {
       type: Number,

@@ -1,8 +1,26 @@
-import type { IAnomaly } from "../types"
+import { useEffect, useMemo, useState } from "react"
+import axios from "axios"
+
+const apiHost = window.location.hostname || "localhost"
+const apiProtocol = window.location.protocol
+const apiPort = import.meta.env.VITE_API_PORT || "5002"
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL || `${apiProtocol}//${apiHost}:${apiPort}`
+
+interface IFeedAnomaly {
+  _id: string
+  anomalyScore: number
+  severity: string
+  isAcknowledged: boolean
+  department: string
+  decisionId: string
+  description: string
+  detectedAt?: string
+}
 
 interface AnomalyFeedProps {
-  anomalies: IAnomaly[]
-  onAcknowledge: (id: string) => void
+  anomalies?: IFeedAnomaly[]
+  onAcknowledge?: (id: string) => void
 }
 
 const severityConfig: Record<string, {
@@ -30,9 +48,60 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedProps) {
-  const sorted = [...anomalies].sort((a, b) =>
+  const [feedAnomalies, setFeedAnomalies] = useState<IFeedAnomaly[]>(anomalies ?? [])
+
+  useEffect(() => {
+    if (anomalies) {
+      setFeedAnomalies(anomalies)
+    }
+  }, [anomalies])
+
+  useEffect(() => {
+    const fetchAnomalies = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        const response = await axios.get(`${apiBaseUrl}/api/ai/anomalies`, {
+          headers: {
+            Authorization: `Bearer ${token ?? ""}`
+          }
+        })
+
+        const data = Array.isArray(response.data)
+          ? response.data
+          : (response.data?.data ?? [])
+
+        setFeedAnomalies(data)
+      } catch (error) {
+        console.error("Failed to fetch anomalies:", error)
+      }
+    }
+
+    fetchAnomalies()
+  }, [])
+
+  const sorted = useMemo(() => [...feedAnomalies].sort((a, b) =>
     new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime()
-  )
+  ), [feedAnomalies])
+
+  const handleAcknowledge = async (id: string) => {
+    try {
+      const token = localStorage.getItem("token")
+      await axios.put(
+        `${apiBaseUrl}/api/ai/anomalies/${id}/acknowledge`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token ?? ""}`
+          }
+        }
+      )
+
+      setFeedAnomalies((prev) => prev.filter((a) => a._id !== id))
+      onAcknowledge?.(id)
+    } catch (error) {
+      console.error("Failed to acknowledge anomaly:", error)
+    }
+  }
 
   return (
     <div style={{
@@ -71,7 +140,7 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
             Real-Time Anomalies
           </span>
         </div>
-        {anomalies.length > 0 && (
+        {feedAnomalies.length > 0 && (
           <span style={{
             background: "#EF4444",
             color: "white",
@@ -81,7 +150,7 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
             borderRadius: "20px",
             fontFamily: "'Outfit', sans-serif"
           }}>
-            {anomalies.length} Active
+            {feedAnomalies.length} Active
           </span>
         )}
       </div>
@@ -156,7 +225,7 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
                     </span>
                   </div>
                   <span style={{ fontSize: "10px", color: "#94A3B8", fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>
-                    {timeAgo(anomaly.detectedAt)}
+                    {timeAgo(anomaly.detectedAt ?? new Date().toISOString())}
                   </span>
                 </div>
 
@@ -184,7 +253,7 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
                     {anomaly.department}
                   </span>
                   <button
-                    onClick={() => onAcknowledge(anomaly._id)}
+                    onClick={() => handleAcknowledge(anomaly._id)}
                     style={{
                       fontSize: "11px",
                       fontWeight: 600,
@@ -208,7 +277,7 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
       </div>
 
       {/* Footer */}
-      {anomalies.length > 0 && (
+      {feedAnomalies.length > 0 && (
         <div style={{
           padding: "12px 18px",
           borderTop: "1px solid #F1F5F9",

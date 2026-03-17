@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import type { IKpiSummary, IAnomaly, IFilter } from "../types"
+import type { IKpiSummary, IFilter } from "../types"
 import {
-  getKpiSummary, getDeptKpiSummary, getAnomalies,
-  acknowledgeAnomaly
+  getKpiSummary, getDeptKpiSummary
 } from "../services/api"
 import KPICard from "../components/KPICard"
 import AnomalyFeed from "../components/AnomalyFeed"
@@ -43,7 +42,6 @@ const DEPARTMENTS = [
 export default function Dashboard() {
   const [filters,     setFilters]     = useState<IFilter>(getDefaultFilters())
   const [kpi,         setKpi]         = useState<IKpiSummary | null>(null)
-  const [anomalies,   setAnomalies]   = useState<IAnomaly[]>([])
   const [isLive,      setIsLive]      = useState(true)
   const [timeframe,   setTimeframe]   = useState("all")
   const [heatmapReady] = useState(false)
@@ -53,8 +51,6 @@ export default function Dashboard() {
     try {
       const kpiData = filters.deptId ? await getDeptKpiSummary(filters.deptId, filters) : await getKpiSummary(filters)
       setKpi(kpiData)
-      const anomalyData = await getAnomalies()
-      setAnomalies(anomalyData.filter(a => !a.isAcknowledged))
       lastFetchRef.current = Date.now(); setIsLive(true)
     } catch (err) {
       console.error("Dashboard fetch error:", err); setIsLive(false)
@@ -70,14 +66,9 @@ export default function Dashboard() {
     return () => clearInterval(iv)
   }, [fetchAll])
 
-  const handleAcknowledge = async (id: string) => {
-    setAnomalies(prev => prev.filter(a => a._id !== id))
-    try { await acknowledgeAnomaly(id) } catch (err) { console.error(err) }
-  }
-
   const totalDecisions = kpi?.totalDecisions ?? 0
-  const approvalRate   = totalDecisions > 0 ? Math.round((kpi!.approvedCount / totalDecisions) * 100) : 0
-  const rejectionRate  = totalDecisions > 0 ? Math.round((kpi!.rejectedCount  / totalDecisions) * 100) : 0
+  const approvalRate   = totalDecisions > 0 ? Number(((kpi!.approvedCount / totalDecisions) * 100).toFixed(1)) : 0
+  const rejectionRate  = totalDecisions > 0 ? Number(((kpi!.rejectedCount  / totalDecisions) * 100).toFixed(1)) : 0
   const days = Math.max(1, (new Date(filters.dateTo).getTime() - new Date(filters.dateFrom).getTime()) / 86400000)
   const throughput = totalDecisions > 0 ? Math.round(((kpi!.approvedCount + kpi!.rejectedCount) / days)) : 0
 
@@ -247,12 +238,12 @@ export default function Dashboard() {
             <KPICard title="Approval Rate"      value={approvalRate}       unit="%"           icon={Icons.approval}   accentColor="#10B981" bgGradient="linear-gradient(135deg,#10B981,#059669)" />
             <KPICard title="Rejection Rate"     value={rejectionRate}      unit="%"           icon={Icons.rejection}  accentColor="#EF4444" bgGradient="linear-gradient(135deg,#EF4444,#DC2626)" invertTrend />
             <KPICard title="Avg Approval Time"  value={Math.round(kpi?.avgCycleTimeHours??0)} unit="h" icon={Icons.cycle} accentColor="#F59E0B" bgGradient="linear-gradient(135deg,#F59E0B,#D97706)" />
-            <KPICard title="Bottleneck Rate"    value={0}                  unit="%"           icon={Icons.bottleneck} accentColor="#8B5CF6" bgGradient="linear-gradient(135deg,#8B5CF6,#7C3AED)" />
+            <KPICard title="Bottleneck Rate"    value={Number((kpi?.bottleneckRate ?? 0).toFixed(1))} unit="%" icon={Icons.bottleneck} accentColor="#8B5CF6" bgGradient="linear-gradient(135deg,#8B5CF6,#7C3AED)" />
           </div>
 
           {/* Row 2 — 5 KPI cards */}
           <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:"14px" }}>
-            <KPICard title="Compliance Rate"    value={Math.round(kpi?.complianceRate??0)} unit="%" icon={Icons.compliance} accentColor="#10B981" bgGradient="linear-gradient(135deg,#10B981,#047857)" />
+            <KPICard title="Compliance Rate"    value={Number((kpi?.complianceRate??0).toFixed(1))} unit="%" icon={Icons.compliance} accentColor="#10B981" bgGradient="linear-gradient(135deg,#10B981,#047857)" />
             <KPICard title="Violation Count"    value={kpi?.violationCount??0}                     icon={Icons.violation}  accentColor="#EF4444" bgGradient="linear-gradient(135deg,#EF4444,#B91C1C)" invertTrend />
             <KPICard title="Decision Throughput" value={throughput}         unit="/day"             icon={Icons.throughput} accentColor="#0EA5E9" bgGradient="linear-gradient(135deg,#38BDF8,#0284C7)" />
             <KPICard title="Anomaly Count"      value={kpi?.anomalyCount??0}                        icon={Icons.anomaly}    accentColor="#F97316" bgGradient="linear-gradient(135deg,#F97316,#EA580C)" invertTrend />
@@ -267,7 +258,7 @@ export default function Dashboard() {
 
             {/* Anomaly Feed — unchanged */}
             <div style={{ height: "360px" }}>
-              <AnomalyFeed anomalies={anomalies} onAcknowledge={handleAcknowledge} />
+              <AnomalyFeed />
             </div>
 
           </div>
@@ -280,7 +271,7 @@ export default function Dashboard() {
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
               <div>
                 <h2 style={{ fontSize:"14px", fontWeight:700, color:"#1E293B", margin:0 }}>Departmental Risk Heatmap</h2>
-                <p style={{ fontSize:"12px", color:"#94A3B8", margin:"2px 0 0" }}>Risk concentration by category — available Day 9</p>
+                <p style={{ fontSize:"12px", color:"#94A3B8", margin:"2px 0 0" }}>Risk concentration by category</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                 <span style={{ fontSize:"11px", color:"#94A3B8" }}>Low</span>

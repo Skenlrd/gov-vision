@@ -507,14 +507,27 @@ curl -X POST "http://localhost:8000/ml/anomaly/predict" \
 
 ## 4. End-of-Day-6 Known Pending Items
 
+
 1. AI route integration on Node side remains partial:
-   - server/routes/aiRoutes.ts is still stub-oriented and needs complete wiring to ML service methods.
+  - server/routes/aiRoutes.ts is still stub-oriented and needs complete wiring to ML service methods. (No new work yet; still pending)
 
-2. Some analytics JWT guards are intentionally commented for development flow and should be fully re-enabled before production release.
+2. Some analytics JWT guards are intentionally commented for development flow and should be fully re-enabled before production release. (No change; still pending)
 
-3. Risk heatmap UI remains intentionally deferred (placeholder exists in dashboard).
+3. Risk heatmap UI remains intentionally deferred (placeholder exists in dashboard). (No change; still pending)
 
-4. Some historical notes reference previous ObjectId-based department testing; canonical string IDs are now the active direction for consistency.
+4. Some historical notes reference previous ObjectId-based department testing; canonical string IDs are now the active direction for consistency. (This migration is now fully complete and used everywhere)
+
+---
+
+## 4a. Items Removed or Skipped (with Reason)
+
+### Skipped/Removed:
+- **Full user/role JWT authentication**: Skipped for local development to speed up testing. (Commented in code, can be re-enabled for production.)
+- **Redis as a hard requirement**: Redis is optional in dev mode; backend can run without it for local testing.
+- **Advanced analytics and risk scoring features**: Only placeholders/UI stubs exist; implementation deferred to future sprints.
+- **ObjectId-based department IDs**: Fully removed in favor of canonical string IDs for all modules and data flows.
+
+All changes above are reflected in the current codebase and documentation. See all6.md for a precise, up-to-date technical summary of the project as of Day 6.
 
 ---
 
@@ -566,3 +579,32 @@ From Day 1 to Day 6, the project progressed from initial scaffold to a functioni
 - and a secured Isolation Forest anomaly detection service.
 
 This provides a strong base for subsequent days covering full AI route integration, report generation depth, and advanced risk visualization.
+
+---
+
+## 7. Post-Day-6: Major Fixes, Refactors, and Analytics Debugging (March 2026)
+
+### A. KPI Logic and Data Normalization Overhaul
+- Refactored bottleneck KPI logic to count only pending tasks overdue their SLA (was previously including all pending).
+- Normalized all pending tasks in the database: ensured `completedAt` and `cycleTimeHours` are null, counts are zero, and `daysOverSLA` is computed live.
+- Set compliance logic to treat SLA as 0 for stricter compliance rate calculation.
+- Clarified and separated compliance, approval, and bottleneck logic in `kpiAggregator.ts`.
+- Recomputed all KPI snapshots after normalization and logic changes.
+
+### B. Anomaly Detection and Dashboard Discrepancy Investigation
+- Investigated why dashboard anomaly count was much lower than model training output.
+- Determined dashboard only shows unacknowledged anomalies from recent completed decisions (last 30 days), while model training scores all data.
+- Ran side-by-side analysis:
+  - Total anomalies in collection
+  - Unacknowledged anomalies
+  - Anomalies among last 30 days
+  - Model-predicted anomalies if scoring all data now
+- Documented that data normalization and logic changes reduced active anomalies, and dashboard count is now accurate to business rules.
+
+### C. Data and Job Execution Notes
+- Noted that anomaly job only runs at backend startup (not streaming/continuous), so dashboard can become stale if data changes after job runs.
+- Provided scripts and commands to re-trigger anomaly job and refresh analytics.
+
+### D. Documentation and Runbook Updates
+- Updated documentation to reflect new KPI logic, normalization steps, and anomaly count methodology.
+- Added troubleshooting notes for dashboard/model anomaly count mismatches.
