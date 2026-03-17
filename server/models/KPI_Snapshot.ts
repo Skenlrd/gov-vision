@@ -7,7 +7,7 @@ import mongoose, { Schema } from "mongoose"
   for one department (or null for org-wide aggregate).
 
   Documents are upserted — one document per
-  (department + snapshotDate) pair.
+  (departmentId + snapshotDate) pair.
   Calling aggregateKPI() twice on the same day
   updates the existing document rather than
   creating a duplicate.
@@ -18,9 +18,9 @@ const kpiSnapshotSchema = new Schema(
 
     /*
       null means this is an org-wide aggregate snapshot.
-      A canonical string means this is a department-specific snapshot.
+      A canonical department ID means this is a department-specific snapshot.
     */
-    department: {
+    departmentId: {
       type: String,
       default: null
     },
@@ -101,6 +101,6 @@ const kpiSnapshotSchema = new Schema(
 )
 
 // Compound index so upsert matching is fast
-kpiSnapshotSchema.index({ department: 1, snapshotDate: 1 })
+kpiSnapshotSchema.index({ departmentId: 1, snapshotDate: 1 })
 
 export default mongoose.model("KPI_Snapshot", kpiSnapshotSchema)

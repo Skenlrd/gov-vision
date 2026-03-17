@@ -1,7 +1,7 @@
 # FRONTEND DOCUMENTATION - Day 4
 
 ## Overview
-Day 4 implements the Executive Dashboard for GovVision Module 3 in the frontend app. The current frontend includes a fixed dark sidebar, a minimal top action bar, animated KPI cards, a real-time anomaly feed, two chart panels, department/date filtering, and a Day 9 placeholder for the risk heatmap.
+Day 4 implements the Analytics Dashboard for GovVision in the frontend app. The current frontend includes a fixed dark sidebar, a minimal top action bar, animated KPI cards, a real-time anomaly feed, two chart panels, department/date filtering, and a Day 9 placeholder for the risk heatmap.
 
 This document describes the current implemented UI and the elements currently present in the dashboard screen.
 
@@ -180,8 +180,8 @@ This section lists the current visible UI components and elements rendered on th
 - avatar button with initials `AC`
 
 ### Header and filter elements
-- breadcrumb trail: `Home > Dashboards > Executive Analytics`
-- main page title: `Executive Analytics Dashboard`
+- breadcrumb trail: `Home > Dashboards > Analytics`
+- main page title: `Analytics Dashboard`
 - `Time Frame` dropdown
 - department dropdown
 - `Export Data` button

@@ -84,10 +84,9 @@ CSV import via npx: npx ts-node scripts/importCSV.ts
 
 
 
-THINGS THAT HAS BEEN SKIPEED
+**THINGS THAT HAS BEEN SKIPEED**
 AUTH ACCORDING TO USER
 REDIS
 OBJECTID OF THE DPT ID
 RN AUTH ACCORING TO ROLES AND JWT IS SKIPPED
 
-Document everything in detail. Also explain how the system works, what we are doing, and which Bash commands need to be run at each step (such as running Uvicorn). Explain everything in detail, including what has been installed, what has been done, and document the entire process.

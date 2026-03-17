@@ -23,7 +23,7 @@ export async function aggregateKPI(
 ): Promise<IKpiSummary> {
 
   const decisions = await m1Decision.find({
-    department: deptId,
+    departmentId: deptId,
     createdAt: { $gte: dateFrom, $lte: dateTo }
   })
 
@@ -39,6 +39,9 @@ export async function aggregateKPI(
     decisions.filter(d => d.status === "pending").length
 
   const completed = decisions.filter(d => d.completedAt)
+  const compliantCompletedCount = completed.filter(
+    d => d.status === "approved" && Number(d.daysOverSLA ?? 0) === 0
+  ).length
 
   const avgCycleTimeHours =
     completed.reduce((sum, d) => {
@@ -62,20 +65,19 @@ export async function aggregateKPI(
     violations.filter(v => v.status === "open").length
 
   const complianceRate =
-    ((totalDecisions - violationCount) /
-      (totalDecisions || 1)) * 100
+    (compliantCompletedCount / (completed.length || 1)) * 100
 
   const today = new Date().toISOString().split("T")[0]
 
   const snapshot = await KPISnapshot.findOneAndUpdate(
 
     {
-      department: deptId,
+      departmentId: deptId,
       snapshotDate: today
     },
 
     {
-      department: deptId,
+      departmentId: deptId,
       snapshotDate: new Date(),
 
       totalDecisions,
@@ -105,7 +107,7 @@ export async function aggregateKPI(
 /*
   aggregateOrgKPI computes KPIs across all departments.
 
-  The department field is stored as null to indicate
+  The departmentId field is stored as null to indicate
   this is an org-wide aggregate, not department-specific.
 
   Called by:
@@ -134,6 +136,9 @@ export async function aggregateOrgKPI(
     decisions.filter(d => d.status === "pending").length
 
   const completed = decisions.filter(d => d.completedAt)
+  const compliantCompletedCount = completed.filter(
+    d => d.status === "approved" && Number(d.daysOverSLA ?? 0) === 0
+  ).length
 
   const avgCycleTimeHours =
     completed.reduce((sum, d) => {
@@ -156,20 +161,19 @@ export async function aggregateOrgKPI(
     violations.filter(v => v.status === "open").length
 
   const complianceRate =
-    ((totalDecisions - violationCount) /
-      (totalDecisions || 1)) * 100
+    (compliantCompletedCount / (completed.length || 1)) * 100
 
   const today = new Date().toISOString().split("T")[0]
 
   const snapshot = await KPISnapshot.findOneAndUpdate(
 
     {
-      department: null,
+      departmentId: null,
       snapshotDate: today
     },
 
     {
-      department: null,
+      departmentId: null,
       snapshotDate: new Date(),
 
       totalDecisions,

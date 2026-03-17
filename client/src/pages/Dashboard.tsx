@@ -27,9 +27,8 @@ const Icons = {
 }
 
 function getDefaultFilters(): IFilter {
-  const today = new Date(); const thirty = new Date()
-  thirty.setDate(today.getDate() - 30)
-  return { dateFrom: thirty.toISOString().split("T")[0], dateTo: today.toISOString().split("T")[0], deptId: null }
+  const today = new Date()
+  return { dateFrom: "2024-01-01", dateTo: today.toISOString().split("T")[0], deptId: null }
 }
 
 const DEPARTMENTS = [
@@ -46,7 +45,7 @@ export default function Dashboard() {
   const [kpi,         setKpi]         = useState<IKpiSummary | null>(null)
   const [anomalies,   setAnomalies]   = useState<IAnomaly[]>([])
   const [isLive,      setIsLive]      = useState(true)
-  const [timeframe,   setTimeframe]   = useState("30")
+  const [timeframe,   setTimeframe]   = useState("all")
   const [heatmapReady] = useState(false)
   const lastFetchRef = useRef<number>(Date.now())
 
@@ -82,7 +81,20 @@ export default function Dashboard() {
   const days = Math.max(1, (new Date(filters.dateTo).getTime() - new Date(filters.dateFrom).getTime()) / 86400000)
   const throughput = totalDecisions > 0 ? Math.round(((kpi!.approvedCount + kpi!.rejectedCount) / days)) : 0
 
-  const applyPreset = (d: number) => {
+  const applyPreset = (d: number | "all" | "2025") => {
+    if (d === "all") {
+      const today = new Date()
+      setTimeframe("all")
+      setFilters(f => ({ ...f, dateFrom: "2024-01-01", dateTo: today.toISOString().split("T")[0] }))
+      return
+    }
+
+    if (d === "2025") {
+      setTimeframe("2025")
+      setFilters(f => ({ ...f, dateFrom: "2025-01-01", dateTo: "2025-12-31" }))
+      return
+    }
+
     const today = new Date(); const from = new Date()
     from.setDate(today.getDate() - d)
     setTimeframe(String(d))
@@ -114,17 +126,20 @@ export default function Dashboard() {
               <div style={{ fontSize:"12px", color:"#94A3B8", marginBottom:"4px", display:"flex", alignItems:"center", gap:"6px" }}>
                 <span>Home</span><span style={{color:"#CBD5E1"}}>›</span>
                 <span>Dashboards</span><span style={{color:"#CBD5E1"}}>›</span>
-                <span style={{color:"#3B82F6",fontWeight:600}}>Executive Analytics</span>
+                <span style={{color:"#3B82F6",fontWeight:600}}>Analytics</span>
               </div>
               <h1 style={{ fontSize:"22px", fontWeight:800, color:"#0F172A", margin:0, letterSpacing:"-0.5px" }}>
-                Executive Analytics Dashboard
+                Analytics Dashboard
               </h1>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               <select
                 value={timeframe}
-                onChange={e => applyPreset(Number(e.target.value))}
+                onChange={e => {
+                  const value = e.target.value
+                  applyPreset(value === "all" || value === "2025" ? value : Number(value))
+                }}
                 style={{
                   padding: "7px 12px",
                   borderRadius: "8px",
@@ -141,7 +156,8 @@ export default function Dashboard() {
                 <option value="7">Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 90 Days</option>
-                <option value="365">Last 1 Year</option>
+                <option value="2025">2025</option>
+                <option value="all">All Data</option>
               </select>
 
 
@@ -161,7 +177,7 @@ export default function Dashboard() {
                 showYearDropdown
                 dropdownMode="select"
                 maxDate={new Date(filters.dateTo)}
-                minDate={new Date("2025-01-01")}
+                minDate={new Date("2024-01-01")}
                 customInput={
                   <input
                     style={{

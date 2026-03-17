@@ -27,7 +27,7 @@ router.get("/kpi-summary", /* validateJWT, */ async (req: Request, res: Response
 
     const dateFrom = req.query.dateFrom
       ? new Date(req.query.dateFrom as string)
-      : new Date(new Date().setDate(new Date().getDate() - 30))
+      : new Date("2024-01-01")
 
     const dateTo = req.query.dateTo
       ? new Date(req.query.dateTo as string)
@@ -72,7 +72,7 @@ router.get("/kpi-summary/:deptId", /* validateJWT, */ async (req: Request, res: 
 
     const dateFrom = req.query.dateFrom
       ? new Date(req.query.dateFrom as string)
-      : new Date(new Date().setDate(new Date().getDate() - 30))
+      : new Date("2024-01-01")
 
     const dateTo = req.query.dateTo
       ? new Date(req.query.dateTo as string)
@@ -117,7 +117,7 @@ router.get("/decision-volume", /* validateJWT, */ async (req: Request, res: Resp
 
     const dateFrom = req.query.dateFrom
       ? new Date(req.query.dateFrom as string)
-      : new Date(new Date().setDate(new Date().getDate() - 30))
+      : new Date("2024-01-01")
 
     const dateTo = req.query.dateTo
       ? new Date(req.query.dateTo as string)
@@ -147,7 +147,7 @@ router.get("/decision-volume", /* validateJWT, */ async (req: Request, res: Resp
     }
 
     if (deptId) {
-      matchStage.department = deptId
+      matchStage.departmentId = deptId
     }
 
     const result = await m1Decision.aggregate([
@@ -196,7 +196,7 @@ router.get("/cycle-time-histogram", /* validateJWT, */ async (req: Request, res:
 
     const dateFrom = req.query.dateFrom
       ? new Date(req.query.dateFrom as string)
-      : new Date(new Date().setDate(new Date().getDate() - 30))
+      : new Date("2024-01-01")
 
     const dateTo = req.query.dateTo
       ? new Date(req.query.dateTo as string)
@@ -270,7 +270,7 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
 
     const dateFrom = req.query.dateFrom
       ? new Date(req.query.dateFrom as string)
-      : new Date(new Date().setDate(new Date().getDate() - 30))
+      : new Date("2024-01-01")
 
     const dateTo = req.query.dateTo
       ? new Date(req.query.dateTo as string)
@@ -287,15 +287,15 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
 
     const matchStage: Record<string, unknown> = {
       snapshotDate: { $gte: dateFrom, $lte: dateTo },
-      department:   { $ne: null }
+      departmentId: { $ne: null }
     }
 
     if (deptsParam) {
-      matchStage.department = {
+      matchStage.departmentId = {
         $in: deptsParam.split(",")
       }
     } else if (deptIdParam) {
-      matchStage.department = deptIdParam
+      matchStage.departmentId = deptIdParam
     }
 
     const snapshots = await KPISnapshot.find(matchStage)
@@ -310,8 +310,8 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
 
     snapshots.forEach(snap => {
 
-      const deptKey = snap.department
-        ? snap.department.toString()
+      const deptKey = snap.departmentId
+        ? snap.departmentId.toString()
         : "org"
 
       if (!seriesMap[deptKey]) {
@@ -325,8 +325,8 @@ router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Res
 
     })
 
-    const data = Object.entries(seriesMap).map(([department, points]) => ({
-      department,
+    const data = Object.entries(seriesMap).map(([departmentId, points]) => ({
+      department: departmentId,
       data: points
     }))
 

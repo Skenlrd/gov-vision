@@ -17,3 +17,30 @@ command to free a port
 $port=8000; Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }
 Check if it is free:
 Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
+
+
+cd ml_service
+python validation/validate_data.py
+<!-- 
+    checks total document count
+checks date range
+checks the 6 feature columns
+checks numeric value ranges
+checks department coverage
+previews business-rule anomaly ratio
+-->
+
+python training/train_isolation_forest.py
+
+open mongosh using your env URI
+cd server
+mongosh "$env:MONGODB_URI"
+
+
+RUN ISOLATION
+cd C:/Users/win/Desktop/GithubUploads/gov_vision/server
+npx ts-node scripts/importCSV.ts
+npx ts-node scripts/inject.ts
+
+cd ../ml_service
+python training/train_isolation_forest.py
