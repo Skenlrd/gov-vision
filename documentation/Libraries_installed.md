@@ -1,35 +1,117 @@
 **CLIENT SIDE LIBRARIES**
 cd client
 npm create vite@latest client
-Creates a new React project using Vite with a fast development server and modern build tooling.
+## Libraries/Packages Installed
+This document lists all libraries/packages installed for each architecture layer, with the install command and a one-line explanation.
 
-npm install axios
-Installs Axios to send HTTP requests from the React frontend to backend APIs.
+## 1. Client (Frontend)
 
-npm install react-router-dom
-Adds routing support to navigate between different pages inside the React application.
+**Setup:**
+- `npm create vite@latest client`  
+	Creates a new React project using Vite (modern build tooling, fast dev server).
 
-npm install recharts
-Installs a React chart library used to build basic analytics charts like bar charts, line charts, and pie charts.
+**Libraries:**
+- `npm install axios`  
+	HTTP client for making API requests from React frontend.
+- `npm install react-router-dom`  
+	Routing for navigation between pages in the React app.
+- `npm install recharts`  
+	Charting library for analytics visualizations (bar, line, pie charts).
+- `npm install echarts`  
+	Advanced charting/visualization library (heatmaps, radar, forecasting graphs).
+- `npm install clsx`  
+	Utility for conditionally combining CSS class names.
+- `npm install -D tailwindcss`  
+	Utility-first CSS framework for rapid UI styling.
+- `npm install -D postcss`  
+	CSS processor, enables Tailwind plugins.
+- `npm install -D autoprefixer`  
+	Adds browser compatibility prefixes to CSS.
+- `npm install -D @types/node`  
+	TypeScript type definitions for Node.js APIs (dev only).
 
-npm install echarts
-Installs Apache ECharts used for advanced visualizations such as heatmaps, radar charts, and forecasting graphs.
+---
 
-npm install clsx
-Provides a utility to conditionally combine CSS class names for cleaner dynamic styling.
+## 2. Server (Backend)
 
-npm install -D tailwindcss
-Installs TailwindCSS for utility-first styling of dashboards and UI components.
+**Libraries:**
+- `npm install express`  
+	Web framework for building REST APIs.
+- `npm install mongoose`  
+	MongoDB object modeling and schema validation.
+- `npm install redis`  
+	Redis client for Node.js (caching, pub/sub, etc.).
+- `npm install node-cron`  
+	Scheduled/background jobs (cron syntax).
+- `npm install axios`  
+	HTTP client for backend-to-backend API calls.
+- `npm install jsonwebtoken`  
+	JWT creation and verification for authentication.
+- `npm install dotenv`  
+	Loads environment variables from .env files.
+- `npm install -D @types/redis`  
+	TypeScript type definitions for Redis (dev only).
 
-npm install -D postcss
-Installs PostCSS which processes CSS and allows TailwindCSS plugins to work.
+**Models:**
+- `server/models/KpiSnapshot.ts`  
+	KPI snapshot data model.
+- `server/models/Anomaly.ts`  
+	Anomaly data model.
+- `server/models/Forecast.ts`  
+	Forecast data model.
+- `server/models/Report.ts`  
+	Report data model.
+- `server/models/ReportSchedule.ts`  
+	Report scheduling data model.
 
-npm install -D autoprefixer
-Automatically adds browser compatibility prefixes to CSS.
+**Other Useful Commands:**
+- `npx ts-node server.ts`  
+	Run backend API server with TypeScript.
+- `npx ts-node scripts/importCSV.ts`  
+	Import and normalize CSV data into MongoDB.
 
-npm install -D @types/node
-Provides TypeScript type definitions for Node.js APIs during development.
+**Redis Local Installation:**
+- Open PowerShell as Administrator.
+- `winget install Memurai.MemuraiDeveloper`  
+	Installs Memurai (Redis-compatible server for Windows).
+- `Start-Service Memurai`  
+	Starts the Redis service.
+- `Get-Service Memurai` and `Test-NetConnection localhost -Port 6379`  
+	Verifies Redis is running.
+- .env: `REDIS_URL=redis://localhost:6379`  
+	Sets Redis connection string for local dev.
 
+**JWT Token Generation Example:**
+- `node -e "const jwt=require('jsonwebtoken'); console.log(jwt.sign({ userId:'123', role:'admin', department:'finance' }, 'test_secret', { expiresIn:'1h' }))"`  
+	Generates a JWT for testing.
+
+---
+
+## 3. ML Service (Python)
+
+**Libraries:**
+- `pip install fastapi`  
+	Web framework for building Python APIs.
+- `pip install uvicorn`  
+	ASGI server for running FastAPI apps.
+- `pip install scikit-learn`  
+	Machine learning algorithms and utilities.
+- `pip install pandas`  
+	Data analysis and manipulation library.
+- `pip install numpy`  
+	Numerical computing library (arrays, math functions).
+- `pip install joblib`  
+	Model serialization and persistence.
+
+---
+
+## 4. Skipped/Deferred Features
+
+- User-based authentication (full JWT/role-based auth) is currently skipped in dev.
+- Redis is optional and not fully leveraged in dev mode.
+- Department ID as ObjectId is not used; canonical string IDs are used instead.
+
+---
 Tailwind to v3.4.17 t
 
 **SERVER SIDE LIBRARIES**
@@ -81,12 +163,3 @@ REDIS_URL=redis://localhost:6379
 npx command for backend:
 Backend API server via npx: npx ts-node server.ts
 CSV import via npx: npx ts-node scripts/importCSV.ts
-
-
-
-**THINGS THAT HAS BEEN SKIPEED**
-AUTH ACCORDING TO USER
-REDIS
-OBJECTID OF THE DPT ID
-RN AUTH ACCORING TO ROLES AND JWT IS SKIPPED
-

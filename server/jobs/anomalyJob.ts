@@ -1,10 +1,9 @@
+import cron from "node-cron"
+import axios from "axios"
+import mongoose from "mongoose"
 import m1Decision from "../models/m1Decisions"
 import Anomaly from "../models/Anomaly"
-import mongoose from "mongoose"
-import {
-	callAnomalyPredict,
-	IAnomalyPredictInput
-} from "../services/mlService"
+import { invalidate } from "../services/cacheService"
 
 interface ILeanDecision {
 	_id: any
@@ -20,78 +19,112 @@ interface ILeanDecision {
 }
 
 export async function runAnomalyDetection(): Promise<void> {
-	try {
-		const thirtyDaysAgo = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000))
+	console.log("[AnomalyJob] Starting anomaly detection run...")
 
-		const decisions = await m1Decision.find({
-			createdAt: { $gte: thirtyDaysAgo },
-			completedAt: { $exists: true, $ne: null }
-		})
-			.select("_id cycleTimeHours rejectionCount revisionCount daysOverSLA stageCount hourOfDaySubmitted department departmentId departmentName")
-			.lean<ILeanDecision[]>()
+	const thirtyDaysAgo = new Date()
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-		if (!decisions.length) {
-			console.log("[AnomalyJob] No decisions found for the last 30 days")
-			return
-		}
+	const decisions = await m1Decision.find({
+		completedAt: { $exists: true, $ne: null },
+		createdAt: { $gte: thirtyDaysAgo }
+	})
+		.select(
+			"_id cycleTimeHours rejectionCount revisionCount daysOverSLA stageCount hourOfDaySubmitted department"
+		)
+		.lean<ILeanDecision[]>()
 
-		const mappedPayload: IAnomalyPredictInput[] = decisions.map((d) => ({
-			id: String(d._id),
-			cycleTimeHours: Number(d.cycleTimeHours ?? 0),
-			rejectionCount: Number(d.rejectionCount ?? 0),
-			revisionCount: Number(d.revisionCount ?? 0),
-			daysOverSLA: Number(d.daysOverSLA ?? 0),
-			stageCount: Number(d.stageCount ?? 0),
-			hourOfDaySubmitted: Number(d.hourOfDaySubmitted ?? 0)
-		}))
-
-		const predictions = await callAnomalyPredict(mappedPayload)
-
-		const byId = new Map(decisions.map((d) => [String(d._id), d]))
-		let anomalyCount = 0
-
-		for (const prediction of predictions) {
-			if (!prediction.isAnomaly) {
-				continue
-			}
-
-			anomalyCount += 1
-			const sourceDecision = byId.get(prediction.id)
-			if (!mongoose.Types.ObjectId.isValid(prediction.id)) {
-				continue
-			}
-
-			const decisionObjectId = new mongoose.Types.ObjectId(prediction.id)
-
-			await Anomaly.updateOne(
-				{ decisionId: decisionObjectId },
-				{
-					$set: {
-						decisionId: decisionObjectId,
-						department:
-							sourceDecision?.departmentName ??
-							sourceDecision?.departmentId ??
-							"Unknown",
-						anomalyScore: Number(prediction.anomalyScore ?? 0),
-						severity: prediction.severity,
-						isAcknowledged: false,
-						description: "Isolation Forest anomaly detected",
-						featureValues: {
-							cycleTimeHours: Number(sourceDecision?.cycleTimeHours ?? 0),
-							rejectionCount: Number(sourceDecision?.rejectionCount ?? 0),
-							revisionCount: Number(sourceDecision?.revisionCount ?? 0),
-							daysOverSLA: Number(sourceDecision?.daysOverSLA ?? 0),
-							stageCount: Number(sourceDecision?.stageCount ?? 0),
-							hourOfDaySubmitted: Number(sourceDecision?.hourOfDaySubmitted ?? 0)
-						}
-					}
-				},
-				{ upsert: true }
-			)
-		}
-
-		console.log(`[AnomalyJob] Processed ${predictions.length} decisions, found ${anomalyCount} anomalies`)
-	} catch (error) {
-		console.error("[AnomalyJob] Failed to run anomaly detection:", error)
+	if (decisions.length === 0) {
+		console.log("[AnomalyJob] No completed decisions found. Skipping.")
+		return
 	}
+
+	console.log(`[AnomalyJob] Loaded ${decisions.length} decisions for scoring.`)
+
+	const payload = decisions.map((d) => ({
+		id: d._id.toString(),
+		cycleTimeHours: d.cycleTimeHours || 0,
+		rejectionCount: d.rejectionCount || 0,
+		revisionCount: d.revisionCount || 0,
+		daysOverSLA: d.daysOverSLA || 0,
+		stageCount: d.stageCount || 0,
+		hourOfDaySubmitted: d.hourOfDaySubmitted || 0
+	}))
+
+	let results: Array<{
+		id: string
+		anomalyScore: number
+		isAnomaly: boolean
+		severity: string
+	}> = []
+
+	try {
+		const response = await axios.post<{ results: typeof results }>(
+			`${process.env.ML_SERVICE_URL}/ml/anomaly/predict`,
+			{ decisions: payload },
+			{ headers: { "x-service-key": process.env.SERVICE_KEY } }
+		)
+
+		results = response.data.results
+		console.log(`[AnomalyJob] FastAPI returned ${results.length} scores.`)
+	} catch (err: any) {
+		console.error("[AnomalyJob] FastAPI call failed:", err.message)
+		return
+	}
+
+	const anomalies = results.filter((r) => r.isAnomaly === true)
+	console.log(`[AnomalyJob] ${anomalies.length} anomalies detected.`)
+
+	for (const anomaly of anomalies) {
+		const original = decisions.find((d) => d._id.toString() === anomaly.id)
+		const featureValues = original
+			? {
+				cycleTimeHours: original.cycleTimeHours || 0,
+				rejectionCount: original.rejectionCount || 0,
+				revisionCount: original.revisionCount || 0,
+				daysOverSLA: original.daysOverSLA || 0,
+				stageCount: original.stageCount || 0,
+				hourOfDaySubmitted: original.hourOfDaySubmitted || 0
+			}
+			: {}
+
+		if (!mongoose.Types.ObjectId.isValid(anomaly.id)) {
+			continue
+		}
+
+		const decisionObjectId = new mongoose.Types.ObjectId(anomaly.id)
+
+		await Anomaly.findOneAndUpdate(
+			{ decisionId: decisionObjectId },
+			{
+				$set: {
+					anomalyScore: anomaly.anomalyScore,
+					severity: anomaly.severity,
+					isAnomaly: true,
+					department: original?.department || "unknown",
+					featureValues,
+					description: `Anomaly detected: score ${anomaly.anomalyScore.toFixed(3)}, severity ${anomaly.severity}`
+				},
+				$setOnInsert: {
+					isAcknowledged: false,
+					decisionId: decisionObjectId
+				}
+			},
+			{ upsert: true, new: true }
+		)
+	}
+
+	await invalidate("m3:anomalies:active")
+	console.log("[AnomalyJob] Redis cache invalidated. Run complete.")
 }
+
+export async function runAnomalyJob(): Promise<void> {
+	await runAnomalyDetection()
+}
+
+cron.schedule("0 0 * * *", () => {
+	runAnomalyJob().catch((err) => {
+		console.error("[AnomalyJob] Uncaught error in cron run:", err)
+	})
+})
+
+console.log("[AnomalyJob] Scheduled: every 24 hours (daily at 00:00).")

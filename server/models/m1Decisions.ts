@@ -58,6 +58,14 @@ const decisionSchema = new Schema(
 
     stageCount: {
       type: Number
+    },
+
+    hourOfDaySubmitted: {
+      type: Number
+    },
+
+    departmentName: {
+      type: String
     }
 
   },

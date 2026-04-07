@@ -13,3 +13,7 @@ __pycache__/
 
 # ml model artifacts
 ml_service/models/*.pkl
+
+# local testing notes
+TestNotes.md
+
