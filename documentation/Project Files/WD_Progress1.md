@@ -92,7 +92,7 @@ Main workspace structure:
 - Continued documentation and process refinement.
 
 ### Mentioned but Not Yet Implemented
-- **Redis Integration:** Redis connection utilities and setup are present, but Redis is optional and not fully leveraged in development mode. Some caching and job features are placeholders for future sprints.
+- **Redis Integration:** Redis connection utilities and setup are present, but Redis is optional and not fully leveraged in development mode. Some caching and job features are placeholders for later work.
 - **Full JWT and Role-Based Authentication:** JWT and role-based authentication are referenced and partially implemented, but are currently disabled for analytics routes and not enforced in dev mode.
 - **Advanced Analytics and Risk Scoring:** Some advanced analytics, risk scoring, and automation features are described as future work or placeholders in the backend and ML service.
 - **User Management and Role UI:** User authentication, role management, and related UI features are mentioned as next steps but not yet implemented in the frontend.
@@ -606,7 +606,7 @@ curl -X POST "http://localhost:8000/ml/anomaly/predict" \
 ### Skipped/Removed:
 - **Full user/role JWT authentication**: Skipped for local development to speed up testing. (Commented in code, can be re-enabled for production.)
 - **Redis as a hard requirement**: Redis is optional in dev mode; backend can run without it for local testing.
-- **Advanced analytics and risk scoring features**: Only placeholders/UI stubs exist; implementation deferred to future sprints.
+- **Advanced analytics and risk scoring features**: Only placeholders/UI stubs exist; implementation deferred to later work.
 - **ObjectId-bas  ent IDs**: Fully removed in favor of canonical string IDs for all modules and data flows.
 
 All changes above are reflected in the current codebase and documentation. See all6.md for a precise, up-to-date technical summary of the project as of Day 6.

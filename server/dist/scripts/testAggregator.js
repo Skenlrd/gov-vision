@@ -10,9 +10,13 @@ const kpiAggregator_1 = require("../services/kpiAggregator");
 async function test() {
     await mongoose_1.default.connect(process.env.MONGODB_URI);
     console.log("Connected");
-    const result = await (0, kpiAggregator_1.aggregateOrgKPI)(new Date("2026-01-01"), new Date());
-    console.log("\n--- KPI Result ---");
-    console.log(JSON.stringify(result, null, 2));
+    const startDate = new Date("2025-01-01");
+    const endDate = new Date();
+    const orgResult = await (0, kpiAggregator_1.aggregateOrgKPI)(startDate, endDate);
+    await (0, kpiAggregator_1.aggregateAllDepartments)(startDate, endDate);
+    console.log("\n--- ORG KPI ---");
+    console.log(JSON.stringify(orgResult, null, 2));
+    console.log("\n--- All department snapshots saved ---");
     process.exit(0);
 }
 test().catch(err => {

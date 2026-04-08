@@ -58,11 +58,13 @@ function parseNumber(value) {
     const n = Number(value);
     return Number.isFinite(n) ? n : 0;
 }
-function mapStatus(taskType) {
+function mapStatus(taskType, completedAt) {
     if (taskType === "Approval")
         return "approved";
     if (taskType === "Escalation")
         return "rejected";
+    if (completedAt !== null)
+        return "approved";
     return "pending";
 }
 function mapStageCount(level) {
@@ -77,9 +79,106 @@ function mapStageCount(level) {
 function randomOneToThree() {
     return Math.floor(Math.random() * 3) + 1;
 }
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function randomBetween(min, max, decimals = 2) {
+    const factor = 10 ** decimals;
+    const raw = Math.random() * (max - min) + min;
+    return Math.round(raw * factor) / factor;
+}
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+function deriveCycleTime(original) {
+    if (original < 2.5)
+        return randomBetween(0.5, 8, 2);
+    if (original < 4.5)
+        return randomBetween(4, 24, 2);
+    return randomBetween(20, 120, 2);
+}
+function deriveRejectionCount(original) {
+    if (original === 0)
+        return randomBetween(0, 1.5, 1);
+    if (original === 1)
+        return randomBetween(1, 3.5, 1);
+    if (original === 2)
+        return randomBetween(2, 5.5, 1);
+    return randomBetween(4, 8, 1);
+}
+function recalcDaysOverSLA(cycleTimeHours, revisionCount) {
+    const estimatedHours = revisionCount * 0.8;
+    return Math.max(0, Number(((cycleTimeHours - estimatedHours) / 24).toFixed(4)));
+}
+// Pure unsupervised distribution
+// No labels or pre-selected anomalies are assigned.
+// A random roll places each row into a realistic tier.
+// The model then discovers unusual rows statistically.
+function enrichOriginalDistribution(base) {
+    const roll = Math.random();
+    let cycleTimeHours = base.cycleTimeHours;
+    let rejectionCount = base.rejectionCount;
+    let revisionCount = base.revisionCount;
+    let stageCount = base.stageCount;
+    if (roll < 0.82) {
+        // 82% normal decisions with slight variation.
+        cycleTimeHours = cycleTimeHours * randomBetween(0.9, 1.15, 3);
+        rejectionCount = rejectionCount + randomBetween(0, 0.8, 1);
+        revisionCount = revisionCount + randomBetween(0, 1.2, 1);
+    }
+    else if (roll < 0.94) {
+        // 12% borderline decisions.
+        cycleTimeHours = cycleTimeHours * randomBetween(1.2, 2.0, 3);
+        rejectionCount = rejectionCount + randomBetween(0.8, 2.5, 1);
+        revisionCount = revisionCount + randomBetween(1, 3.5, 1);
+        stageCount = Math.max(stageCount, randomInt(2, 3));
+    }
+    else if (roll < 0.99) {
+        // 5% elevated decisions.
+        cycleTimeHours = cycleTimeHours * randomBetween(2.0, 3.8, 3);
+        rejectionCount = rejectionCount + randomBetween(2, 5, 1);
+        revisionCount = revisionCount + randomBetween(3, 7, 1);
+        stageCount = 3;
+    }
+    else {
+        // 1% critical outliers.
+        cycleTimeHours = randomBetween(60, 160, 2);
+        rejectionCount = randomBetween(6, 12, 1);
+        revisionCount = randomBetween(8, 16, 1);
+        stageCount = 3;
+    }
+    return {
+        cycleTimeHours: clamp(Number(cycleTimeHours.toFixed(2)), 0.3, 200),
+        rejectionCount: clamp(Number(rejectionCount.toFixed(1)), 0, 15),
+        revisionCount: clamp(Number(revisionCount.toFixed(1)), 0, 20),
+        stageCount: clamp(Math.round(stageCount), 1, 3)
+    };
+}
 function normalize(value) {
     return String(value ?? "").trim().toLowerCase();
 }
+const DEPT_CANONICAL_META = {
+    "finance": {
+        departmentId: "FI001",
+        departmentName: "Finance"
+    },
+    "human resources": {
+        departmentId: "HR002",
+        departmentName: "Human Resources"
+    },
+    "operations": {
+        departmentId: "OP003",
+        departmentName: "Operations"
+    },
+    "information technology": {
+        departmentId: "IT004",
+        departmentName: "Information Technology"
+    },
+    "customer service": {
+        departmentId: "CS005",
+        departmentName: "Customer Service"
+    }
+};
 const DEPT_ALIAS_TO_CANONICAL = {
     "finance": "finance",
     "fin": "finance",
@@ -112,12 +211,14 @@ function normalizeDepartmentKey(value) {
         .replace(/\s+/g, " ")
         .trim();
 }
-function mapDepartmentName(value) {
+function mapDepartmentMeta(value) {
     const normalizedKey = normalizeDepartmentKey(value);
     if (!normalizedKey)
         return null;
     const canonical = DEPT_ALIAS_TO_CANONICAL[normalizedKey];
-    return canonical ?? null;
+    if (!canonical)
+        return null;
+    return DEPT_CANONICAL_META[canonical] ?? null;
 }
 async function readCsvRows(filePath) {
     const rows = [];
@@ -158,11 +259,12 @@ async function main() {
         }
         const sourceMinMs = Math.min(...sourceStartTimes);
         const sourceMaxMs = Math.max(...sourceStartTimes);
-        const targetMinMs = new Date(2025, 0, 1, 0, 0, 0, 0).getTime();
-        const targetMaxMs = new Date(2026, 2, 15, 0, 0, 0, 0).getTime();
+        const targetMinMs = Date.UTC(2025, 0, 1, 0, 0, 0, 0);
+        const targetMaxMs = Date.UTC(2026, 2, 15, 23, 59, 59, 999);
         await m1Decisions_1.default.deleteMany({});
         console.log("Cleared existing m1_decisions collection");
         const docs = [];
+        let unknownDepartmentCount = 0;
         for (let i = 0; i < csvRows.length; i++) {
             const row = csvRows[i];
             const originalStart = parseDate(row.Task_Start_Time);
@@ -177,18 +279,41 @@ async function main() {
                 ? new Date(createdAt.getTime() + durationMs)
                 : null;
             const actualMinutes = parseNumber(row.Actual_Time_Minutes);
-            const estimatedMinutes = parseNumber(row.Estimated_Time_Minutes);
-            const departmentName = mapDepartmentName(row.Department);
+            const departmentMeta = mapDepartmentMeta(row.Department);
+            if (!departmentMeta) {
+                unknownDepartmentCount += 1;
+            }
+            const originalCycleTimeHours = actualMinutes / 60;
+            const originalRejectionCount = String(row.Delay_Flag ?? "").trim() === "1" ? randomOneToThree() : 0;
+            const baseRevisionCount = parseInt(String(row.Employee_Workload ?? "0"), 10) || 0;
+            const baseCycleTimeHours = deriveCycleTime(originalCycleTimeHours);
+            const baseRejectionCount = deriveRejectionCount(originalRejectionCount);
+            const baseStageCount = mapStageCount(row.Approval_Level);
+            // Pure unsupervised enrichment.
+            const enriched = enrichOriginalDistribution({
+                cycleTimeHours: baseCycleTimeHours,
+                rejectionCount: baseRejectionCount,
+                revisionCount: baseRevisionCount,
+                stageCount: baseStageCount
+            });
+            const cycleTimeHours = createdAt && completedAt
+                ? parseFloat(((completedAt.getTime() - createdAt.getTime())
+                    / 1000 / 3600).toFixed(2))
+                : parseFloat((actualMinutes / 60).toFixed(2));
+            const rejectionCount = enriched.rejectionCount;
+            const revisionCount = enriched.revisionCount;
+            const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, revisionCount);
             docs.push({
-                status: mapStatus(row.Task_Type),
-                department: departmentName,
+                status: mapStatus(row.Task_Type, completedAt),
+                departmentId: departmentMeta?.departmentId ?? null,
+                departmentName: departmentMeta?.departmentName ?? null,
                 createdAt,
                 completedAt,
-                cycleTimeHours: actualMinutes / 60,
-                rejectionCount: String(row.Delay_Flag ?? "").trim() === "1" ? randomOneToThree() : 0,
-                revisionCount: parseInt(String(row.Employee_Workload ?? "0"), 10) || 0,
-                daysOverSLA: Math.max(0, (actualMinutes - estimatedMinutes) / 60 / 24),
-                stageCount: mapStageCount(row.Approval_Level),
+                cycleTimeHours,
+                rejectionCount,
+                revisionCount,
+                daysOverSLA,
+                stageCount: enriched.stageCount,
                 hourOfDaySubmitted: createdAt ? createdAt.getHours() : null,
                 priority: normalize(row.Priority_Level)
             });
@@ -197,17 +322,21 @@ async function main() {
                 console.log(`Prepared ${prepared} rows`);
             }
         }
+        if (unknownDepartmentCount > 0) {
+            console.warn(`Rows with unknown department: ${unknownDepartmentCount}`);
+        }
         let insertedTotal = 0;
         const batchSize = 100;
         for (let i = 0; i < docs.length; i += batchSize) {
             const batch = docs.slice(i, i + batchSize);
             const inserted = await m1Decisions_1.default.insertMany(batch, { ordered: false });
             insertedTotal += inserted.length;
-            if (insertedTotal % 100 === 0 || insertedTotal === docs.length) {
+            if (insertedTotal % 500 === 0 || insertedTotal === docs.length) {
                 console.log(`Inserted ${insertedTotal} rows`);
             }
         }
-        console.log(`Total inserted: ${insertedTotal}`);
+        console.log(`\nTotal inserted: ${insertedTotal}`);
+        console.log(`  python training/train_isolation_forest.py`);
         await mongoose_1.default.disconnect();
         process.exit(0);
     }

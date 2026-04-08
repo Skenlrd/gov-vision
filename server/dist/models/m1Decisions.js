@@ -80,6 +80,12 @@ const decisionSchema = new mongoose_1.Schema({
     },
     stageCount: {
         type: Number
+    },
+    hourOfDaySubmitted: {
+        type: Number
+    },
+    departmentName: {
+        type: String
     }
 }, {
     collection: "m1_decisions",

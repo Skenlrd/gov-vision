@@ -1,397 +1,270 @@
-import { Router, Request, Response } from "express"
-import { validateJWT } from "../middleware/validateJWT"
-import { getOrSet } from "../services/cacheService"
-import { aggregateKPI, aggregateOrgKPI } from "../services/kpiAggregator"
-import m1Decision from "../models/m1Decisions"
-import KPISnapshot from "../models/KPI_Snapshot"
+import { Router, Request, Response } from 'express';
+import { validateJWT } from '../middleware/validateJWT';
+import { requireRole } from '../middleware/requireRole';
+import { getOrSet } from '../services/cacheService';
+import { aggregateKPI, aggregateOrgKPI } from '../services/kpiAggregator';
+import m1Decision from '../models/m1Decisions';
+import KPISnapshot from '../models/KPI_Snapshot';
 
-const router = Router()
-
-/*
-  Helper: get today's date string "YYYY-MM-DD"
-  Used as part of Redis cache keys.
-*/
-function todayStr(): string {
-  return new Date().toISOString().split("T")[0]
-}
+const router = Router();
 
 // ─────────────────────────────────────────────
 // GET /api/analytics/kpi-summary
 // Org-wide KPI numbers
-// Protected by JWT
 // ─────────────────────────────────────────────
 
-router.get("/kpi-summary", /* validateJWT, */ async (req: Request, res: Response) => {
+router.get(
+  '/kpi-summary',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `m3:kpi:org:${today}`;
+    const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
+    const startDate = dateFrom ? new Date(dateFrom) : new Date('2024-01-01');
+    const endDate = dateTo ? new Date(dateTo) : new Date();
 
-  try {
-
-    const dateFrom = req.query.dateFrom
-      ? new Date(req.query.dateFrom as string)
-      : new Date("2024-01-01")
-
-    const dateTo = req.query.dateTo
-      ? new Date(req.query.dateTo as string)
-      : new Date()
-
-    /*
-      Cache key includes today's date so data refreshes
-      daily automatically even without an explicit
-      cache invalidation call.
-      TTL is 300 seconds (5 minutes).
-    */
-    const cacheKey = `m3:kpi:org:${todayStr()}`
-
-    const data = await getOrSet(
-      cacheKey,
-      300,
-      () => aggregateOrgKPI(dateFrom, dateTo)
-    )
-
-    res.json({ success: true, data })
-
-  } catch (err) {
-
-    console.error("kpi-summary error:", err)
-    res.status(500).json({ error: "Failed to fetch KPI summary" })
-
+    try {
+      const data = await getOrSet(cacheKey, 300, () =>
+        aggregateOrgKPI(startDate, endDate)
+      );
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/kpi-summary]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   }
-
-})
+);
 
 // ─────────────────────────────────────────────
 // GET /api/analytics/kpi-summary/:deptId
 // Department-level KPI numbers
-// Protected by JWT
 // ─────────────────────────────────────────────
 
-router.get("/kpi-summary/:deptId", /* validateJWT, */ async (req: Request, res: Response) => {
+router.get(
+  '/kpi-summary/:deptId',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const today = new Date().toISOString().split('T')[0];
+    const { deptId } = req.params as { deptId: string };
+    const cacheKey = `m3:kpi:${deptId}:${today}`;
+    const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
+    const startDate = dateFrom ? new Date(dateFrom) : new Date('2024-01-01');
+    const endDate = dateTo ? new Date(dateTo) : new Date();
 
-  try {
-
-    const deptId = req.params.deptId as string
-
-    const dateFrom = req.query.dateFrom
-      ? new Date(req.query.dateFrom as string)
-      : new Date("2024-01-01")
-
-    const dateTo = req.query.dateTo
-      ? new Date(req.query.dateTo as string)
-      : new Date()
-
-    const cacheKey = `m3:kpi:${deptId}:${todayStr()}`
-
-    const data = await getOrSet(
-      cacheKey,
-      300,
-      () => aggregateKPI(deptId, dateFrom, dateTo)
-    )
-
-    res.json({ success: true, data })
-
-  } catch (err) {
-
-    console.error("kpi-summary/:deptId error:", err)
-    res.status(500).json({ error: "Failed to fetch department KPI" })
-
+    try {
+      const data = await getOrSet(cacheKey, 300, () =>
+        aggregateKPI(deptId, startDate, endDate)
+      );
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/kpi-summary/:deptId]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   }
-
-})
+);
 
 // ─────────────────────────────────────────────
 // GET /api/analytics/decision-volume
-// Time-series decision count for the line/bar chart
-// Protected by JWT
-// Query params:
-//   granularity: "daily" | "weekly" | "monthly"
-//   dateFrom: ISO date string
-//   dateTo:   ISO date string
-//   deptId:   canonical department string (optional)
 // ─────────────────────────────────────────────
 
-router.get("/decision-volume", /* validateJWT, */ async (req: Request, res: Response) => {
+router.get(
+  '/decision-volume',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const { granularity = 'daily', dateFrom, dateTo, deptId } = req.query as {
+      granularity?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      deptId?: string;
+    };
 
-  try {
+    const cacheKey = `m3:volume:${deptId || 'all'}:${granularity}:${dateFrom || 'nd'}:${dateTo || 'nd'}`;
 
-    const granularity = (req.query.granularity as string) || "daily"
-    const deptId      = req.query.deptId as string | undefined
+    try {
+      const data = await getOrSet(cacheKey, 300, async () => {
+        const formatMap: Record<string, string> = {
+          daily: '%Y-%m-%d',
+          weekly: '%G-W%V',
+          monthly: '%Y-%m',
+        };
 
-    const dateFrom = req.query.dateFrom
-      ? new Date(req.query.dateFrom as string)
-      : new Date("2024-01-01")
+        const format = formatMap[granularity] || '%Y-%m-%d';
+        const matchStage: any = {};
 
-    const dateTo = req.query.dateTo
-      ? new Date(req.query.dateTo as string)
-      : new Date()
+        if (dateFrom) matchStage.createdAt = { $gte: new Date(dateFrom) };
+        if (dateTo) matchStage.createdAt = { ...matchStage.createdAt, $lte: new Date(dateTo) };
+        if (deptId) matchStage.departmentId = deptId;
 
-    /*
-      $dateToString format changes based on granularity:
-      - daily:   "2026-03-11"
-      - weekly:  "2026-W11"
-      - monthly: "2026-03"
-    */
-    const formatMap: Record<string, string> = {
-      daily:   "%Y-%m-%d",
-      weekly:  "%G-W%V",
-      monthly: "%Y-%m"
-    }
-
-    const format = formatMap[granularity] || "%Y-%m-%d"
-
-    /*
-      Build the match filter.
-      If deptId is provided, filter by department.
-      Otherwise include all decisions.
-    */
-    const matchStage: Record<string, unknown> = {
-      createdAt: { $gte: dateFrom, $lte: dateTo }
-    }
-
-    if (deptId) {
-      matchStage.departmentId = deptId
-    }
-
-    const result = await m1Decision.aggregate([
-      { $match: matchStage },
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              format,
-              date: "$createdAt"
-            }
+        return m1Decision.aggregate([
+          { $match: matchStage },
+          {
+            $group: {
+              _id: {
+                $dateToString: {
+                  format,
+                  date: '$createdAt',
+                },
+              },
+              count: { $sum: 1 },
+            },
           },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } },
-      {
-        $project: {
-          _id: 0,
-          date:  "$_id",
-          count: 1
-        }
-      }
-    ])
+          { $sort: { _id: 1 } },
+          { $project: { _id: 0, date: '$_id', count: 1 } },
+        ]);
+      });
 
-    res.json({ success: true, data: result })
-
-  } catch (err) {
-
-    console.error("decision-volume error:", err)
-    res.status(500).json({ error: "Failed to fetch decision volume" })
-
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/decision-volume]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   }
-
-})
+);
 
 // ─────────────────────────────────────────────
 // GET /api/analytics/cycle-time-histogram
-// Groups completed decisions into 4 time buckets
-// Protected by JWT
 // ─────────────────────────────────────────────
 
-router.get("/cycle-time-histogram", /* validateJWT, */ async (req: Request, res: Response) => {
+router.get(
+  '/cycle-time-histogram',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const { deptId } = req.query as { deptId?: string };
+    const cacheKey = `m3:cycletime:${deptId || 'all'}`;
 
-  try {
+    try {
+      const data = await getOrSet(cacheKey, 300, async () => {
+        const match: any = { completedAt: { $exists: true, $ne: null } };
+        if (deptId) match.departmentId = deptId;
 
-    const dateFrom = req.query.dateFrom
-      ? new Date(req.query.dateFrom as string)
-      : new Date("2024-01-01")
+        const decisions = await m1Decision
+          .find(match)
+          .select('cycleTimeHours createdAt completedAt')
+          .lean();
 
-    const dateTo = req.query.dateTo
-      ? new Date(req.query.dateTo as string)
-      : new Date()
+        const buckets = { '0-24h': 0, '24-48h': 0, '48-72h': 0, '>72h': 0 };
 
-    /*
-      Only query decisions that have completedAt.
-      Pending decisions have no cycle time to measure.
-    */
-    const decisions = await m1Decision.find({
-      completedAt: { $exists: true, $ne: null },
-      createdAt:   { $gte: dateFrom, $lte: dateTo }
-    })
+        for (const d of decisions as any[]) {
+          const hours =
+            d.cycleTimeHours ||
+            (new Date(d.completedAt).getTime() - new Date(d.createdAt).getTime()) /
+              (1000 * 60 * 60);
 
-    /*
-      Group into 4 buckets based on cycle time in hours.
-      cycleTimeHours is stored directly on the document
-      from Module 1. If it's missing, compute it from
-      completedAt - createdAt.
-    */
-    const buckets = {
-      "0-24h":   0,
-      "24-48h":  0,
-      "48-72h":  0,
-      ">72h":    0
+          if (hours <= 24) buckets['0-24h']++;
+          else if (hours <= 48) buckets['24-48h']++;
+          else if (hours <= 72) buckets['48-72h']++;
+          else buckets['>72h']++;
+        }
+
+        return Object.entries(buckets).map(([bucket, count]) => ({ bucket, count }));
+      });
+
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/cycle-time-histogram]', err.message);
+      return res.status(500).json({ error: err.message });
     }
-
-    decisions.forEach(d => {
-
-      const hours = d.cycleTimeHours ||
-        (new Date(d.completedAt!).getTime() -
-          new Date(d.createdAt!).getTime()) / (1000 * 60 * 60)
-
-      if (hours <= 24)       buckets["0-24h"]++
-      else if (hours <= 48)  buckets["24-48h"]++
-      else if (hours <= 72)  buckets["48-72h"]++
-      else                   buckets[">72h"]++
-
-    })
-
-    const data = Object.entries(buckets).map(([bucket, count]) => ({
-      bucket,
-      count
-    }))
-
-    res.json({ success: true, data })
-
-  } catch (err) {
-
-    console.error("cycle-time-histogram error:", err)
-    res.status(500).json({ error: "Failed to fetch cycle time data" })
-
   }
-
-})
+);
 
 // ─────────────────────────────────────────────
 // GET /api/analytics/compliance-trend
-// Returns compliance rate over time per department
-// Protected by JWT
-// Query params:
-//   dateFrom: ISO date string
-//   dateTo:   ISO date string
-//   depts:    comma-separated department strings (optional)
-//   deptId:   single department string (optional)
 // ─────────────────────────────────────────────
 
-router.get("/compliance-trend", /* validateJWT, */ async (req: Request, res: Response) => {
+router.get(
+  '/compliance-trend',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const { deptIds, dateFrom, dateTo } = req.query as {
+      deptIds?: string;
+      dateFrom?: string;
+      dateTo?: string;
+    };
 
-  try {
+    const cacheKey = `m3:compliance:${deptIds || 'all'}:${dateFrom || 'nd'}:${dateTo || 'nd'}`;
 
-    const dateFrom = req.query.dateFrom
-      ? new Date(req.query.dateFrom as string)
-      : new Date("2024-01-01")
+    try {
+      const data = await getOrSet(cacheKey, 300, async () => {
+        const match: any = {};
+        if (dateFrom) match.snapshotDate = { $gte: new Date(dateFrom) };
+        if (dateTo) match.snapshotDate = { ...match.snapshotDate, $lte: new Date(dateTo) };
+        if (deptIds) match.department = { $in: deptIds.split(',') };
 
-    const dateTo = req.query.dateTo
-      ? new Date(req.query.dateTo as string)
-      : new Date()
-
-    /*
-      depts query param is a comma-separated list of
-      department strings.
-      Example: ?depts=finance,operations
-      If not provided, return all departments.
-    */
-    const deptsParam = req.query.depts as string | undefined
-    const deptIdParam = req.query.deptId as string | undefined
-    const granularityParam = (req.query.granularity as string | undefined) ?? "daily"
-
-    const formatMap: Record<string, string> = {
-      daily: "%Y-%m-%d",
-      weekly: "%G-W%V",
-      monthly: "%Y-%m"
-    }
-
-    const dateFormat = formatMap[granularityParam] ?? formatMap.daily
-
-    const decisionMatch: Record<string, unknown> = {
-      createdAt: { $gte: dateFrom, $lte: dateTo }
-    }
-
-    if (deptsParam) {
-      decisionMatch.departmentId = { $in: deptsParam.split(",") }
-    } else if (deptIdParam) {
-      decisionMatch.departmentId = deptIdParam
-    }
-
-    const seriesPoints = await m1Decision.aggregate([
-      { $match: decisionMatch },
-      {
-        $addFields: {
-          normalizedDept: { $ifNull: ["$departmentId", "$department"] },
-          isCompleted: {
-            $cond: [{ $ifNull: ["$completedAt", false] }, 1, 0]
+        return KPISnapshot.aggregate([
+          { $match: match },
+          { $sort: { snapshotDate: 1 } },
+          {
+            $group: {
+              _id: '$department',
+              data: { $push: { date: '$snapshotDate', complianceRate: '$complianceRate' } },
+            },
           },
-          isCompliantCompleted: {
-            $cond: [
-              {
-                $and: [
-                  { $ifNull: ["$completedAt", false] },
-                  { $eq: ["$status", "approved"] },
-                  { $eq: [{ $ifNull: ["$daysOverSLA", 0] }, 0] }
-                ]
-              },
-              1,
-              0
-            ]
-          }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            department: "$normalizedDept",
-            date: {
-              $dateToString: {
-                format: dateFormat,
-                date: "$createdAt"
-              }
-            }
-          },
-          completedCount: { $sum: "$isCompleted" },
-          compliantCompletedCount: { $sum: "$isCompliantCompleted" }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          department: "$_id.department",
-          date: "$_id.date",
-          complianceRate: {
-            $cond: [
-              { $gt: ["$completedCount", 0] },
-              {
-                $multiply: [
-                  { $divide: ["$compliantCompletedCount", "$completedCount"] },
-                  100
-                ]
-              },
-              0
-            ]
-          }
-        }
-      },
-      { $sort: { department: 1, date: 1 } }
-    ])
+          { $project: { department: '$_id', data: 1, _id: 0 } },
+        ]);
+      });
 
-    const seriesMap: Record<string, { date: string, complianceRate: number }[]> = {}
-
-    seriesPoints.forEach((point) => {
-      const deptKey = String(point.department ?? "Unknown")
-      if (!seriesMap[deptKey]) {
-        seriesMap[deptKey] = []
-      }
-
-      seriesMap[deptKey].push({
-        date: String(point.date),
-        complianceRate: Number(point.complianceRate ?? 0)
-      })
-    })
-
-    const data = Object.entries(seriesMap).map(([department, points]) => ({
-      department,
-      data: points
-    }))
-
-    res.json({ success: true, data })
-
-  } catch (err) {
-
-    console.error("compliance-trend error:", err)
-    res.status(500).json({ error: "Failed to fetch compliance trend" })
-
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/compliance-trend]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   }
+);
 
-})
+// ─────────────────────────────────────────────
+// GET /api/analytics/risk-heatmap
+// ─────────────────────────────────────────────
 
-export default router
+router.get(
+  '/risk-heatmap',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
+    const cacheKey = `m3:riskheatmap:${dateFrom || 'nd'}:${dateTo || 'nd'}`;
+
+    try {
+      const data = await getOrSet(cacheKey, 300, async () => {
+        const match: any = {};
+        if (dateFrom) match.snapshotDate = { $gte: new Date(dateFrom) };
+        if (dateTo) match.snapshotDate = { ...match.snapshotDate, $lte: new Date(dateTo) };
+
+        return KPISnapshot.aggregate([
+          { $match: match },
+          {
+            $group: {
+              _id: '$departmentId',
+              Low: { $sum: { $cond: [{ $eq: ['$riskLevel', 'low'] }, 1, 0] } },
+              Medium: { $sum: { $cond: [{ $eq: ['$riskLevel', 'medium'] }, 1, 0] } },
+              High: { $sum: { $cond: [{ $eq: ['$riskLevel', 'high'] }, 1, 0] } },
+              Critical: { $sum: { $cond: [{ $eq: ['$riskLevel', 'critical'] }, 1, 0] } },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              department: '$_id',
+              deptId: '$_id',
+              Low: 1,
+              Medium: 1,
+              High: 1,
+              Critical: 1,
+            },
+          },
+        ]);
+      });
+
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/risk-heatmap]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+export default router;

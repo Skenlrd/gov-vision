@@ -2,10 +2,12 @@ import axios from "axios"
 import type {
   IKpiSummary,
   IAnomaly,
+  IAnomalyGroup,
   IFilter,
   IDecisionVolumePoint,
   ICycleTimeBucket,
   IComplianceTrendSeries,
+  IRiskHeatmapRow,
   IReport
 } from "../types"
 
@@ -24,6 +26,13 @@ const api = axios.create({
   baseURL: apiBaseUrl
 })
 
+function unwrap<T>(payload: any): T {
+  // Supports both direct JSON responses and { data: ... } wrappers.
+  return (payload && typeof payload === "object" && "data" in payload)
+    ? (payload.data as T)
+    : (payload as T)
+}
+
 /*
   JWT interceptor.
   Runs before EVERY request automatically.
@@ -32,7 +41,10 @@ const api = axios.create({
   You never manually add headers in individual calls.
 */
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem("token")
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("govvision_token") ||
+    localStorage.getItem("jwt")
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -50,7 +62,7 @@ export const getKpiSummary = async (filters: IFilter): Promise<IKpiSummary> => {
   }
 
   const res = await api.get("/api/analytics/kpi-summary", { params })
-  return res.data.data
+  return unwrap<IKpiSummary>(res.data)
 }
 
 export const getDeptKpiSummary = async (
@@ -64,7 +76,7 @@ export const getDeptKpiSummary = async (
 
   const encodedDept = encodeURIComponent(deptId)
   const res = await api.get(`/api/analytics/kpi-summary/${encodedDept}`, { params })
-  return res.data.data
+  return unwrap<IKpiSummary>(res.data)
 }
 
 // Charts
@@ -82,7 +94,7 @@ export const getDecisionVolume = async (
   if (filters.deptId) params.deptId = filters.deptId
 
   const res = await api.get("/api/analytics/decision-volume", { params })
-  return res.data.data
+  return unwrap<IDecisionVolumePoint[]>(res.data)
 }
 
 export const getCycleTimeHistogram = async (
@@ -94,7 +106,7 @@ export const getCycleTimeHistogram = async (
   }
 
   const res = await api.get("/api/analytics/cycle-time-histogram", { params })
-  return res.data.data
+  return unwrap<ICycleTimeBucket[]>(res.data)
 }
 
 export const getComplianceTrend = async (
@@ -110,24 +122,90 @@ export const getComplianceTrend = async (
   if (filters.deptId) params.deptId = filters.deptId
 
   const res = await api.get("/api/analytics/compliance-trend", { params })
-  return res.data.data
+  return unwrap<IComplianceTrendSeries[]>(res.data)
+}
+
+export const getRiskHeatmap = async (
+  filters: Pick<IFilter, "dateFrom" | "dateTo">
+): Promise<IRiskHeatmapRow[]> => {
+  const params: Record<string, string> = {
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo
+  }
+
+  const res = await api.get("/api/analytics/risk-heatmap", { params })
+  const data = unwrap<IRiskHeatmapRow[]>(res.data)
+  return Array.isArray(data) ? data : []
 }
 
 // Anomalies
 
 export const getAnomalies = async (): Promise<IAnomaly[]> => {
   const res = await api.get("/api/ai/anomalies")
-  return res.data.data ?? []
+  const data = unwrap<IAnomaly[] | IAnomalyGroup | { total?: number }>(res.data)
+  if (Array.isArray(data)) return data
+
+  if (data && typeof data === "object") {
+    const grouped = data as Partial<IAnomalyGroup>
+    return [
+      ...(Array.isArray(grouped.Critical) ? grouped.Critical : []),
+      ...(Array.isArray(grouped.High) ? grouped.High : []),
+      ...(Array.isArray(grouped.Medium) ? grouped.Medium : []),
+      ...(Array.isArray(grouped.Low) ? grouped.Low : [])
+    ]
+  }
+
+  return []
+}
+
+export const getAnomalyGroups = async (): Promise<IAnomalyGroup> => {
+  const res = await api.get("/api/ai/anomalies")
+  const data = unwrap<IAnomalyGroup | IAnomaly[]>(res.data)
+
+  if (Array.isArray(data)) {
+    const groups: IAnomalyGroup = {
+      Critical: [],
+      High: [],
+      Medium: [],
+      Low: [],
+      total: data.length
+    }
+
+    for (const anomaly of data) {
+      if (anomaly.severity === "Critical") groups.Critical.push(anomaly)
+      else if (anomaly.severity === "High") groups.High.push(anomaly)
+      else if (anomaly.severity === "Medium") groups.Medium.push(anomaly)
+      else if (anomaly.severity === "Low") groups.Low.push(anomaly)
+    }
+
+    return groups
+  }
+
+  return {
+    Critical: Array.isArray(data?.Critical) ? data.Critical : [],
+    High: Array.isArray(data?.High) ? data.High : [],
+    Medium: Array.isArray(data?.Medium) ? data.Medium : [],
+    Low: Array.isArray(data?.Low) ? data.Low : [],
+    total: typeof data?.total === "number"
+      ? data.total
+      : (
+        (Array.isArray(data?.Critical) ? data.Critical.length : 0) +
+        (Array.isArray(data?.High) ? data.High.length : 0) +
+        (Array.isArray(data?.Medium) ? data.Medium.length : 0) +
+        (Array.isArray(data?.Low) ? data.Low.length : 0)
+      )
+  }
 }
 
 export const acknowledgeAnomaly = async (id: string): Promise<IAnomaly> => {
   const res = await api.put(`/api/ai/anomalies/${id}/acknowledge`)
-  return res.data.data
+  return unwrap<IAnomaly>(res.data)
 }
 
 // Reports
 
 export const getReportHistory = async (): Promise<IReport[]> => {
   const res = await api.get("/api/reports/history")
-  return res.data.data ?? []
+  const data = unwrap<IReport[]>(res.data)
+  return Array.isArray(data) ? data : []
 }

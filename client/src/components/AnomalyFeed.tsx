@@ -7,6 +7,28 @@ const apiPort = import.meta.env.VITE_API_PORT || "5002"
 const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL || `${apiProtocol}//${apiHost}:${apiPort}`
 
+function getStoredToken(): string {
+  return (
+    localStorage.getItem("token") ||
+    localStorage.getItem("govvision_token") ||
+    localStorage.getItem("jwt") ||
+    ""
+  )
+}
+
+function normalizeAnomalies(payload: any): IFeedAnomaly[] {
+  if (Array.isArray(payload)) return payload as IFeedAnomaly[]
+
+  if (payload && typeof payload === "object") {
+    const source = (payload.data && typeof payload.data === "object") ? payload.data : payload
+    const groups = ["Critical", "High", "Medium", "Low"]
+    const flattened = groups.flatMap(key => Array.isArray(source[key]) ? source[key] : [])
+    if (flattened.length > 0) return flattened as IFeedAnomaly[]
+  }
+
+  return []
+}
+
 interface IFeedAnomaly {
   _id: string
   anomalyScore: number
@@ -59,18 +81,14 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
   useEffect(() => {
     const fetchAnomalies = async () => {
       try {
-        const token = localStorage.getItem("token")
+        const token = getStoredToken()
         const response = await axios.get(`${apiBaseUrl}/api/ai/anomalies`, {
           headers: {
             Authorization: `Bearer ${token ?? ""}`
           }
         })
 
-        const data = Array.isArray(response.data)
-          ? response.data
-          : (response.data?.data ?? [])
-
-        setFeedAnomalies(data)
+        setFeedAnomalies(normalizeAnomalies(response.data))
       } catch (error) {
         console.error("Failed to fetch anomalies:", error)
       }
@@ -79,13 +97,19 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
     fetchAnomalies()
   }, [])
 
-  const sorted = useMemo(() => [...feedAnomalies].sort((a, b) =>
-    new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime()
-  ), [feedAnomalies])
+  const sorted = useMemo(
+    () =>
+      [...feedAnomalies].sort(
+        (a, b) =>
+          new Date(b.detectedAt ?? 0).getTime() -
+          new Date(a.detectedAt ?? 0).getTime()
+      ),
+    [feedAnomalies]
+  )
 
   const handleAcknowledge = async (id: string) => {
     try {
-      const token = localStorage.getItem("token")
+      const token = getStoredToken()
       await axios.put(
         `${apiBaseUrl}/api/ai/anomalies/${id}/acknowledge`,
         {},

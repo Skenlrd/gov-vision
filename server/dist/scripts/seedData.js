@@ -42,7 +42,8 @@ async function seed() {
                 Math.random() * 72 * 3600000);
         decisions.push({
             status,
-            department: dept,
+            departmentId: dept.toString(),
+            departmentName: Object.entries(deptIds).find(([, id]) => id.equals(dept))?.[0] ?? "unknown",
             createdAt,
             completedAt,
             cycleTimeHours: Math.random() * 148,

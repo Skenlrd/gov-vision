@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express"
 import { serviceKey } from "../middleware/serviceKey"
 import { invalidate } from "../services/cacheService"
-import { aggregateKPI } from "../services/kpiAggregator"
+import { aggregateKPI, aggregateOrgKPI } from "../services/kpiAggregator"
 
 const router = Router()
 
@@ -13,14 +13,22 @@ const router = Router()
 
 router.post("/decision-update", serviceKey, async (req: Request, res: Response) => {
 
+  const { department, decisionId, status } = req.body as {
+    department: string
+    decisionId: string
+    status: string
+  }
+
+  console.log(
+    `[Webhook] decision-update received: dept=${department}, decision=${decisionId}, status=${status}`
+  )
+
+  if (!department) {
+    res.status(400).json({ error: "department is required" })
+    return
+  }
+
   try {
-
-    const { department } = req.body
-
-    if (!department) {
-      res.status(400).json({ error: "department is required" })
-      return
-    }
 
     /*
       Step 1: Invalidate stale cache for this department
@@ -39,13 +47,17 @@ router.post("/decision-update", serviceKey, async (req: Request, res: Response) 
       immediately instead of computing on demand.
     */
     const today = new Date()
-    await aggregateKPI(department, today, today)
+    today.setHours(0, 0, 0, 0)
 
-    res.json({ ok: true })
+    await aggregateKPI(department, today, today)
+    await aggregateOrgKPI(today, today)
+    console.log(`[Webhook] KPI re-aggregated for dept ${department}`)
+
+    res.json({ received: true, department, status })
 
   } catch (err) {
 
-    console.error("decision-update webhook error:", err)
+    console.error("[Webhook] decision-update handler error:", err)
     res.status(500).json({ error: "Webhook processing failed" })
 
   }

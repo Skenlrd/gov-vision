@@ -87,7 +87,7 @@ Notes:
 - The 3 AI feature links are shown directly under `Deep Insights`.
 - `Reports` comes after the AI feature links.
 - The old sidebar grouping used earlier in the day was replaced with this lineup.
-- The `Sprint 2` badge that briefly appeared on `Forecast` was removed.
+- The temporary badge that briefly appeared on `Forecast` was removed.
 - The `+ New Report` button now visually represents full formatted report generation and includes tooltip text: `Generate formatted PDF or Excel report`.
 
 ### TopBar

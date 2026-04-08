@@ -41,7 +41,7 @@ const mongoose_1 = __importStar(require("mongoose"));
   for one department (or null for org-wide aggregate).
 
   Documents are upserted — one document per
-  (department + snapshotDate) pair.
+  (departmentId + snapshotDate) pair.
   Calling aggregateKPI() twice on the same day
   updates the existing document rather than
   creating a duplicate.
@@ -49,9 +49,9 @@ const mongoose_1 = __importStar(require("mongoose"));
 const kpiSnapshotSchema = new mongoose_1.Schema({
     /*
       null means this is an org-wide aggregate snapshot.
-      A canonical string means this is a department-specific snapshot.
+      A canonical department ID means this is a department-specific snapshot.
     */
-    department: {
+    departmentId: {
         type: String,
         default: null
     },
@@ -96,6 +96,18 @@ const kpiSnapshotSchema = new mongoose_1.Schema({
         type: Number,
         default: 100
     },
+    bottleneckRate: {
+        type: Number,
+        default: 0
+    },
+    bottleneckCount: {
+        type: Number,
+        default: 0
+    },
+    bottleneckThresholds: {
+        type: mongoose_1.Schema.Types.Mixed,
+        default: {}
+    },
     // Filled in later by anomaly detection cron job (Day 7)
     anomalyCount: {
         type: Number,
@@ -116,5 +128,5 @@ const kpiSnapshotSchema = new mongoose_1.Schema({
     collection: "m3_kpi_snapshots"
 });
 // Compound index so upsert matching is fast
-kpiSnapshotSchema.index({ department: 1, snapshotDate: 1 });
+kpiSnapshotSchema.index({ departmentId: 1, snapshotDate: 1 });
 exports.default = mongoose_1.default.model("KPI_Snapshot", kpiSnapshotSchema);

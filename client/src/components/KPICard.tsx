@@ -9,8 +9,22 @@ interface KPICardProps {
   accentColor: string
   bgGradient: string
   isBadge?: boolean
-  isLive?: boolean
   invertTrend?: boolean   // true = up is bad (violations, anomalies)
+  tone?: "hero" | "soft"
+  size?: "lg" | "md"
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const sanitized = hex.replace("#", "")
+  const isShort = sanitized.length === 3
+  const full = isShort
+    ? sanitized.split("").map(char => char + char).join("")
+    : sanitized
+
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 export default function KPICard({
@@ -22,8 +36,9 @@ export default function KPICard({
   accentColor,
   bgGradient,
   isBadge = false,
-  isLive = false,
-  invertTrend = false
+  invertTrend = false,
+  tone = "soft",
+  size = "md"
 }: KPICardProps) {
   const [displayValue, setDisplayValue] = useState<number>(0)
   const prevRef = useRef<number>(0)
@@ -70,16 +85,36 @@ export default function KPICard({
   }
   const riskKey    = typeof value === "string" ? value.toLowerCase() : "low"
   const badgeStyle = riskColors[riskKey] ?? riskColors.low
+  const isHero = tone === "hero"
+  const isLarge = size === "lg"
+
+  const cardBackground = isHero
+    ? bgGradient
+    : `linear-gradient(138deg, rgba(255,255,255,0.98), ${hexToRgba(accentColor, 0.08)})`
+
+  const cardShadow = isHero
+    ? "0 8px 16px rgba(15,23,42,0.07), inset 0 0 0 1px rgba(255,255,255,0.16)"
+    : "0 2px 10px rgba(15,23,42,0.08), inset 0 0 0 1px rgba(15,23,42,0.06)"
+
+  const titleColor = isHero ? "rgba(255,255,255,0.94)" : "#0F172A"
+  const valueColor = isHero ? "#FFFFFF" : accentColor
+  const unitColor = isHero ? "rgba(248,250,252,0.88)" : "#64748B"
+  const helperColor = isHero ? "rgba(255,255,255,0.78)" : "#64748B"
+  const iconBg = isHero ? "rgba(255,255,255,0.14)" : hexToRgba(accentColor, 0.16)
+  const iconBorder = isHero ? "1px solid rgba(255,255,255,0.3)" : `1px solid ${hexToRgba(accentColor, 0.32)}`
+  const textureOpacity = isHero ? 0.08 : 0.16
+  const circleColor = isHero ? "rgba(255,255,255,0.1)" : hexToRgba(accentColor, 0.10)
 
   return (
     <div style={{
-      background: "white",
-      borderRadius: "14px",
-      padding: "18px",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
+      background: cardBackground,
+      borderRadius: "12px",
+      padding: isLarge ? "16px 16px 14px" : "13px 13px 11px",
+      boxShadow: cardShadow,
+      minHeight: isLarge ? "124px" : "106px",
       display: "flex",
       flexDirection: "column",
-      gap: "10px",
+      gap: isLarge ? "9px" : "7px",
       opacity: visible ? 1 : 0,
       transform: visible ? "translateY(0)" : "translateY(12px)",
       transition: "opacity 0.4s ease, transform 0.4s ease",
@@ -87,45 +122,75 @@ export default function KPICard({
       overflow: "hidden",
       cursor: "default"
     }}>
-      {/* Top gradient bar */}
+      {/* Ambient texture */}
       <div style={{
         position: "absolute",
-        top: 0, left: 0, right: 0,
-        height: "3px",
-        background: bgGradient
+        inset: 0,
+        backgroundImage: "radial-gradient(rgba(255,255,255,0.08) 0.6px, transparent 0.6px)",
+        backgroundSize: "4px 4px",
+        opacity: textureOpacity,
+        pointerEvents: "none"
       }} />
 
-      {/* Background decoration */}
+      {/* Top glow to keep hero colors lively */}
+      {isHero && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(168deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 54%, rgba(255,255,255,0) 100%)",
+          pointerEvents: "none"
+        }} />
+      )}
+
+      {/* Background circles */}
       <div style={{
         position: "absolute",
-        bottom: "-20px", right: "-20px",
-        width: "80px", height: "80px",
+        top: "-34px", right: "-26px",
+        width: "104px", height: "104px",
         borderRadius: "50%",
-        background: bgGradient,
-        opacity: 0.06,
+        background: circleColor,
+        pointerEvents: "none"
+      }} />
+      <div style={{
+        position: "absolute",
+        bottom: "-42px", right: "20px",
+        width: "122px", height: "122px",
+        borderRadius: "50%",
+        background: circleColor,
+        pointerEvents: "none"
+      }} />
+
+      {/* Inner shadow for depth */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        borderRadius: "12px",
+        boxShadow: isHero ? "inset 0 -10px 18px rgba(15,23,42,0.06)" : "inset 0 -16px 28px rgba(15,23,42,0.06)",
         pointerEvents: "none"
       }} />
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <span style={{
-          fontSize: "11.5px",
-          fontWeight: 600,
-          color: "#94A3B8",
+          fontSize: isLarge ? "13px" : "12px",
+          fontWeight: 800,
+          color: titleColor,
           textTransform: "uppercase",
-          letterSpacing: "0.6px",
+          letterSpacing: "0.5px",
           fontFamily: "'Outfit', sans-serif"
         }}>
           {title}
         </span>
         <div style={{
-          width: "32px", height: "32px",
-          borderRadius: "8px",
-          background: bgGradient,
+          width: isLarge ? "24px" : "22px", height: isLarge ? "24px" : "22px",
+          borderRadius: "6px",
+          background: iconBg,
+          border: iconBorder,
+          backdropFilter: "blur(1.5px)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          color: "white",
+          color: isHero ? "white" : accentColor,
           flexShrink: 0,
-          opacity: 0.85
+          opacity: 0.95
         }}>
           {icon}
         </div>
@@ -139,7 +204,7 @@ export default function KPICard({
           borderRadius: "20px",
           background: badgeStyle.bg,
           color: badgeStyle.text,
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 700,
           textTransform: "capitalize",
           fontFamily: "'Outfit', sans-serif",
@@ -149,16 +214,17 @@ export default function KPICard({
         </span>
       ) : (
         <div style={{
-          fontSize: "28px",
-          fontWeight: 800,
-          color: accentColor,
-          lineHeight: 1,
+          fontSize: isLarge ? "54px" : "44px",
+          fontWeight: 700,
+          color: valueColor,
+          lineHeight: 0.95,
           fontFamily: "'Outfit', sans-serif",
-          letterSpacing: "-0.5px"
+          letterSpacing: "-0.8px",
+          textShadow: isHero ? "0 1px 6px rgba(2,6,23,0.2)" : "none"
         }}>
           {displayValue.toLocaleString()}
           {unit && (
-            <span style={{ fontSize: "14px", fontWeight: 500, color: "#CBD5E1", marginLeft: "3px" }}>
+            <span style={{ fontSize: isLarge ? "38px" : "32px", fontWeight: 500, color: unitColor, marginLeft: "4px" }}>
               {unit}
             </span>
           )}
@@ -170,36 +236,22 @@ export default function KPICard({
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "2px",
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: 700,
-            color: isGood ? "#10B981" : "#EF4444",
-            background: isGood ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
+            color: isHero ? "#F8FAFC" : (isGood ? "#0F766E" : "#9F1239"),
+            background: isGood ? (isHero ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.16)") : (isHero ? "rgba(239,68,68,0.22)" : "rgba(239,68,68,0.16)"),
             padding: "2px 6px",
             borderRadius: "20px",
             fontFamily: "'Outfit', sans-serif"
           }}>
             {isUp ? "▲" : "▼"} {pct}%
           </span>
-          <span style={{ fontSize: "11px", color: "#CBD5E1", fontFamily: "'Outfit', sans-serif" }}>
+          <span style={{ fontSize: "14px", fontWeight: 600, color: helperColor, fontFamily: "'Outfit', sans-serif" }}>
             vs last period
           </span>
         </div>
       )}
 
-      {!showTrend && isLive && (
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <span style={{
-            width: "5px", height: "5px",
-            borderRadius: "50%",
-            background: "#10B981",
-            animation: "livePulse 2s infinite",
-            display: "inline-block"
-          }} />
-          <span style={{ fontSize: "11px", color: "#10B981", fontFamily: "'Outfit', sans-serif" }}>
-            Updating live
-          </span>
-        </div>
-      )}
     </div>
   )
 }

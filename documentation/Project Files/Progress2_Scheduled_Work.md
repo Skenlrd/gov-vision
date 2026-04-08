@@ -2,6 +2,8 @@
 
 ---
 
+
+
 ## Day 1 — Complete the Anomaly Cron Pipeline End-to-End
 
 ### 🎯 Goal & Reasoning
@@ -993,6 +995,26 @@ The entire backend is now wired correctly: analytics endpoints are cached and JW
 
 The backend for anomalies is fully working. Now you build the frontend layer. Today focuses on the foundation pieces that the AI Insights page depends on: the TypeScript interfaces (so all data is typed end-to-end), the API service functions (so any component can call the endpoints), and the `AnomalyBanner` component that lives on the Dashboard page. Tomorrow you build the full `/ai-insights` page on top of these pieces. Doing it this order — types first, then API service, then leaf components, then full pages — prevents the "I wrote a page but the data shape is wrong" class of bug.
 
+Implementation alignment note (2026-04-08):
+- Keep only one active-anomaly counter surface on Dashboard.
+- Use the existing `Real-Time Anomalies` panel as the single source of anomaly count display.
+- Dashboard anomaly status should be presented under `Real-Time Anomalies` naming for consistency.
+
+### Module 3 Sidebar Navigation (Current UI Labels)
+
+Use the sidebar labels below exactly as shown in the current Module 3 UI:
+
+1. Dashboard
+2. Deep Insights
+3. Anomaly Detection
+4. Forecast
+5. Risk Assessment
+6. Reports
+
+Note:
+- This list is the current sidebar navigation naming baseline for Progress 2 documentation.
+- Any future frontend page additions for Module 3 should keep these labels consistent unless a planned naming update is approved.
+
 ---
 
 ### Work to Complete
@@ -1268,8 +1290,8 @@ cd server && npx ts-node -e "import('./jobs/anomalyJob').then(m => m.runAnomalyJ
 
 ### ✅ How to Validate
 
-1. Open `http://localhost:5173/dashboard` — anomaly banner should appear above the charts
-2. Click "Acknowledge" on one card — it should disappear from the banner immediately (no page reload)
+1. Open `http://localhost:5173/dashboard` — only the `Real-Time Anomalies` panel should show the active anomaly counter
+2. Click "Acknowledge" on one card — it should disappear from the panel immediately (no page reload)
 3. Open Compass, check `m3_anomalies` — the acknowledged document should now have `isAcknowledged: true`
 4. Open Network tab in browser DevTools — confirm `PUT /api/ai/anomalies/{id}/acknowledge` returned 200
 
@@ -1277,25 +1299,25 @@ cd server && npx ts-node -e "import('./jobs/anomalyJob').then(m => m.runAnomalyJ
 
 ### 📋 Day 4 Outcome
 
-All frontend TypeScript types for anomalies are defined, the API service layer is wired with auth headers, and the anomaly banner is live on the dashboard with a working acknowledge flow. Day 5 builds the full `/ai-insights` page: the complete anomaly table with filters and the feature importance chart.
+All frontend TypeScript types for anomalies are defined, the API service layer is wired with auth headers, and anomaly acknowledge flow is active through the existing `Real-Time Anomalies` panel on Dashboard. Dashboard anomaly presentation is aligned to `Real-Time Anomalies` naming and behavior. Day 5 builds the full `/deep-insights` page: the complete anomaly table with filters and the feature importance chart.
 
 ---
 
-## Day 5 — Full AI Insights Page
+## Day 5 — Full Deep Insights Page
 
 ### 🎯 Goal & Reasoning
 
-The backend serves anomaly data grouped by severity. The banner gives a quick view. The AI Insights page is where a manager does the detailed investigation: sorting by score, filtering by severity or department, seeing which features drove the anomaly, and bulk-acknowledging items. This is the most feature-rich frontend page in the module, which is why it gets its own day. Building it today also validates that the anomaly data pipeline is correct end-to-end — if the table looks wrong, you know where to look.
+The backend serves anomaly data grouped by severity. The banner gives a quick view. The Deep Insights page is where a manager does the detailed investigation: sorting by score, filtering by severity or department, seeing which features drove the anomaly, and bulk-acknowledging items. This is the most feature-rich frontend page in the module, which is why it gets its own day. Building it today also validates that the anomaly data pipeline is correct end-to-end — if the table looks wrong, you know where to look.
 
 ---
 
 ### Work to Complete
 
-#### A. Build `AIInsights.tsx` — Full Page
+#### A. Build `DeepInsights.tsx` — Full Page
 
 **Why this exists:** Managers need a structured interface to investigate anomalies. The table, filters, and feature importance chart all serve different investigative needs. This page is a primary demo touchpoint.
 
-**File to create:** `client/src/pages/AIInsights.tsx`
+**File to create:** `client/src/pages/DeepInsights.tsx`
 
 **State variables (all typed):**
 
@@ -1625,10 +1647,10 @@ export default function FeatureImportanceChart({ data }: Props) {
 
 ---
 
-### 🖥️ UI/UX Specification — AI Insights Page
+### 🖥️ UI/UX Specification — Deep Insights Page
 
 ```
-/ai-insights
+/deep-insights
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  [Total: 23]  [Critical: 3]  [High: 8]  [Medium: 10]                   │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -1654,14 +1676,14 @@ export default function FeatureImportanceChart({ data }: Props) {
 
 ```bash
 cd client && npm run dev
-# Navigate to http://localhost:5173/ai-insights
+# Navigate to http://localhost:5173/deep-insights
 ```
 
 ---
 
 ### ✅ How to Validate
 
-1. Navigate to `/ai-insights` — table loads with anomaly rows
+1. Navigate to `/deep-insights` — table loads with anomaly rows
 2. Select "Critical" in severity filter — only Critical rows remain
 3. Select a department — table narrows further
 4. Click Acknowledge on one unacknowledged row — status badge changes to "Acknowledged", action button disappears
@@ -1672,7 +1694,7 @@ cd client && npm run dev
 
 ### 📋 Day 5 Outcome
 
-The complete AI Insights page is built and working end-to-end — anomaly table, client-side filtering, acknowledge flow, and feature importance chart. Days 7–9 will tackle the Prophet forecasting pipeline. Day 6 first adds routing and navigation so all pages are reachable.
+The complete Deep Insights page is built and working end-to-end — anomaly table, client-side filtering, acknowledge flow, and feature importance chart. Days 7–9 will tackle the Prophet forecasting pipeline. Day 6 first adds routing and navigation so all pages are reachable.
 
 ---
 
@@ -1680,7 +1702,9 @@ The complete AI Insights page is built and working end-to-end — anomaly table,
 
 ### 🎯 Goal & Reasoning
 
-You now have two pages (`/dashboard`, `/ai-insights`) and are about to add four more (`/analytics/forecast`, `/risk-heatmap`, `/reports/builder`, `/reports/history`). Without a sidebar and React Router route definitions, these pages are unreachable. Today you set up the permanent navigation structure so every subsequent page you build is immediately accessible. You also add the `SkeletonLoader` and `ErrorBoundary` shared components that every page will use for loading and error states — building them now means each future page can use them from day one.
+You now have two pages (`/dashboard`, `/deep-insights`) and are about to add more route-backed screens over time. The risk heatmap is currently rendered inside the Dashboard page, so it is not a separate route yet. Without a sidebar and React Router route definitions, new pages are unreachable. Today you set up the permanent navigation structure so every subsequent page you build is immediately accessible. You also add the `SkeletonLoader` and `ErrorBoundary` shared components that every page will use for loading and error states — building them now means each future page can use them from day one.
+
+Current codebase note: keep `App.tsx` as the source of truth for route paths, keep `Sidebar.tsx` as navigation only, and treat the risk heatmap as Dashboard content until a dedicated risk page is added.
 
 ---
 
@@ -1688,7 +1712,7 @@ You now have two pages (`/dashboard`, `/ai-insights`) and are about to add four 
 
 #### A. Install and Configure React Router (if not already)
 
-**react-router-dom** is the standard routing library for React. It lets you define URL paths (`/dashboard`, `/ai-insights`) and map each to a React component. Without it, navigating to a URL just shows a blank page.
+**react-router-dom** is the standard routing library for React. It lets you define URL paths (`/dashboard`, `/deep-insights`) and map each to a React component. Without it, navigating to a URL just shows a blank page.
 
 **File to modify:** `client/src/main.tsx`
 
@@ -1721,18 +1745,18 @@ import { NavLink } from 'react-router-dom';
 interface NavItem {
   label: string;
   path: string;
-  badge?: string; // e.g. "Sprint 2"
+  badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard' },
-  { label: 'AI Insights', path: '/ai-insights' },
-  { label: 'Risk Heatmap', path: '/risk-heatmap' },
-  { label: 'Forecast', path: '/analytics/forecast', badge: 'Sprint 2' },
-  { label: 'Decision Analytics', path: '/analytics/decisions', badge: 'Sprint 2' },
-  { label: 'Report Builder', path: '/reports/builder' },
-  { label: 'Report History', path: '/reports/history' },
-  { label: 'Scheduled Reports', path: '/reports/schedules', badge: 'Sprint 2' },
+  { label: 'Dashboard', path: '/' },
+  { label: 'Deep Insights', path: '/deep-insights' },
+  { label: 'Anomaly Detection', path: '/anomaly' },
+  { label: 'Forecast', path: '/forecast' },
+  { label: 'Risk Assessment', path: '/risk' },
+  { label: 'Reports', path: '/reports' },
+  { label: 'Settings', path: '/settings' },
+  { label: 'Support', path: '/support' },
 ];
 
 export default function Sidebar() {
@@ -1799,13 +1823,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/AppLayout';
 import Dashboard from './pages/Dashboard';
-import AIInsights from './pages/AIInsights';
-import RiskHeatmap from './pages/RiskHeatmap';       // Day 12
-import ForecastPage from './pages/ForecastPage';    // Day 9
-import ReportBuilder from './pages/ReportBuilder';   // Day 15
-import ReportHistory from './pages/ReportHistory';   // Day 16
-import ReportSchedules from './pages/ReportSchedules'; // Day 17
-import PlaceholderPage from './pages/PlaceholderPage';
+import DeepInsights from './pages/DeepInsights';
 
 export default function App() {
   return (
@@ -1813,13 +1831,11 @@ export default function App() {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/ai-insights" element={<AIInsights />} />
-        <Route path="/risk-heatmap" element={<RiskHeatmap />} />
-        <Route path="/analytics/forecast" element={<ForecastPage />} />
-        <Route path="/analytics/decisions" element={<PlaceholderPage title="Decision Analytics" />} />
-        <Route path="/reports/builder" element={<ReportBuilder />} />
-        <Route path="/reports/history" element={<ReportHistory />} />
-        <Route path="/reports/schedules" element={<ReportSchedules />} />
+        <Route path="/deep-insights" element={<DeepInsights />} />
+        {/* Day 9 — Risk Heatmap (not a separate route yet in the current codebase) */}
+        {/* <Route path="/risk" element={<RiskHeatmap />} /> */}
+        {/* Day 10 — Reports */}
+        {/* <Route path="/reports" element={<Reports />} /> */}
       </Route>
     </Routes>
   );
@@ -1838,7 +1854,7 @@ export default function PlaceholderPage({ title }: { title: string }) {
     <div className="flex flex-col items-center justify-center h-full py-32 text-gray-400">
       <div className="text-4xl mb-4">🚧</div>
       <h2 className="text-xl font-semibold text-gray-500">{title}</h2>
-      <p className="text-sm mt-2">Coming in Sprint 2</p>
+      <p className="text-sm mt-2">Coming soon</p>
     </div>
   );
 }
@@ -1933,7 +1949,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 ```bash
 cd client && npm run dev
 # Visit http://localhost:5173 — should redirect to /dashboard
-# Click each sidebar link — each page should load (placeholders for unbuilt pages)
+# Click each sidebar link — each page should load, with placeholders only for routes that do not exist yet
 # No blank white screens anywhere
 ```
 
@@ -1943,8 +1959,8 @@ cd client && npm run dev
 
 1. All sidebar links are clickable and navigate correctly
 2. Active link is highlighted in indigo
-3. Sprint 2 badges appear on Forecast, Decision Analytics, Scheduled Reports
-4. Placeholder pages show the 🚧 message, not a blank screen
+3. Sidebar labels match the current app naming, especially Deep Insights and Risk Assessment
+4. Placeholder pages show the 🚧 message, not a blank screen, for any routes not built yet
 5. ErrorBoundary: temporarily throw an error inside a chart component to confirm the "Chart failed to load" fallback renders
 
 ---

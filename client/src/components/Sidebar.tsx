@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { NavLink } from "react-router-dom"
 
 const dashboardItem = {
@@ -28,6 +29,16 @@ const reportsItem = {
 }
 
 const aiFeatureItems = [
+  {
+    label: "Deep Insights",
+    path: "/deep-insights",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+      </svg>
+    )
+  },
   {
     label: "Anomaly Detection",
     path: "/anomaly",
@@ -87,11 +98,14 @@ const bottomItems = [
 ]
 
 export default function Sidebar() {
+  const [isNewReportHovered, setIsNewReportHovered] = useState(false)
+  const [isNewReportFocused, setIsNewReportFocused] = useState(false)
+
   return (
     <aside style={{
       width: "220px",
       minHeight: "100vh",
-      background: "#1A1F2E",
+      background: "linear-gradient(180deg, #222733 0%, #1B202A 100%)",
       display: "flex",
       flexDirection: "column",
       padding: "0",
@@ -104,37 +118,38 @@ export default function Sidebar() {
       zIndex: 50,
       overflowY: "auto"
     }}>
-      {/* Logo */}
+      {/* Subtle texture overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          backgroundImage: [
+            "radial-gradient(rgba(255,255,255,0.045) 0.6px, transparent 0.6px)",
+            "repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 6px)"
+          ].join(", "),
+          backgroundSize: "4px 4px, 12px 12px",
+          opacity: 0.32,
+          zIndex: 0
+        }}
+      />
+
+      {/* Brand */}
       <div style={{
         padding: "24px 20px 20px",
-        borderBottom: "1px solid rgba(255,255,255,0.07)"
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+        position: "relative",
+        zIndex: 1
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{
-            width: "36px", height: "36px",
-            background: "linear-gradient(135deg, #3B82F6, #1D4ED8)",
-            borderRadius: "10px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 12px rgba(59,130,246,0.4)"
-          }}>
-            <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </div>
-          <div>
-            <div style={{ color: "white", fontWeight: 700, fontSize: "15px", letterSpacing: "-0.3px", fontFamily: "'Outfit', sans-serif" }}>
-              Gov<span style={{ color: "#60A5FA" }}>Vision</span>
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" }}>
-              ENTERPRISE
-            </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ color: "white", fontWeight: 700, fontSize: "21px", letterSpacing: "-0.3px", fontFamily: "'Outfit', sans-serif" }}>
+            GovVision
           </div>
         </div>
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, padding: "12px 10px" }}>
+      <nav style={{ flex: 1, padding: "12px 10px", position: "relative", zIndex: 1 }}>
         <div style={{ marginBottom: "6px" }}>
           <NavLink
             key={dashboardItem.path}
@@ -150,11 +165,11 @@ export default function Sidebar() {
               textDecoration: "none",
               color: isActive ? "white" : "rgba(255,255,255,0.5)",
               background: isActive
-                ? "linear-gradient(90deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))"
+                ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
                 : "transparent",
-              borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent",
+              borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
               transition: "all 0.18s ease",
-              fontSize: "13.5px",
+              fontSize: "13px",
               fontWeight: isActive ? 600 : 400,
               fontFamily: "'Outfit', sans-serif"
             })}
@@ -162,14 +177,6 @@ export default function Sidebar() {
             {dashboardItem.icon}
             {dashboardItem.label}
           </NavLink>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", color: "rgba(255,255,255,0.75)", fontSize: "13.5px", fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-            </svg>
-            Deep Insights
-          </div>
 
           {aiFeatureItems.map(item => (
             <NavLink
@@ -180,30 +187,23 @@ export default function Sidebar() {
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                padding: "10px 12px 10px 20px",
+                padding: "10px 12px",
                 borderRadius: "10px",
                 marginBottom: "2px",
                 textDecoration: "none",
                 color: isActive ? "white" : "rgba(255,255,255,0.5)",
                 background: isActive
-                  ? "linear-gradient(90deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))"
+                  ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
                   : "transparent",
-                borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent",
+                borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
                 transition: "all 0.18s ease",
-                fontSize: "13.5px",
+                fontSize: "12.8px",
                 fontWeight: isActive ? 600 : 400,
                 fontFamily: "'Outfit', sans-serif"
               })}
             >
               {item.icon}
-              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <span>{item.label}</span>
-                {item.badge ? (
-                  <span title={item.badgeTitle} style={{ fontSize: "10px", color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-                    {item.badge}
-                  </span>
-                ) : null}
-              </span>
+              <span>{item.label}</span>
             </NavLink>
           ))}
 
@@ -220,11 +220,11 @@ export default function Sidebar() {
               textDecoration: "none",
               color: isActive ? "white" : "rgba(255,255,255,0.5)",
               background: isActive
-                ? "linear-gradient(90deg, rgba(59,130,246,0.25), rgba(59,130,246,0.08))"
+                ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
                 : "transparent",
-              borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent",
+              borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
               transition: "all 0.18s ease",
-              fontSize: "13.5px",
+              fontSize: "13px",
               fontWeight: isActive ? 600 : 400,
               fontFamily: "'Outfit', sans-serif"
             })}
@@ -236,17 +236,27 @@ export default function Sidebar() {
       </nav>
 
       {/* New Report Button */}
-      <div style={{ padding: "0 10px 12px" }}>
+      <div style={{ padding: "0 10px 12px", position: "relative", zIndex: 1 }}>
         <button
           title="Generate formatted PDF or Excel report"
+          onMouseEnter={() => setIsNewReportHovered(true)}
+          onMouseLeave={() => setIsNewReportHovered(false)}
+          onFocus={() => setIsNewReportFocused(true)}
+          onBlur={() => setIsNewReportFocused(false)}
           style={{
           width: "100%",
           padding: "10px",
-          background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
-          border: "none",
+          background: (isNewReportHovered || isNewReportFocused)
+            ? "linear-gradient(135deg, #B0895A, #8F6B42)"
+            : "rgba(255,255,255,0.06)",
+          border: (isNewReportHovered || isNewReportFocused)
+            ? "1px solid rgba(216,190,150,0.60)"
+            : "1px solid rgba(255,255,255,0.12)",
           borderRadius: "10px",
-          color: "white",
-          fontSize: "13px",
+          color: (isNewReportHovered || isNewReportFocused)
+            ? "#FFF8ED"
+            : "rgba(255,255,255,0.92)",
+          fontSize: "12.6px",
           fontWeight: 600,
           cursor: "pointer",
           display: "flex",
@@ -254,17 +264,24 @@ export default function Sidebar() {
           justifyContent: "center",
           gap: "6px",
           fontFamily: "'Outfit', sans-serif",
-          boxShadow: "0 4px 12px rgba(59,130,246,0.35)",
+          boxShadow: (isNewReportHovered || isNewReportFocused)
+            ? "0 6px 14px rgba(176,137,90,0.28)"
+            : "none",
+          transform: (isNewReportHovered || isNewReportFocused) ? "translateY(-1px)" : "translateY(0)",
+          outline: "none",
+          WebkitTapHighlightColor: "transparent",
           transition: "all 0.2s ease"
         }}>
-          <span style={{ fontSize: "16px" }}>+</span> New Report
+          <span style={{ fontSize: "15px" }}>+</span> New Report
         </button>
       </div>
 
       {/* Bottom Items */}
       <div style={{
         padding: "10px 10px 20px",
-        borderTop: "1px solid rgba(255,255,255,0.07)"
+        borderTop: "1px solid rgba(255,255,255,0.07)",
+        position: "relative",
+        zIndex: 1
       }}>
         {bottomItems.map(item => (
           <NavLink
@@ -279,7 +296,7 @@ export default function Sidebar() {
               marginBottom: "2px",
               textDecoration: "none",
               color: "rgba(255,255,255,0.4)",
-              fontSize: "13px",
+              fontSize: "12.4px",
               fontFamily: "'Outfit', sans-serif",
               transition: "color 0.18s"
             }}

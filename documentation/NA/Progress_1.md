@@ -165,7 +165,7 @@ npx ts-node server.ts
 This section lists features, integrations, or requirements that were discussed or referenced in documentation but have not yet been fully implemented or are only partially present:
 
 - **Redis Integration:**
-  - Redis connection utilities and setup are present, but Redis is optional and not fully leveraged in development mode. Some caching and job features are placeholders for future sprints.
+  - Redis connection utilities and setup are present, but Redis is optional and not fully leveraged in development mode. Some caching and job features are placeholders for later work.
 
 - **Full JWT and Role-Based Authentication:**
   - JWT and role-based authentication are referenced and partially implemented, but are currently disabled for analytics routes and not enforced in dev mode.

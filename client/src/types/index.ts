@@ -29,8 +29,36 @@ export interface IAnomaly {
   anomalyScore: number
   severity: Severity
   description: string
+  isAnomaly?: boolean
   isAcknowledged: boolean
+  acknowledgedBy?: string
+  acknowledgedAt?: string
+  featureValues?: IFeatureValues
+  createdAt?: string
+  updatedAt?: string
   detectedAt: string
+}
+
+export interface IFeatureValues {
+  cycleTimeHours: number
+  rejectionCount: number
+  revisionCount: number
+  daysOverSLA: number
+  stageCount: number
+  hourOfDaySubmitted: number
+}
+
+export interface IAnomalyGroup {
+  Critical: IAnomaly[]
+  High: IAnomaly[]
+  Medium: IAnomaly[]
+  Low: IAnomaly[]
+  total: number
+}
+
+export interface IFeatureImportance {
+  feature: string
+  weight: number
 }
 
 export interface IFilter {
@@ -92,4 +120,13 @@ export interface IComplianceTrendPoint {
 export interface IComplianceTrendSeries {
   department: string
   data: IComplianceTrendPoint[]
+}
+
+export interface IRiskHeatmapRow {
+  department: string
+  deptId: string
+  Low: number
+  Medium: number
+  High: number
+  Critical: number
 }

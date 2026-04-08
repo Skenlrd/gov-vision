@@ -8,8 +8,8 @@ const router = Router()
 
 router.get(
   "/anomalies",
-  validateJWT,
-  requireRole(["admin", "manager", "executive", "analyst"]),
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(["admin", "manager", "executive", "analyst"]), // TEMP: commented for development testing
   async (req: Request, res: Response) => {
     try {
       const cacheKey = "m3:anomalies:active"
@@ -48,8 +48,8 @@ router.get(
 
 router.put(
   "/anomalies/:id/acknowledge",
-  validateJWT,
-  requireRole(["admin", "manager", "executive"]),
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(["admin", "manager", "executive"]), // TEMP: commented for development testing
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params

@@ -1,142 +1,381 @@
-npx ts-node scripts/testAggregator.ts
+# Project Bash and PowerShell Commands
 
-# Project Bash Commands (Updated & Structured)
-
-This file lists all required bash/PowerShell commands for running, developing, and testing the project, grouped by architecture. Missing or unimplemented commands are noted at the end.
+This file contains manual commands you can run yourself. Each command block includes:
+- what it is trying to do
+- command
+- expected result
 
 ---
 
-## 1. Environment Setup
+## Day 6 Session Commands (2026-04-09)
 
-### Install Node.js dependencies (run in each folder):
+Grouped commands that were actually used during the Day 6 routing/layout refactor validation.
+
+### 1) Startup commands
+
+What it does:
+- starts the client dev server for route and shared-layout checking
+
+Commands:
+cd client
+npm run dev
+
+Expected result:
+- Vite serves the app locally
+- `/dashboard` and `/deep-insights` render inside the shared AppLayout
+- placeholder routes render as blank pages with no visible text or emoji
+
+### 2) API test commands (curl/PowerShell)
+
+What it does:
+- documents API testing status for this frontend-only refactor
+
+Commands:
+No API test commands were executed during the Day 6 routing/layout pass.
+
+Expected result:
+- n/a
+
+### 3) Validation commands
+
+What it does:
+- confirms the client still builds after the shared layout/router refactor
+
+Commands:
+cd client
+npm run build
+
+Expected result:
+- TypeScript compile and Vite production build complete successfully
+- observed output: 1675 modules transformed, dist assets emitted, and a large-chunk warning noted
+
+### 4) Troubleshooting commands
+
+What it does:
+- records the fact that no extra shell troubleshooting command was needed during the Day 6 refactor
+
+Commands:
+No shell troubleshooting command was needed for Day 6 beyond the build validation above.
+
+Expected result:
+- n/a
+
+---
+
+## Day 5 Session Commands (2026-04-09)
+
+Grouped commands that were actually used during Day 5 implementation, validation, and troubleshooting.
+
+### 1) Startup commands
+
+What it does:
+- starts backend and frontend for manual Deep Insights validation
+
+Commands:
+cd server
+npm run dev
+
+cd ../client
+npm run dev
+
+Expected result:
+- backend serves API on port 5002
+- frontend serves app and /deep-insights is reachable
+
+### 2) API test commands (curl/PowerShell)
+
+What it does:
+- documents direct API command usage for this Day 5 session
+
+Commands:
+No direct curl or Invoke-RestMethod API command was executed in the Day 5 session; API behavior was validated through the Deep Insights UI flow.
+
+Expected result:
+- n/a
+
+### 3) Validation commands
+
+What it does:
+- verifies frontend TypeScript/build integrity after Day 5 fixes
+
+Commands:
+cd client
+npm run build
+
+Expected result:
+- build completes successfully (observed exit code: 0)
+
+### 4) Troubleshooting commands
+
+What it does:
+- restores unacknowledged anomalies after repeated acknowledge testing depleted active rows
+
+Commands:
+cd server
+npx ts-node scripts/resetUnacknowledged.ts
+
+Expected result:
+- console output includes:
+  - Reset 5 anomalies to unacknowledged
+  - Unacknowledged total: 5
+  - By severity: [{"_id":"Low","count":5}]
+
+---
+
+## 1) Environment Setup
+
+### Install frontend and backend dependencies
+What it does:
+- installs Node.js packages for client and server
+
+Commands:
 cd client
 npm install
 cd ../server
 npm install
 
-### Install Python dependencies:
-cd ml_service
+Expected result:
+- node_modules folders are created and npm install completes with no errors
+
+### Install ML service dependencies
+What it does:
+- installs Python packages from requirements.txt for ml_service
+
+Commands:
+cd ../ml_service
 pip install -r requirements.txt
 
----
-
-## 2. Data Preparation & Import
-
-### Import CSV data into MongoDB:
-cd server
-npx ts-node scripts/importCSV.ts
-
-### (Optional) Inject test data:
-npx ts-node scripts/inject.ts
+Expected result:
+- all required Python packages are installed
 
 ---
 
-## 3. Machine Learning Service (Python)
+## 2) Core Services Run Order
 
-### Train Isolation Forest model:
+### Start ML service
+What it does:
+- starts FastAPI service on port 8000 for anomaly and ML endpoints
+
+Commands:
 cd ml_service
-python training/train_isolation_forest.py
-
-### Validate data:
-python validation/validate_data.py
-
-### Start ML API service:
 python -m uvicorn main:app --port 8000 --reload
 
----
+Expected result:
+- service starts on http://localhost:8000
 
-## 4. Backend Service (Node.js)
+### Start backend service
+What it does:
+- starts Module 3 backend API on port 5002
 
-### Start backend server (dev mode):
-cd server
+Commands:
+cd ../server
 npm run dev
 
-### Build backend for production:
-npm run build
+Expected result:
+- log shows Module 3 server running on port 5002
 
-### Start backend (production):
-npm start
+### Start frontend service
+What it does:
+- starts Vite frontend dev server
 
----
-
-## 5. Frontend Service (React)
-
-### Start frontend (dev mode):
-cd client
+Commands:
+cd ../client
 npm run dev
 
-### Build frontend for production:
-npm run build
-
-### Preview production build:
-npm run preview
+Expected result:
+- frontend opens on local Vite URL (usually localhost:5173)
 
 ---
 
-## 6. Testing & Utilities
+## 3) Data and Utilities
 
-### Run aggregator test script:
-cd server
+### Import CSV data into MongoDB
+What it does:
+- runs import script to populate DB collections from CSV
+
+Commands:
+cd ../server
+npx ts-node scripts/importCSV.ts
+
+Expected result:
+- import script finishes and logs inserted records
+
+### Test KPI aggregator script
+What it does:
+- runs aggregator test utility manually
+
+Commands:
 npx ts-node scripts/testAggregator.ts
 
-### Open MongoDB shell with env URI:
-cd server
+Expected result:
+- script outputs aggregation test results with no runtime crash
+
+### Open Mongo shell using env URI (PowerShell)
+What it does:
+- opens mongosh connected to the database configured in env
+
+Commands:
 mongosh "$env:MONGODB_URI"
 
-### Free a port (PowerShell):
-$port=8000; Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }
-Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
+Expected result:
+- interactive Mongo shell opens on target DB
 
 ---
 
-## 7. Run Order (Recommended)
+## 4) Anomaly Pipeline Validation Commands
 
-1. Start ML service:
-  cd ml_service
-  python -m uvicorn main:app --port 8000 --reload
-2. Start backend:
-  cd server
-  npm run dev
-3. Start frontend:
-  cd client
-  npm run dev
+### Trigger anomaly job manually
+What it does:
+- runs anomaly pipeline immediately instead of waiting for cron
+
+Commands:
+cd server
+npx ts-node -e "import('./jobs/anomalyJob').then(m => m.runAnomalyJob())"
+
+Expected result:
+- logs show anomaly scoring flow and cache invalidation
+
+### Test anomaly read endpoint
+What it does:
+- fetches grouped active anomalies via protected AI route
+
+Commands:
+curl -H "Authorization: Bearer TOKEN" http://localhost:5002/api/ai/anomalies
+
+Expected result:
+- JSON response with Critical, High, Medium, Low, total
+
+### Test anomaly acknowledge endpoint
+What it does:
+- marks one anomaly as acknowledged
+
+Commands:
+curl -X PUT -H "Authorization: Bearer TOKEN" http://localhost:5002/api/ai/anomalies/ANOMALY_ID/acknowledge
+
+Expected result:
+- updated anomaly document with isAcknowledged true
 
 ---
 
-## 8. Department ObjectIds (for Postman/API testing)
+## 5) Analytics Auth and Caching Validation Commands
 
-finance: 69b18569d20664db9a51ce00
-hr: 69b18569d20664db9a51ce01
-legal: 69b18569d20664db9a51ce02
-operations: 69b18569d20664db9a51ce03
+### Confirm unauthenticated request is blocked
+What it does:
+- verifies JWT middleware is enforced on analytics routes
+
+Commands:
+curl "http://localhost:5002/api/analytics/kpi-summary"
+
+Expected result:
+- HTTP 401
+
+### Test authenticated analytics routes
+What it does:
+- verifies major analytics endpoints return valid data with JWT
+
+Commands:
+curl -H "Authorization: Bearer TOKEN" "http://localhost:5002/api/analytics/kpi-summary"
+curl -H "Authorization: Bearer TOKEN" "http://localhost:5002/api/analytics/kpi-summary/FI001"
+curl -H "Authorization: Bearer TOKEN" "http://localhost:5002/api/analytics/decision-volume?granularity=daily"
+curl -H "Authorization: Bearer TOKEN" "http://localhost:5002/api/analytics/cycle-time-histogram"
+curl -H "Authorization: Bearer TOKEN" "http://localhost:5002/api/analytics/compliance-trend?deptIds=FI001,HR002"
+
+Expected result:
+- valid JSON responses for each route
+
+### Check Redis port reachability (PowerShell)
+What it does:
+- checks whether Redis is reachable on localhost:6379
+
+Commands:
+Test-NetConnection localhost -Port 6379
+
+Expected result:
+- TcpTestSucceeded True when Redis is running
 
 ---
 
-## 9. Missing/Unimplemented Commands
+## 6) Webhook and Risk Heatmap Validation Commands
 
-- No explicit commands for training Prophet or Random Forest models (see ml_service/training/ for scripts).
-- No dedicated test scripts for frontend (React) or backend (Jest/Mocha/etc.) found in package.json.
-- No Docker or containerization commands present.
-- No Redis/Memurai install/start commands here (see Libraries_installed.md for Redis setup).
+### Webhook decision update test (PowerShell)
+What it does:
+- simulates Module 1 event webhook call to Module 3
+- validates cache invalidation and KPI re-aggregation trigger path
+
+Commands:
+Set-Location C:\Users\win\Desktop\GithubUploads\gov_vision\server
+$envFile = Get-Content .env
+$serviceKey = ($envFile | Where-Object { $_ -match '^SERVICE_KEY=' }) -replace '^SERVICE_KEY=',''
+
+$r = Invoke-WebRequest -Method Post -TimeoutSec 10 \
+  -Uri "http://localhost:5002/api/events/decision-update" \
+  -Headers @{ "x-service-key" = $serviceKey; "Content-Type" = "application/json" } \
+  -Body '{"department":"FI001","decisionId":"abc123","status":"approved"}'
+
+"HTTP: $($r.StatusCode)"
+$r.Content
+
+Expected result:
+- HTTP 200
+- body contains received true, department, status
+
+### Risk heatmap endpoint test (PowerShell)
+What it does:
+- validates risk heatmap route with JWT auth
+
+Commands:
+$token = "YOUR_TOKEN"
+Invoke-RestMethod -Method Get `
+  -Uri "http://localhost:5002/api/analytics/risk-heatmap" `
+  -Headers @{ Authorization = "Bearer $token" }
+
+Expected result:
+- array of department rows with Low, Medium, High, Critical counts
 
 ---
 
-## 10. Git Commands
+## 7) Redis Commands (Only when Redis is available)
 
-### Check ignore rule source:
-```bash
+### List Module 3 cache keys
+What it does:
+- shows current Redis keys under m3 namespace
+
+Commands:
+redis-cli keys "m3:*"
+
+Expected result:
+- list of cache keys if cache is connected and in use
+
+### Check TTL for a key
+What it does:
+- verifies cache expiration for a key
+
+Commands:
+redis-cli ttl "m3:kpi:org:2026-04-07"
+
+Expected result:
+- integer TTL in seconds
+
+---
+
+## 8) Git Utility Commands
+
+### Find which rule ignores a file
+What it does:
+- identifies ignore rule source for a specific file
+
+Commands:
 git check-ignore -v TestNotes.md
-```
-Explanation:
-- Shows which ignore rule and file are responsible for ignoring `TestNotes.md`.
-- Used to verify the `.gitignore` update is applied correctly.
 
-### Check modified/untracked/ignored files:
-```bash
+Expected result:
+- shows ignore file and pattern that matched
+
+### Show modified, untracked, and ignored files
+What it does:
+- quick status snapshot during documentation or coding updates
+
+Commands:
 git status --short --ignored
-```
-Explanation:
-- Displays modified, untracked, and ignored files in compact format.
-- Used to confirm `TestNotes.md` appears under ignored files (`!!`).
 
----
+Expected result:
+- compact status list with ignored entries marked as !!

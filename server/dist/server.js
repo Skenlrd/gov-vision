@@ -11,6 +11,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const db_1 = require("./config/db");
 const redis_1 = require("./config/redis");
+require("./jobs/anomalyJob");
 const analyticsRoutes_1 = __importDefault(require("./routes/analyticsRoutes"));
 const eventRoutes_1 = __importDefault(require("./routes/eventRoutes"));
 const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));

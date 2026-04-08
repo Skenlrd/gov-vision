@@ -26,7 +26,7 @@ Here is what is missed, skipped, and remaining.
 
 **Explicitly Skipped / Deferred (documented)**
 - Full production JWT/role enforcement for all analytics routes.
-- Advanced analytics and risk scoring enhancements (future sprint).
+- Advanced analytics and risk scoring enhancements (planned later work).
 - Additional ML integrations beyond Isolation Forest (Prophet/Random Forest scaffolded but not fully integrated).
 - Full production hardening (rate limiting, HTTPS, CI/CD, monitoring, full test coverage).
 

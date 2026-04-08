@@ -21,7 +21,26 @@ export default function TopBar({ isLive, anomalyCount, openViolations }: TopBarP
       zIndex: 40,
       boxShadow: "0 1px 8px rgba(0,0,0,0.04)"
     }}>
-      <div />
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <span
+          style={{
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
+            background: isLive ? "#22C55E" : "#94A3B8"
+          }}
+        />
+        <span
+          style={{
+            fontSize: "12px",
+            color: "#64748B",
+            fontWeight: 600,
+            fontFamily: "'Outfit', sans-serif"
+          }}
+        >
+          {isLive ? "Live" : "Offline"}
+        </span>
+      </div>
 
       {/* Right actions */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -57,20 +76,22 @@ export default function TopBar({ isLive, anomalyCount, openViolations }: TopBarP
 
         {/* Avatar */}
         <div
-          title="Aswin Chettri"
+          title="Admin"
           style={{
-          width: "36px", height: "36px",
+          minWidth: "56px", height: "36px",
           borderRadius: "10px",
-          background: "linear-gradient(135deg, #3B82F6, #1D4ED8)",
+          background: "linear-gradient(135deg, #3A3F48, #2A2F36)",
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "white",
-          fontSize: "13px",
+          fontSize: "12px",
           fontWeight: 700,
           cursor: "pointer",
           fontFamily: "'Outfit', sans-serif",
-          boxShadow: "0 2px 8px rgba(59,130,246,0.3)"
+          boxShadow: "0 2px 8px rgba(15,23,42,0.22)",
+          padding: "0 10px",
+          letterSpacing: "0.3px"
         }}>
-          AC
+          ADMIN
         </div>
       </div>
     </header>

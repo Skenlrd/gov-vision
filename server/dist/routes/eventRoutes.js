@@ -11,12 +11,13 @@ const router = (0, express_1.Router)();
 // Protected by SERVICE_KEY, not JWT
 // ─────────────────────────────────────────────
 router.post("/decision-update", serviceKey_1.serviceKey, async (req, res) => {
+    const { department, decisionId, status } = req.body;
+    console.log(`[Webhook] decision-update received: dept=${department}, decision=${decisionId}, status=${status}`);
+    if (!department) {
+        res.status(400).json({ error: "department is required" });
+        return;
+    }
     try {
-        const { department } = req.body;
-        if (!department) {
-            res.status(400).json({ error: "department is required" });
-            return;
-        }
         /*
           Step 1: Invalidate stale cache for this department
           and for the org-wide aggregate.
@@ -33,11 +34,14 @@ router.post("/decision-update", serviceKey_1.serviceKey, async (req, res) => {
           immediately instead of computing on demand.
         */
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         await (0, kpiAggregator_1.aggregateKPI)(department, today, today);
-        res.json({ ok: true });
+        await (0, kpiAggregator_1.aggregateOrgKPI)(today, today);
+        console.log(`[Webhook] KPI re-aggregated for dept ${department}`);
+        res.json({ received: true, department, status });
     }
     catch (err) {
-        console.error("decision-update webhook error:", err);
+        console.error("[Webhook] decision-update handler error:", err);
         res.status(500).json({ error: "Webhook processing failed" });
     }
 });
