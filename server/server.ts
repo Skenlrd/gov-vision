@@ -9,6 +9,7 @@ import morgan from "morgan"
 import { connectMongo } from "./config/db"
 import { connectRedis } from "./config/redis"
 import "./jobs/anomalyJob"
+import "./jobs/forecastJob"
 
 import analyticsRoutes from "./routes/analyticsRoutes"
 import eventRoutes     from "./routes/eventRoutes"

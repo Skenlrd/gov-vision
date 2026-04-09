@@ -4,6 +4,22 @@ This document lists installed libraries/packages and their install commands.
 
 ---
 
+## Day 7 Session Update (2026-04-10)
+
+No new packages installed.
+
+Session-used libraries (already installed in `.venv` and/or server workspace):
+- python-dotenv
+- prophet
+- joblib
+- pymongo
+- fastapi
+- uvicorn
+- axios
+- node-cron
+
+---
+
 ## Day 6 Session Update (2026-04-09)
 
 No new packages installed.

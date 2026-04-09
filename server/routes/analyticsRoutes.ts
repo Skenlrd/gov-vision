@@ -5,6 +5,7 @@ import { getOrSet } from '../services/cacheService';
 import { aggregateKPI, aggregateOrgKPI } from '../services/kpiAggregator';
 import m1Decision from '../models/m1Decisions';
 import KPISnapshot from '../models/KPI_Snapshot';
+import Forecast from '../models/Forecast';
 
 const router = Router();
 
@@ -262,6 +263,61 @@ router.get(
       return res.json(data);
     } catch (err: any) {
       console.error('[GET /api/analytics/risk-heatmap]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────
+// GET /api/analytics/forecast
+// Forecast data for a department and horizon
+// ─────────────────────────────────────────────
+
+router.get(
+  '/forecast',
+  // validateJWT, // TEMP: commented for development testing
+  // requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+  async (req: Request, res: Response) => {
+    const { deptId = 'org', horizon = '30', target = 'volume' } = req.query as {
+      deptId?: string;
+      horizon?: string;
+      target?: string;
+    };
+
+    const horizonNum = Number.parseInt(horizon, 10);
+    const targetValue = String(target).toLowerCase();
+
+    if (![7, 14, 30].includes(horizonNum)) {
+      return res.status(400).json({ error: 'horizon must be 7, 14, or 30' });
+    }
+    if (!['volume', 'delay'].includes(targetValue)) {
+      return res.status(400).json({ error: "target must be 'volume' or 'delay'" });
+    }
+
+    const cacheKey = `m3:forecast:${deptId}:${targetValue}:${horizonNum}`;
+
+    try {
+      const data = await getOrSet(cacheKey, 3600, async () => {
+        const forecast = await Forecast.findOne({
+          department: deptId,
+          target: targetValue,
+          horizon: horizonNum,
+        }).lean();
+
+        if (!forecast) {
+          return null;
+        }
+
+        return forecast;
+      });
+
+      if (!data) {
+        return res.status(404).json({ error: 'No forecast found. Run the forecast job first.' });
+      }
+
+      return res.json(data);
+    } catch (err: any) {
+      console.error('[GET /api/analytics/forecast]', err.message);
       return res.status(500).json({ error: err.message });
     }
   }

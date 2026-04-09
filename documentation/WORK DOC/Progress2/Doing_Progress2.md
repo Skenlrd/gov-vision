@@ -1,8 +1,8 @@
 # WD Progress2 - Live Tracker
 
-Date Updated: 2026-04-09
+Date Updated: 2026-04-10
 Scope: Actual execution status for Progress 2 backend and frontend work.
-Last Updated: 2026-04-09
+Last Updated: 2026-04-10
 
 ## Completed
 
@@ -12,11 +12,13 @@ Last Updated: 2026-04-09
 - Day 4 complete: dashboard anomaly display aligned to `Real-Time Anomalies` naming and single surface behavior.
 - Day 5 complete: Deep Insights page implemented, validated end-to-end, acknowledge flow aligned to in-row status update, and unacknowledged demo data restored for testing.
 - Day 6 complete: shared layout, route map, blank placeholder routes, and dashboard error boundaries implemented and validated.
+- Day 7 complete: forecast pipeline upgraded to dual targets (`volume` and `delay`), validated through ML generation, job persistence, Mongo verification, and manual plotting.
 
 ## Left / Pending
 
 - Redis runtime verification is pending (cache-hit proof cannot be completed until Redis is reachable on localhost:6379).
 - Final auth hardening pass pending before demo/submission (remove temporary middleware bypass in dev).
+- Node dev server endpoint check is pending when launched from correct folder (`server`) for final `/api/analytics/forecast` HTTP retrieval proof.
 
 ## Skipped / Deferred
 
@@ -879,6 +881,141 @@ Expected result:
 
 ---
 
+## Day 7 - Forecast Pipeline (Volume + Delay Targets)
+
+Date: 2026-04-10
+Scope: Implement and validate Day 7 forecasting with explicit `volume` and `delay` targets across trainer, ML API, job orchestration, storage model, analytics retrieval, and plotting utility.
+
+## 1) Goal Completed
+
+Day 7 forecasting scope is complete at code level and runtime validation level for model generation and persistence.
+
+Implemented outcomes:
+- Prophet training now builds two model families per department plus org:
+  - `prophet_<dept>.pkl` for decision volume
+  - `prophet_delay_<dept>.pkl` for avg cycle time hours
+- ML forecast service and FastAPI route now accept `target` (`volume` or `delay`) and return forecast rows with `ds`, `yhat`, `yhat_lower`, `yhat_upper`.
+- Forecast job now executes all combinations of department x target x horizon (7/14/30), then upserts into `m3_forecasts`.
+- Forecast model schema includes `target` so delay forecasts do not overwrite volume forecasts.
+- Analytics forecast endpoint supports `target` query filtering.
+- Plot utility supports `--target volume|delay` and renders manual charts for both forecast types.
+
+## 2) Mandatory 5-Point Summary
+
+1. Scope completed
+- Delivered Day 7 dual-target forecasting (`volume` + `delay`) from training through storage and visualization utility.
+
+2. Backend implementation (routes/jobs/services/models)
+- Python trainer: `ml_service/training/train_prophet.py`
+- Python forecast service: `ml_service/app/services/forecast_service.py`
+- FastAPI contract: `ml_service/main.py`
+- Forecast model schema: `server/models/Forecast.ts`
+- Forecast orchestration job: `server/jobs/forecastJob.ts`
+- Analytics retrieval route: `server/routes/analyticsRoutes.ts`
+- Manual runner: `server/scripts/runForecastJob.ts`
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend page/component/state wiring change was implemented for Day 7.
+
+4. Tests executed with observed outputs
+- `get_errors` on Day 7 changed files -> observed: `No errors found`.
+- `Invoke-RestMethod http://localhost:8000/health` -> observed JSON: `{"status":"ok","service":"GovVision ML Service"}`.
+- `npm run run:forecast-job` in `server` -> observed logs: all departments completed for `target=volume` and `target=delay` across horizons `7d`, `14d`, `30d`.
+- Mongo verification via python one-liner -> observed document for `department=FI001,target=delay,horizon=7` with `points: 7` and forecast rows present.
+- Plot command with venv python and `--target delay`/`--target volume` -> observed saved chart output in `ml_service/models`.
+
+5. Blockers/risks and current status (working/partial/not working)
+- Status: Working for implementation, training, persistence, and plotting.
+- Risk: final HTTP retrieval proof on `http://localhost:5002/api/analytics/forecast` depends on running Node server from `server` folder (`npm run dev` from repo root fails with missing package.json).
+
+## 3) Explicit Implementation Inventory (Required)
+
+### A) Frontend files/pages/components created or updated
+
+- None for Day 7.
+
+### B) Backend routes/jobs/services/models created or updated
+
+- `ml_service/training/train_prophet.py`
+- `ml_service/app/services/forecast_service.py`
+- `ml_service/main.py`
+- `server/models/Forecast.ts`
+- `server/jobs/forecastJob.ts`
+- `server/routes/analyticsRoutes.ts`
+- `server/scripts/runForecastJob.ts`
+
+### C) Endpoints/routes/jobs implemented
+
+- `POST /ml/forecast/predict` (target-aware forecast generation)
+- `GET /api/analytics/forecast` with query support for `deptId`, `target`, `horizon`
+- Forecast cron/manual job: `runForecastJob` (department x target x horizon sweep)
+
+### D) Files changed or verified
+
+- Changed:
+  - `ml_service/training/train_prophet.py`
+  - `ml_service/app/services/forecast_service.py`
+  - `ml_service/main.py`
+  - `server/models/Forecast.ts`
+  - `server/jobs/forecastJob.ts`
+  - `server/routes/analyticsRoutes.ts`
+  - `server/scripts/runForecastJob.ts`
+  - `ml_service/scripts/plot_forecast.py`
+- Verified:
+  - `ml_service/models/prophet_*.pkl`
+  - `ml_service/models/prophet_delay_*.pkl`
+  - `m3_forecasts` delay-target row existence via Mongo query output
+
+### E) Manual run and test steps with commands and expected results
+
+1. Start ML service
+```bash
+cd ml_service
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+Expected result:
+- FastAPI starts on port `8000`; repeated start returns WinError 10048 if already running.
+
+2. Health check
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8000/health" -Method GET
+```
+Expected result:
+- Returns `{ status: "ok", service: "GovVision ML Service" }`.
+
+3. Train Prophet models (volume + delay)
+```bash
+cd ml_service
+python training/train_prophet.py
+```
+Expected result:
+- Model files saved under `ml_service/models` with both `prophet_` and `prophet_delay_` prefixes.
+
+4. Run forecast ingestion
+```bash
+cd server
+npm run run:forecast-job
+```
+Expected result:
+- Logs show completed runs for each department and `target=volume` + `target=delay` for horizons `7/14/30`.
+
+5. Verify persisted delay forecast row
+```powershell
+& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" -c "from pymongo import MongoClient; c=MongoClient('mongodb://localhost:27017/govvision'); col=c.get_default_database()['m3_forecasts']; q={'department':'FI001','target':'delay','horizon':7}; d=col.find_one(q, {'_id':0,'department':1,'target':1,'horizon':1,'generatedAt':1,'forecastData':1}); print('NO_DOC' if not d else {'department':d['department'],'target':d['target'],'horizon':d['horizon'],'generatedAt':str(d['generatedAt']),'points':len(d.get('forecastData',[]))})"
+```
+Expected result:
+- Prints matching document with `points: 7`.
+
+6. Plot manual image (volume or delay)
+```bash
+cd ml_service/scripts
+python .\plot_forecast.py --dept FI001 --target delay --periods 30 --history-days 120 --no-band
+```
+Expected result:
+- Chart window opens for manual visual check.
+
+---
+
 ## Technical Day Summaries + Reference Summary
 
 For every completed day, the summary below captures exactly what was implemented and explicitly lists frontend and backend artifacts updated.
@@ -1036,6 +1173,29 @@ For every completed day, the summary below captures exactly what was implemented
 - Status: Working.
 - Risk: placeholder routes are intentionally blank by request, so they have no visible text or emoji.
 
+### Day 7 - Point-Wise Technical Summary
+
+1. Scope completed
+- Implemented dual-target forecasting (`volume` and `delay`) and validated training, persistence, and plotting paths.
+
+2. Backend implementation (routes/jobs/services/models)
+- Updated: `ml_service/training/train_prophet.py`, `ml_service/app/services/forecast_service.py`, `ml_service/main.py`.
+- Updated: `server/models/Forecast.ts`, `server/jobs/forecastJob.ts`, `server/routes/analyticsRoutes.ts`.
+- Added/used manual runner: `server/scripts/runForecastJob.ts`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend code changes for Day 7.
+
+4. Tests executed with observed outputs
+- ML health check returned `status: ok`.
+- Manual forecast job completed all dept/target/horizon combinations.
+- Mongo check returned a persisted `delay` forecast document (`FI001`, horizon `7`).
+- Plot script executed successfully and generated output images.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: endpoint verification on backend API requires Node dev server started in `server` directory, not repository root.
+
 ### Reference Summary
 
 - Frontend Day 5 route: `/deep-insights`
@@ -1054,6 +1214,14 @@ For every completed day, the summary below captures exactly what was implemented
 - Key endpoint paths used by Day 5 flow:
   - `/api/ai/anomalies`
   - `/api/ai/anomalies/:id/acknowledge`
+- Day 7 forecast paths:
+  - `/ml/forecast/predict`
+  - `/api/analytics/forecast`
+- Day 7 forecast job command:
+  - `npm run run:forecast-job`
+- Day 7 forecast targets:
+  - `volume`
+  - `delay`
 - Day 6 layout components added:
   - `client/src/components/AppLayout.tsx`
   - `client/src/components/ErrorBoundary.tsx`
@@ -1061,3 +1229,5 @@ For every completed day, the summary below captures exactly what was implemented
   - `client/src/pages/PlaceholderPage.tsx`
 - Environment keys referenced during troubleshooting flow:
   - `MONGODB_URI`
+  - `SERVICE_KEY`
+  - `ML_SERVICE_URL`

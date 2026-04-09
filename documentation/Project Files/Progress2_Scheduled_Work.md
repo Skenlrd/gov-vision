@@ -56,23 +56,24 @@ export async function runAnomalyJob(): Promise<void> {
 
   console.log(`[AnomalyJob] Loaded ${decisions.length} decisions for scoring.`);
 ```
+from pathlib import Path
+from typing import Dict, List
 
-**Step 2 — Map decisions into the FastAPI payload shape.**
-FastAPI expects `id` as a string, not a MongoDB ObjectId. Use `.toString()` to convert. Provide fallback values (`|| 0`) for any fields that might be null — the ML model cannot receive `null`, it needs a number.
+import joblib
+import pandas as pd
+from prophet import Prophet
 
-```typescript
-  const payload = decisions.map((d: any) => ({
-    id: d._id.toString(),
+MODELS_DIR = Path(__file__).resolve().parents[2] / 'models'
     cycleTimeHours: d.cycleTimeHours || 0,
     rejectionCount: d.rejectionCount || 0,
     revisionCount: d.revisionCount || 0,
     daysOverSLA: d.daysOverSLA || 0,
-    stageCount: d.stageCount || 0,
+  path = MODELS_DIR / f'prophet_{safe_dept_id}.pkl'
     hourOfDaySubmitted: d.hourOfDaySubmitted || 0,
-  }));
+  if not path.exists():
 ```
 
-**Step 3 — POST to FastAPI.**
+  return joblib.load(path)
 Use `axios.post()` with the `x-service-key` header. Wrap in try/catch so a FastAPI outage doesn't crash your Node server. Type the expected response shape inline.
 
 ```typescript
@@ -1975,13 +1976,13 @@ Full navigation structure is in place — every page is reachable, no blank whit
 
 ### 🎯 Goal & Reasoning
 
-Prophet is Meta's time-series forecasting library. It takes a sequence of `(date, value)` pairs and predicts future values with confidence intervals. For Module 3, it predicts how many decisions each department will process over the next 7, 14, or 30 days, based on historical patterns. Training has to happen before you can serve predictions — you run the training script once now, save the `.pkl` file, and FastAPI loads it at startup. From that point, every prediction call uses the pre-trained model. This day only covers training. Day 8 wires the trained model into the FastAPI endpoint and the Node.js cron job.
+Prophet is Meta's time-series forecasting library. It takes a sequence of `(date, value)` pairs and predicts future values with confidence intervals. In the current repo, Prophet is already listed in `ml_service/requirements.txt`, and Day 7 now adds the actual training script and forecasting helper in the existing `ml_service` layout. Day 8 can then wire the trained model into FastAPI and the Node.js cron job once the Python pieces are in place.
 
 ---
 
 ### Work to Complete
 
-#### A. Install Prophet and Dependencies (Python)
+#### A. Confirm Prophet Dependencies (Python)
 
 **prophet** is Meta's open-source time-series forecasting library. It handles seasonality (weekly patterns, monthly patterns) automatically and works well with data that has gaps or irregular timestamps — which is common with government decision workflows.
 
@@ -1998,13 +1999,17 @@ pip install prophet pyarrow
 pip install pystan==2.19.1.1 prophet
 ```
 
+Repository note:
+- `prophet` is already present in [ml_service/requirements.txt](ml_service/requirements.txt)
+- `pyarrow` is not currently pinned there, so this step is still needed if your local environment does not already provide it
+
 ---
 
-#### B. Write `train_prophet.py`
+#### B. Implement `train_prophet.py`
 
 **Why this exists:** The model needs historical data from MongoDB to learn patterns. This script pulls all decisions, groups them by date and department, and trains one Prophet model per department. Each model is saved as its own `.pkl` file so predictions can be served per department.
 
-**File to create:** `ml_service/training/train_prophet.py`
+**Current file:** `ml_service/training/train_prophet.py` now contains the training implementation.
 
 ```python
 import os
@@ -2103,13 +2108,17 @@ Also train a single "org-level" model using all decisions:
     train_for_department('org', df)
 ```
 
+Current repo note:
+- The training script lives in the existing `ml_service/training/` folder and saves artifacts under `ml_service/models/`
+- The save path should stay under `ml_service/models/` so it matches the existing forecast and risk model conventions in the repo
+
 ---
 
-#### C. Write `forecast_service.py`
+#### C. Implement `forecast_service.py`
 
 **Why this exists:** FastAPI needs a function to load a trained Prophet model and generate predictions. This service file is what the API endpoint calls. Separating the service logic from the route handler keeps the code clean and testable.
 
-**File to create:** `ml_service/forecast_service.py`
+**Current file:** `ml_service/app/services/forecast_service.py` now contains the real loader/predictor logic.
 
 ```python
 import os
@@ -2156,13 +2165,17 @@ def generate_forecast(dept_id: str, horizon: int) -> List[Dict]:
     return result
 ```
 
+Current repo note:
+- The service already lives under [ml_service/app/services/forecast_service.py](ml_service/app/services/forecast_service.py), and it now returns real forecast rows
+- Keep the return shape aligned with the Node.js forecast model and later FastAPI route usage
+
 ---
 
 ### 🤖 ML Specification
 
 - **Model:** Facebook Prophet (time-series forecasting)
 - **Training script:** `ml_service/training/train_prophet.py`
-- **When it runs:** Once manually now (today). The Node.js nightly cron (Day 8) will call the FastAPI `/ml/models/train` endpoint weekly to retrain.
+- **When it runs:** Once manually now, using the training script in `ml_service/training/`. The current `/ml/models/train` endpoint in [ml_service/main.py](ml_service/main.py) still only retrains Isolation Forest, so Prophet retraining is not wired yet.
 - **Input to training:** MongoDB `m1_decisions` grouped by `createdAt` date and `department`
 - **Output:** One `.pkl` file per department: `models/prophet_{deptId}.pkl`
 - **Prediction input:** `dept_id: str`, `horizon: int (7|14|30)`
@@ -2199,6 +2212,10 @@ ls ml_service/models/
 # Should show: isolation_forest.pkl, prophet_finance.pkl, prophet_operations.pkl, ...
 ```
 
+Repo-aligned expectation:
+- `python training/train_prophet.py` should train and save Prophet artifacts if `MONGODB_URI` and MongoDB are available
+- `ml_service/app/services/forecast_service.py` should return real forecast rows once model files exist in `ml_service/models/`
+
 ---
 
 ### ✅ How to Validate
@@ -2218,12 +2235,12 @@ print(forecast[['ds','yhat','yhat_lower','yhat_upper']].tail(7))
 ```
 3. Confirm `yhat` values are positive numbers in a reasonable range (not 0 or negative)
 
+4. Confirm the files changed in this day are actually present in the repo: [ml_service/training/train_prophet.py](ml_service/training/train_prophet.py) and [ml_service/app/services/forecast_service.py](ml_service/app/services/forecast_service.py)
 ---
 
 ### 📋 Day 7 Outcome
 
 Prophet models are trained and saved for every department plus the org level. Day 8 wires these models into the FastAPI prediction endpoint and builds the Node.js nightly cron job that stores forecast results in `m3_forecasts`.
-
 ---
 
 ## Day 8 — Prophet FastAPI Endpoint + Node.js Forecast Cron Job

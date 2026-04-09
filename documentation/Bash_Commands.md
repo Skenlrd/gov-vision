@@ -7,6 +7,76 @@ This file contains manual commands you can run yourself. Each command block incl
 
 ---
 
+## Day 7 Session Commands (2026-04-10)
+
+Grouped commands that were actually used during Day 7 forecast target implementation and validation.
+
+### 1) Startup commands
+
+What it does:
+- starts ML service and runs forecast ingestion from backend server scripts
+
+Commands:
+cd ml_service
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+cd ../server
+npm run run:forecast-job
+
+Expected result:
+- ML service responds on port 8000
+- forecast job logs show `Done: dept=<id>, target=volume|delay, horizon=7|14|30d`
+
+### 2) API test commands (curl/PowerShell)
+
+What it does:
+- validates ML service availability before/after forecast runs
+
+Commands:
+Invoke-RestMethod -Uri "http://localhost:8000/health" -Method GET | ConvertTo-Json -Depth 5
+
+Expected result:
+- JSON contains:
+  - status: ok
+  - service: GovVision ML Service
+
+### 3) Validation commands
+
+What it does:
+- verifies persisted delay forecast records and checks plotting output generation
+
+Commands:
+& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" -c "from pymongo import MongoClient; c=MongoClient('mongodb://localhost:27017/govvision'); col=c.get_default_database()['m3_forecasts']; q={'department':'FI001','target':'delay','horizon':7}; d=col.find_one(q, {'_id':0,'department':1,'target':1,'horizon':1,'generatedAt':1,'forecastData':1}); print('NO_DOC' if not d else {'department':d['department'],'target':d['target'],'horizon':d['horizon'],'generatedAt':str(d['generatedAt']),'points':len(d.get('forecastData',[])),'first2':d.get('forecastData',[])[:2]})"
+
+python .\plot_forecast.py --dept FI001 --target delay --periods 30 --history-days 120 --no-band
+
+& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\scripts\plot_forecast.py" --dept FI001 --target volume --periods 30 --history-days 120 --no-band --save "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\models\FI001_volume_quickcheck.png" --no-show
+
+Expected result:
+- Mongo check prints a matching `delay` forecast row for `FI001` and `horizon=7`
+- delay plot command opens a chart window for visual inspection
+- plot command prints `Saved chart: ...FI001_volume_quickcheck.png`
+
+### 4) Troubleshooting commands
+
+What it does:
+- fixes dependency and interpreter mismatch and documents common command mistakes encountered
+
+Commands:
+& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" -m pip install -r "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\requirements.txt"
+
+python .\plot_forecast.py --dept FI001 --target delay --periods 30 --history-days 120 --no-band
+
+Set-Location "C:\Users\win\Desktop\GithubUploads\gov_vision\server"
+npm run dev
+
+Expected result:
+- requirements command reports dependencies satisfied in `.venv`
+- plot command runs successfully once script header corruption is removed
+- running `npm run dev` from repo root fails (missing package.json), while running from `server` directory is the correct path
+
+---
+
 ## Day 6 Session Commands (2026-04-09)
 
 Grouped commands that were actually used during the Day 6 routing/layout refactor validation.

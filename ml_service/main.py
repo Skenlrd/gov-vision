@@ -14,10 +14,13 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import List
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from pydantic import BaseModel
+
+from app.services.forecast_service import generate_forecast
 
 # Always load .env from ml_service/ regardless of where uvicorn was launched
 load_dotenv(Path(__file__).parent / ".env")
@@ -59,6 +62,26 @@ class AnomalyRequest(BaseModel):
     daysOverSLA: float = 0.0
     stageCount: float = 0.0
     hourOfDaySubmitted: float = 0.0
+
+
+class ForecastRequest(BaseModel):
+    dept_id: str = "org"
+    horizon: int = 7
+    target: str = "volume"
+
+
+class ForecastPoint(BaseModel):
+    ds: str
+    yhat: float
+    yhat_lower: float
+    yhat_upper: float
+
+
+class ForecastResponse(BaseModel):
+    dept_id: str
+    horizon: int
+    target: str
+    forecast: List[ForecastPoint]
 
 
 # ---------------------------------------------------------------------------
@@ -106,3 +129,34 @@ def models_train():
         "status": "training started",
         "script": "training/train_isolation_forest.py",
     }
+
+
+@app.post("/ml/forecast/predict", dependencies=[Depends(require_service_key)])
+def forecast_predict(body: ForecastRequest):
+    """
+    Generate a Prophet forecast for a department.
+
+    Requires header:  x-service-key: <SERVICE_KEY>
+    """
+    if body.horizon not in (7, 14, 30):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="horizon must be 7, 14, or 30",
+        )
+    if body.target not in ("volume", "delay"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="target must be 'volume' or 'delay'",
+        )
+
+    try:
+        payload = generate_forecast(body.model_dump())
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error))
+
+    return ForecastResponse(
+        dept_id=str(payload["dept_id"]),
+        horizon=int(payload["horizon"]),
+        target=str(payload["target"]),
+        forecast=[ForecastPoint(**point) for point in payload["forecastData"]],
+    )
