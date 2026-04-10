@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { NavLink } from "react-router-dom"
+import { NavLink, useLocation } from "react-router-dom"
 
 const dashboardItem = {
   label: "Dashboard",
-  path: "/",
+  path: "/dashboard",
   icon: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
       <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -97,13 +97,22 @@ const bottomItems = [
   }
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean
+  onToggleCollapse: () => void
+}
+
+export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+  const location = useLocation()
   const [isNewReportHovered, setIsNewReportHovered] = useState(false)
   const [isNewReportFocused, setIsNewReportFocused] = useState(false)
 
+  const allNavItems = [dashboardItem, ...aiFeatureItems, reportsItem, ...bottomItems]
+  const activeNavLabel = allNavItems.find(item => location.pathname.startsWith(item.path))?.label ?? ""
+
   return (
     <aside style={{
-      width: "220px",
+      width: collapsed ? "74px" : "220px",
       minHeight: "100vh",
       background: "linear-gradient(180deg, #222733 0%, #1B202A 100%)",
       display: "flex",
@@ -116,7 +125,8 @@ export default function Sidebar() {
       top: 0,
       bottom: 0,
       zIndex: 50,
-      overflowY: "auto"
+      overflowY: "auto",
+      transition: "width 0.2s ease"
     }}>
       {/* Subtle texture overlay */}
       <div
@@ -136,16 +146,78 @@ export default function Sidebar() {
 
       {/* Brand */}
       <div style={{
-        padding: "24px 20px 20px",
+        padding: collapsed ? "18px 12px" : "24px 20px 20px",
         borderBottom: "1px solid rgba(255,255,255,0.07)",
         position: "relative",
         zIndex: 1
       }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ color: "white", fontWeight: 700, fontSize: "21px", letterSpacing: "-0.3px", fontFamily: "'Outfit', sans-serif" }}>
-            GovVision
+        <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between" }}>
+          <div style={{ color: "white", fontWeight: 700, fontSize: collapsed ? "16px" : "21px", letterSpacing: "-0.3px", fontFamily: "'Outfit', sans-serif" }}>
+            {collapsed ? "GV" : "GovVision"}
           </div>
+          {!collapsed && (
+            <button
+              type="button"
+              title="Collapse sidebar"
+              onClick={onToggleCollapse}
+              style={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "7px",
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.9)",
+                cursor: "pointer"
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="14" height="14">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+          )}
         </div>
+        {collapsed && (
+          <>
+            <button
+              type="button"
+              title="Expand sidebar"
+              onClick={onToggleCollapse}
+              style={{
+                marginTop: "10px",
+                width: "100%",
+                height: "26px",
+                borderRadius: "7px",
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.9)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="14" height="14">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+            {activeNavLabel && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  fontSize: "10px",
+                  color: "rgba(255,255,255,0.75)",
+                  textAlign: "center",
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.2,
+                  wordBreak: "break-word"
+                }}
+              >
+                {activeNavLabel}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Nav Items */}
@@ -155,19 +227,21 @@ export default function Sidebar() {
             key={dashboardItem.path}
             to={dashboardItem.path}
             end
+            title={dashboardItem.label}
             style={({ isActive }) => ({
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: collapsed ? "0" : "10px",
+              justifyContent: collapsed ? "center" : "flex-start",
               padding: "10px 12px",
               borderRadius: "10px",
               marginBottom: "2px",
               textDecoration: "none",
               color: isActive ? "white" : "rgba(255,255,255,0.5)",
               background: isActive
-                ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
+                ? "var(--accent-grad-soft)"
                 : "transparent",
-              borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
+              borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
               transition: "all 0.18s ease",
               fontSize: "13px",
               fontWeight: isActive ? 600 : 400,
@@ -175,7 +249,7 @@ export default function Sidebar() {
             })}
           >
             {dashboardItem.icon}
-            {dashboardItem.label}
+            {!collapsed && dashboardItem.label}
           </NavLink>
 
           {aiFeatureItems.map(item => (
@@ -183,19 +257,21 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               end={item.path === "/"}
+              title={item.label}
               style={({ isActive }) => ({
                 display: "flex",
                 alignItems: "center",
-                gap: "10px",
+                gap: collapsed ? "0" : "10px",
+                justifyContent: collapsed ? "center" : "flex-start",
                 padding: "10px 12px",
                 borderRadius: "10px",
                 marginBottom: "2px",
                 textDecoration: "none",
                 color: isActive ? "white" : "rgba(255,255,255,0.5)",
                 background: isActive
-                  ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
+                  ? "var(--accent-grad-soft)"
                   : "transparent",
-                borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
+                borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
                 transition: "all 0.18s ease",
                 fontSize: "12.8px",
                 fontWeight: isActive ? 600 : 400,
@@ -203,26 +279,28 @@ export default function Sidebar() {
               })}
             >
               {item.icon}
-              <span>{item.label}</span>
+              {!collapsed && <span>{item.label}</span>}
             </NavLink>
           ))}
 
           <NavLink
             key={reportsItem.path}
             to={reportsItem.path}
+            title={reportsItem.label}
             style={({ isActive }) => ({
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: collapsed ? "0" : "10px",
+              justifyContent: collapsed ? "center" : "flex-start",
               padding: "10px 12px",
               borderRadius: "10px",
               marginBottom: "2px",
               textDecoration: "none",
               color: isActive ? "white" : "rgba(255,255,255,0.5)",
               background: isActive
-                ? "linear-gradient(90deg, rgba(159,136,109,0.72), rgba(137,115,92,0.62))"
+                ? "var(--accent-grad-soft)"
                 : "transparent",
-              borderLeft: isActive ? "3px solid rgba(214,194,166,0.85)" : "3px solid transparent",
+              borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
               transition: "all 0.18s ease",
               fontSize: "13px",
               fontWeight: isActive ? 600 : 400,
@@ -230,7 +308,7 @@ export default function Sidebar() {
             })}
           >
             {reportsItem.icon}
-            {reportsItem.label}
+            {!collapsed && reportsItem.label}
           </NavLink>
         </div>
       </nav>
@@ -247,10 +325,10 @@ export default function Sidebar() {
           width: "100%",
           padding: "10px",
           background: (isNewReportHovered || isNewReportFocused)
-            ? "linear-gradient(135deg, #B0895A, #8F6B42)"
+            ? "var(--accent-grad)"
             : "rgba(255,255,255,0.06)",
           border: (isNewReportHovered || isNewReportFocused)
-            ? "1px solid rgba(216,190,150,0.60)"
+            ? "1px solid rgba(148,163,184,0.60)"
             : "1px solid rgba(255,255,255,0.12)",
           borderRadius: "10px",
           color: (isNewReportHovered || isNewReportFocused)
@@ -265,14 +343,14 @@ export default function Sidebar() {
           gap: "6px",
           fontFamily: "'Outfit', sans-serif",
           boxShadow: (isNewReportHovered || isNewReportFocused)
-            ? "0 6px 14px rgba(176,137,90,0.28)"
+            ? "0 6px 14px rgba(51,65,85,0.28)"
             : "none",
           transform: (isNewReportHovered || isNewReportFocused) ? "translateY(-1px)" : "translateY(0)",
           outline: "none",
           WebkitTapHighlightColor: "transparent",
           transition: "all 0.2s ease"
         }}>
-          <span style={{ fontSize: "15px" }}>+</span> New Report
+          <span style={{ fontSize: "15px" }}>+</span>{!collapsed && " New Report"}
         </button>
       </div>
 
@@ -287,10 +365,12 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            title={item.label}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: collapsed ? "0" : "10px",
+              justifyContent: collapsed ? "center" : "flex-start",
               padding: "9px 12px",
               borderRadius: "10px",
               marginBottom: "2px",
@@ -302,7 +382,7 @@ export default function Sidebar() {
             }}
           >
             {item.icon}
-            {item.label}
+            {!collapsed && item.label}
           </NavLink>
         ))}
       </div>

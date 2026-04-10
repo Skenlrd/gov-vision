@@ -1,6 +1,18 @@
 import { useState } from "react"
 import type { IAnomaly } from "../types"
 
+const DEPARTMENT_LABELS: Record<string, string> = {
+  FI001: "Finance",
+  HR002: "Human Resources",
+  OP003: "Operations",
+  IT004: "Information Technology",
+  CS005: "Customer Service"
+}
+
+function getDepartmentLabel(value: string): string {
+  return DEPARTMENT_LABELS[value] ?? value
+}
+
 interface Props {
   anomaly: IAnomaly
   onAcknowledge: (id: string) => Promise<void>
@@ -41,9 +53,9 @@ export default function AnomalyTableRow({ anomaly, onAcknowledge }: Props) {
 
   return (
     <tr
-      style={{ borderBottom: "1px solid #F2E7D8", transition: "background 0.16s ease" }}
+      style={{ borderBottom: "1px solid #E5E7EB", transition: "background 0.16s ease" }}
       onMouseEnter={event => {
-        event.currentTarget.style.background = "#FCF8F3"
+        event.currentTarget.style.background = "#F9FAFB"
       }}
       onMouseLeave={event => {
         event.currentTarget.style.background = "transparent"
@@ -58,7 +70,7 @@ export default function AnomalyTableRow({ anomaly, onAcknowledge }: Props) {
             href={`http://localhost:3001/decisions/${decisionId}`}
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#8F6B42", textDecoration: "none", fontFamily: "monospace", fontWeight: 700 }}
+            style={{ color: "#374151", textDecoration: "none", fontFamily: "monospace", fontWeight: 700 }}
           >
             {decisionId.slice(0, 8)}...
           </a>
@@ -66,7 +78,7 @@ export default function AnomalyTableRow({ anomaly, onAcknowledge }: Props) {
           <span style={{ color: "#94A3B8" }}>N/A</span>
         )}
       </td>
-      <td style={{ padding: "10px 12px", fontSize: "12px", color: "#334155" }}>{anomaly.department}</td>
+      <td style={{ padding: "10px 12px", fontSize: "12px", color: "#334155" }}>{getDepartmentLabel(anomaly.department)}</td>
       <td style={{ padding: "10px 12px" }}>
         <span
           style={{
@@ -111,7 +123,7 @@ export default function AnomalyTableRow({ anomaly, onAcknowledge }: Props) {
               border: "none",
               borderRadius: "8px",
               padding: "6px 10px",
-              background: "#8F6B42",
+              background: "#374151",
               color: "white",
               opacity: loading ? 0.6 : 1,
               cursor: loading ? "wait" : "pointer"

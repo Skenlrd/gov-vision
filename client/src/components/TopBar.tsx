@@ -1,15 +1,59 @@
+import { useCallback, useEffect, useState } from "react"
+import { getKpiSummary } from "../services/api"
+
 interface TopBarProps {
-  isLive: boolean
-  anomalyCount: number
-  openViolations: number
+  anomalyCount?: number
+  openViolations?: number
 }
 
-export default function TopBar({ isLive, anomalyCount, openViolations }: TopBarProps) {
+export default function TopBar({ anomalyCount = 0, openViolations = 0 }: TopBarProps) {
   const alertCount = anomalyCount + openViolations
+  const [isLive, setIsLive] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+
+  const formatTime = (value: Date): string => {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(value)
+  }
+
+  const checkLiveStatus = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const today = new Date().toISOString().split("T")[0]
+      await getKpiSummary({ dateFrom: today, dateTo: today, deptId: null })
+      setIsLive(true)
+      setLastUpdated(new Date())
+    } catch {
+      setIsLive(false)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    checkLiveStatus()
+    const intervalId = window.setInterval(() => {
+      checkLiveStatus()
+    }, 30000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [checkLiveStatus])
+
+  const statusLabel = isLive ? "Live" : "Service unavailable"
+  const statusColor = isLive ? "#0F766E" : "#B91C1C"
+  const dotColor = isLive ? "#10B981" : "#EF4444"
+  const updatedLabel = isLive
+    ? (isRefreshing ? "Checking now..." : (lastUpdated ? `Updated ${formatTime(lastUpdated)}` : "Checking now..."))
+    : "Not Available"
 
   return (
     <header style={{
-      height: "60px",
+      height: "64px",
       background: "white",
       borderBottom: "1px solid #E8EDF5",
       display: "flex",
@@ -24,22 +68,66 @@ export default function TopBar({ isLive, anomalyCount, openViolations }: TopBarP
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <span
           style={{
-            width: "8px",
-            height: "8px",
+            width: "7px",
+            height: "7px",
             borderRadius: "50%",
-            background: isLive ? "#22C55E" : "#94A3B8"
+            background: dotColor,
+            alignSelf: "center",
+            marginTop: "-1px"
           }}
         />
-        <span
+        <div style={{ display: "flex", flexDirection: "column", gap: "1px", alignItems: "flex-start" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              color: statusColor,
+              fontWeight: 600,
+              fontFamily: "'Outfit', sans-serif",
+              lineHeight: 1.1
+            }}
+          >
+            {statusLabel}
+          </span>
+          <span
+            style={{
+              fontSize: "10px",
+              color: "#64748B",
+              fontWeight: 500,
+              fontFamily: "'Outfit', sans-serif",
+              lineHeight: 1.1
+            }}
+          >
+            {updatedLabel}
+          </span>
+        </div>
+        <button
+          type="button"
+          aria-label="Refresh"
+          title="Refresh"
+          onClick={() => void checkLiveStatus()}
           style={{
-            fontSize: "12px",
-            color: "#64748B",
-            fontWeight: 600,
-            fontFamily: "'Outfit', sans-serif"
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "20px",
+            height: "20px",
+            padding: "0",
+            borderRadius: "999px",
+            border: "1px solid #CBD5E1",
+            background: "#FFFFFF",
+            color: "#334155",
+            cursor: isRefreshing ? "wait" : "pointer",
+            opacity: isRefreshing ? 0.75 : 1,
+            alignSelf: "center"
           }}
         >
-          {isLive ? "Live" : "Offline"}
-        </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="12" height="12" style={{ animation: isRefreshing ? "spin 1s linear infinite" : "none" }}>
+            <path d="M4 4v6h6" />
+            <path d="M20 20v-6h-6" />
+            <path d="M5.64 18.36A9 9 0 0 0 20 12" />
+            <path d="M18.36 5.64A9 9 0 0 0 4 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Right actions */}

@@ -8,7 +8,9 @@ import type {
   ICycleTimeBucket,
   IComplianceTrendSeries,
   IRiskHeatmapRow,
-  IReport
+  IReport,
+  IForecastData,
+  ForecastTarget
 } from "../types"
 
 /*
@@ -136,6 +138,21 @@ export const getRiskHeatmap = async (
   const res = await api.get("/api/analytics/risk-heatmap", { params })
   const data = unwrap<IRiskHeatmapRow[]>(res.data)
   return Array.isArray(data) ? data : []
+}
+
+export const getForecast = async (
+  deptId: string,
+  horizon: number,
+  target: ForecastTarget = "volume"
+): Promise<IForecastData> => {
+  const params: Record<string, string> = {
+    deptId,
+    horizon: String(horizon),
+    target
+  }
+
+  const res = await api.get("/api/analytics/forecast", { params })
+  return unwrap<IForecastData>(res.data)
 }
 
 // Anomalies

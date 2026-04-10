@@ -1,4 +1,4 @@
-# Project Bash and PowerShell Commands
+﻿# Project Bash and PowerShell Commands
 
 This file contains manual commands you can run yourself. Each command block includes:
 - what it is trying to do
@@ -7,9 +7,9 @@ This file contains manual commands you can run yourself. Each command block incl
 
 ---
 
-## Day 7 Session Commands (2026-04-10)
+## Forecast Session Commands (2026-04-10)
 
-Grouped commands that were actually used during Day 7 forecast target implementation and validation.
+Grouped commands that were actually used during forecast target implementation and validation.
 
 ### 1) Startup commands
 
@@ -77,9 +77,9 @@ Expected result:
 
 ---
 
-## Day 6 Session Commands (2026-04-09)
+## Routing and Layout Session Commands (2026-04-09)
 
-Grouped commands that were actually used during the Day 6 routing/layout refactor validation.
+Grouped commands that were actually used during routing/layout refactor validation.
 
 ### 1) Startup commands
 
@@ -101,7 +101,7 @@ What it does:
 - documents API testing status for this frontend-only refactor
 
 Commands:
-No API test commands were executed during the Day 6 routing/layout pass.
+No API test commands were executed during the routing/layout pass.
 
 Expected result:
 - n/a
@@ -122,19 +122,19 @@ Expected result:
 ### 4) Troubleshooting commands
 
 What it does:
-- records the fact that no extra shell troubleshooting command was needed during the Day 6 refactor
+- records the fact that no extra shell troubleshooting command was needed during the routing/layout refactor
 
 Commands:
-No shell troubleshooting command was needed for Day 6 beyond the build validation above.
+No shell troubleshooting command was needed beyond the build validation above.
 
 Expected result:
 - n/a
 
 ---
 
-## Day 5 Session Commands (2026-04-09)
+## Deep Insights Session Commands (2026-04-09)
 
-Grouped commands that were actually used during Day 5 implementation, validation, and troubleshooting.
+Grouped commands that were actually used during implementation, validation, and troubleshooting.
 
 ### 1) Startup commands
 
@@ -155,10 +155,10 @@ Expected result:
 ### 2) API test commands (curl/PowerShell)
 
 What it does:
-- documents direct API command usage for this Day 5 session
+- documents direct API command usage for this session
 
 Commands:
-No direct curl or Invoke-RestMethod API command was executed in the Day 5 session; API behavior was validated through the Deep Insights UI flow.
+No direct curl or Invoke-RestMethod API command was executed in this session; API behavior was validated through the Deep Insights UI flow.
 
 Expected result:
 - n/a
@@ -166,7 +166,7 @@ Expected result:
 ### 3) Validation commands
 
 What it does:
-- verifies frontend TypeScript/build integrity after Day 5 fixes
+- verifies frontend TypeScript/build integrity after the Deep Insights fixes
 
 Commands:
 cd client

@@ -5,7 +5,6 @@ import {
 } from "../services/api"
 import KPICard from "../components/KPICard"
 import AnomalyFeed from "../components/AnomalyFeed"
-import TopBar from "../components/TopBar"
 import ErrorBoundary from "../components/ErrorBoundary"
 import DecisionVolumeChart from "../components/charts/DecisionVolumeChart"
 import CycleTimeHistogram from "../components/charts/CycleTimeHistogram"
@@ -44,18 +43,6 @@ const DEPARTMENTS = [
 function getDepartmentLabel(deptIdOrName: string): string {
   const match = DEPARTMENTS.find(d => d.value === deptIdOrName)
   return match ? match.label : deptIdOrName
-}
-
-function hasAnyDashboardData(kpiData: IKpiSummary | null, riskData: IRiskHeatmapRow[]): boolean {
-  if (!kpiData) return riskData.length > 0
-
-  return (
-    kpiData.totalDecisions > 0 ||
-    kpiData.pendingCount > 0 ||
-    kpiData.violationCount > 0 ||
-    (kpiData.anomalyCount ?? 0) > 0 ||
-    riskData.length > 0
-  )
 }
 
 type DropdownOption = {
@@ -100,18 +87,18 @@ function AccentDropdown({
           width: "100%",
           padding: "7px 12px",
           borderRadius: "8px",
-          border: open ? "1px solid #B0895A" : "1px solid #E2E6ED",
+          border: open ? "1px solid var(--accent-600)" : "1px solid #E2E6ED",
           background: "white",
           fontSize: "12px",
           fontWeight: 600,
-          color: "#374151",
+          color: "var(--accent-700)",
           fontFamily: "'Outfit', sans-serif",
           cursor: "pointer",
           outline: "none",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: open ? "0 0 0 3px rgba(176,137,90,0.18)" : "none"
+          boxShadow: open ? "0 0 0 3px var(--accent-ring)" : "none"
         }}
       >
         <span>{selected?.label}</span>
@@ -136,7 +123,7 @@ function AccentDropdown({
             left: 0,
             width: "100%",
             background: "#FFFFFF",
-            border: "1px solid #D6C7AF",
+            border: "1px solid var(--accent-300)",
             borderRadius: "10px",
             boxShadow: "0 12px 28px rgba(15,23,42,0.12)",
             padding: "5px",
@@ -156,8 +143,8 @@ function AccentDropdown({
                 style={{
                   width: "100%",
                   border: "none",
-                  background: isSelected ? "#E9DDCD" : "transparent",
-                  color: isSelected ? "#6A4D2E" : "#334155",
+                  background: isSelected ? "#E5E7EB" : "transparent",
+                  color: isSelected ? "#111827" : "#334155",
                   borderRadius: "7px",
                   textAlign: "left",
                   padding: "7px 10px",
@@ -169,8 +156,8 @@ function AccentDropdown({
                 }}
                 onMouseEnter={event => {
                   if (isSelected) return
-                  event.currentTarget.style.background = "#F2E8DB"
-                  event.currentTarget.style.color = "#5E4529"
+                  event.currentTarget.style.background = "#F3F4F6"
+                  event.currentTarget.style.color = "#1F2937"
                 }}
                 onMouseLeave={event => {
                   if (isSelected) return
@@ -199,15 +186,10 @@ const TIMEFRAME_OPTIONS: DropdownOption[] = [
 export default function Dashboard() {
   const [filters,     setFilters]     = useState<IFilter>(getDefaultFilters())
   const [kpi,         setKpi]         = useState<IKpiSummary | null>(null)
-  const [isLive,      setIsLive]      = useState(true)
-  const [hasLiveData, setHasLiveData] = useState(false)
-  const [liveError, setLiveError] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
   const [timeframe,   setTimeframe]   = useState("all")
   const [heatmapData, setHeatmapData] = useState<IRiskHeatmapRow[]>([])
   const [heatmapLoading, setHeatmapLoading] = useState(true)
-  const lastFetchRef = useRef<number>(Date.now())
 
   const fetchAll = useCallback(async () => {
     try {
@@ -219,14 +201,11 @@ export default function Dashboard() {
 
       setKpi(kpiData)
       setHeatmapData(riskData)
-      setHasLiveData(hasAnyDashboardData(kpiData, riskData))
-      setLiveError(false)
       setHeatmapLoading(false)
-      lastFetchRef.current = Date.now(); setIsLive(true)
+      setRefreshTick(t => t + 1)
     } catch (err) {
       setHeatmapLoading(false)
-      setLiveError(true)
-      console.error("Dashboard fetch error:", err); setIsLive(false)
+      console.error("Dashboard fetch error:", err)
     }
   }, [filters])
 
@@ -234,43 +213,15 @@ export default function Dashboard() {
     fetchAll()
     const iv = setInterval(() => {
       fetchAll()
-      if (Date.now() - lastFetchRef.current > 35000) setIsLive(false)
     }, 30000)
     return () => clearInterval(iv)
   }, [fetchAll])
-
-  const refreshDashboard = useCallback(async () => {
-    if (isRefreshing) return
-    setIsRefreshing(true)
-    try {
-      await fetchAll()
-      setRefreshTick(t => t + 1)
-    } finally {
-      setIsRefreshing(false)
-    }
-  }, [fetchAll, isRefreshing])
 
   const totalDecisions = kpi?.totalDecisions ?? 0
   const approvalRate   = totalDecisions > 0 ? Number(((kpi!.approvedCount / totalDecisions) * 100).toFixed(1)) : 0
   const rejectionRate  = totalDecisions > 0 ? Number(((kpi!.rejectedCount  / totalDecisions) * 100).toFixed(1)) : 0
   const days = Math.max(1, (new Date(filters.dateTo).getTime() - new Date(filters.dateFrom).getTime()) / 86400000)
   const throughput = totalDecisions > 0 ? Math.round(((kpi!.approvedCount + kpi!.rejectedCount) / days)) : 0
-  const shouldBlinkLive = isLive && hasLiveData && !liveError
-  const liveStatusLabel = liveError
-    ? "Live unavailable"
-    : hasLiveData
-    ? (isLive ? "Updating live" : "Live feed paused")
-    : "No live data"
-  const liveStatusColor = liveError
-    ? "#B91C1C"
-    : hasLiveData
-    ? (isLive ? "#0F766E" : "#9A3412")
-    : "#64748B"
-  const liveDotColor = liveError
-    ? "#EF4444"
-    : hasLiveData
-    ? (isLive ? "#10B981" : "#F59E0B")
-    : "#94A3B8"
 
   const applyPreset = (d: number | "all" | "2025") => {
     if (d === "all") {
@@ -296,11 +247,6 @@ export default function Dashboard() {
     <div style={{ minHeight:"100vh", background:"#F5F6FA", fontFamily:"'Outfit',sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
-        :root{
-          --accent-beige:#B0895A;
-          --accent-beige-dark:#8F6B42;
-          --accent-beige-soft:rgba(176,137,90,0.18);
-        }
         @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
         @keyframes liveTextBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @keyframes fadeSlideIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
@@ -308,10 +254,66 @@ export default function Dashboard() {
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:4px}
         ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+
+        .react-datepicker {
+          border: 1px solid #CBD5E1 !important;
+          border-radius: 10px !important;
+          font-family: 'Outfit', sans-serif !important;
+        }
+        .react-datepicker__header {
+          background: #F8FAFC !important;
+          border-bottom: 1px solid #E2E8F0 !important;
+        }
+        .react-datepicker__current-month,
+        .react-datepicker-time__header,
+        .react-datepicker-year-header {
+          color: #1F2937 !important;
+          font-weight: 700 !important;
+        }
+        .react-datepicker__day-name,
+        .react-datepicker__day,
+        .react-datepicker__time-name {
+          color: #334155 !important;
+        }
+        .react-datepicker__day:hover,
+        .react-datepicker__month-text:hover,
+        .react-datepicker__quarter-text:hover,
+        .react-datepicker__year-text:hover {
+          background: #E5E7EB !important;
+          color: #111827 !important;
+        }
+        .react-datepicker__day--selected,
+        .react-datepicker__day--keyboard-selected,
+        .react-datepicker__month-text--selected,
+        .react-datepicker__quarter-text--selected,
+        .react-datepicker__year-text--selected {
+          background: var(--accent-700) !important;
+          color: #F9FAFB !important;
+        }
+        .react-datepicker__day--today {
+          font-weight: 700 !important;
+          color: #111827 !important;
+        }
+        .react-datepicker__navigation-icon::before,
+        .react-datepicker__year-read-view--down-arrow,
+        .react-datepicker__month-read-view--down-arrow,
+        .react-datepicker__month-year-read-view--down-arrow {
+          border-color: var(--accent-600) !important;
+        }
+        .react-datepicker__month-dropdown,
+        .react-datepicker__year-dropdown,
+        .react-datepicker__month-year-dropdown {
+          border: 1px solid #CBD5E1 !important;
+          border-radius: 8px !important;
+        }
+        .react-datepicker__month-option:hover,
+        .react-datepicker__year-option:hover,
+        .react-datepicker__month-year-option:hover {
+          background: #E5E7EB !important;
+          color: #111827 !important;
+        }
       `}</style>
       <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
-        <TopBar isLive={isLive} anomalyCount={kpi?.anomalyCount ?? 0} openViolations={kpi?.openViolations ?? 0} />
-
         <main style={{ padding:"24px", display:"flex", flexDirection:"column", gap:"20px", animation:"fadeSlideIn 0.5s ease" }}>
 
           {/* Header */}
@@ -320,41 +322,11 @@ export default function Dashboard() {
               <div style={{ fontSize:"12px", color:"#94A3B8", marginBottom:"4px", display:"flex", alignItems:"center", gap:"6px" }}>
                 <span>Home</span><span style={{color:"#CBD5E1"}}>›</span>
                 <span>Dashboards</span><span style={{color:"#CBD5E1"}}>›</span>
-                <span style={{color:"#B0895A",fontWeight:600}}>Analytics</span>
+                <span style={{color:"#374151",fontWeight:600}}>Analytics</span>
               </div>
               <h1 style={{ fontSize:"22px", fontWeight:800, color:"#0F172A", margin:0, letterSpacing:"-0.5px" }}>
                 Analytics Dashboard
               </h1>
-              <div style={{ display:"flex", alignItems:"center", gap:"8px", marginTop:"6px", flexWrap:"wrap" }}>
-                <span style={{ width:"6px", height:"6px", borderRadius:"50%", background:liveDotColor, animation:shouldBlinkLive ? "livePulse 2s infinite" : "none" }} />
-                <span style={{ fontSize:"12px", fontWeight:600, color:liveStatusColor, fontFamily:"'Outfit',sans-serif", animation:shouldBlinkLive ? "liveTextBlink 1.4s ease-in-out infinite" : "none" }}>
-                  {liveStatusLabel}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void refreshDashboard()}
-                  disabled={isRefreshing}
-                  aria-label="Refresh dashboard"
-                  title="Refresh dashboard"
-                  style={{
-                    display:"inline-flex",
-                    alignItems:"center",
-                    justifyContent:"center",
-                    padding:"0",
-                    border:"none",
-                    background:"transparent",
-                    color:isRefreshing ? "#64748B" : "#334155",
-                    cursor:isRefreshing ? "wait" : "pointer",
-                    opacity:isRefreshing ? 0.75 : 1
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="15" height="15" style={{ animation:isRefreshing ? "spin 1s linear infinite" : "none" }}>
-                    <polyline points="23 4 23 10 17 10" />
-                    <polyline points="1 20 1 14 7 14" />
-                    <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15" />
-                  </svg>
-                </button>
-              </div>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>

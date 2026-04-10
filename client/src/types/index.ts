@@ -130,3 +130,20 @@ export interface IRiskHeatmapRow {
   High: number
   Critical: number
 }
+
+export type ForecastTarget = "volume" | "delay"
+
+export interface IForecastPoint {
+  ds: string
+  yhat: number
+  yhat_lower: number
+  yhat_upper: number
+}
+
+export interface IForecastData {
+  department: string
+  target: ForecastTarget
+  horizon: number
+  generatedAt: string
+  forecastData: IForecastPoint[]
+}

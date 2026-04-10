@@ -23,7 +23,7 @@ const featureLabels: Record<string, string> = {
   hourOfDaySubmitted: "Submission Hour"
 }
 
-const barColors = ["#B0895A", "#9A744A", "#C39A6D", "#7E6648", "#D8B48A", "#674C31"]
+const barColors = ["#2563EB", "#3B82F6", "#06B6D4", "#14B8A6", "#6366F1", "#8B5CF6"]
 
 export default function FeatureImportanceChart({ data }: Props) {
   if (data.length === 0) {
@@ -45,7 +45,7 @@ export default function FeatureImportanceChart({ data }: Props) {
         boxShadow: "0 2px 12px rgba(0,0,0,0.06)"
       }}
     >
-      <h3 style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: 700, color: "#5F452B" }}>
+      <h3 style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: 700, color: "#1F2937" }}>
         Feature Contribution to Anomalies (approximate)
       </h3>
       <ResponsiveContainer width="100%" height={260}>

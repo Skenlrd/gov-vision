@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	--accent-700: #374151;
+	--accent-600: #4b5563;
+	--accent-500: #6b7280;
+	--accent-300: #9ca3af;
+	--accent-ring: rgba(75, 85, 99, 0.18);
+	--accent-grad: linear-gradient(135deg, #4b5563, #374151);
+	--accent-grad-soft: linear-gradient(90deg, rgba(75, 85, 99, 0.72), rgba(55, 65, 81, 0.62));
+	--accent-edge: rgba(148, 163, 184, 0.85);
+}
+
 .react-datepicker {
 	font-family: 'Outfit', sans-serif !important;
 	border: 1px solid #E2E6ED !important;
@@ -30,24 +41,24 @@
 }
 
 .react-datepicker__day:hover {
-	background: #EFF6FF !important;
-	color: #2563EB !important;
+	background: #e5e7eb !important;
+	color: #111827 !important;
 }
 
 .react-datepicker__day--selected {
-	background: #2563EB !important;
+	background: var(--accent-700) !important;
 	color: white !important;
 	font-weight: 700 !important;
 }
 
 .react-datepicker__day--in-range {
-	background: #EFF6FF !important;
-	color: #2563EB !important;
+	background: #f3f4f6 !important;
+	color: #1f2937 !important;
 }
 
 .react-datepicker__day--keyboard-selected {
-	background: #DBEAFE !important;
-	color: #1D4ED8 !important;
+	background: #e5e7eb !important;
+	color: #111827 !important;
 }
 
 .react-datepicker__month-select,
@@ -62,5 +73,5 @@
 }
 
 .react-datepicker__navigation-icon::before {
-	border-color: #94A3B8 !important;
+	border-color: var(--accent-600) !important;
 }
