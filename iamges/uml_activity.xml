@@ -1,0 +1,167 @@
+<mxfile host="app.diagrams.net" modified="2026-04-17T00:00:00.000Z" agent="GPT-5.3-Codex" version="24.7.17">
+  <diagram id="govvision-activity" name="GovVision Activity Diagram">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="a_title" value="GovVision - UML Activity Diagram (Decision to AI/ML and Reporting Flow)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontStyle=1;fontSize=22;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="980" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="swim_user" value="User / Reviewer" style="swimlane;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="300" height="1540" as="geometry"/>
+        </mxCell>
+        <mxCell id="swim_m1" value="Module 1 (Decision Workflow)" style="swimlane;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="90" width="460" height="1540" as="geometry"/>
+        </mxCell>
+        <mxCell id="swim_m2" value="Module 2 (Compliance + Audit)" style="swimlane;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="820" y="90" width="420" height="1540" as="geometry"/>
+        </mxCell>
+        <mxCell id="swim_m3" value="Module 3 (Analytics + AI/ML)" style="swimlane;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="90" width="420" height="1540" as="geometry"/>
+        </mxCell>
+        <mxCell id="swim_ml" value="FastAPI ML Service" style="swimlane;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="90" width="420" height="1540" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="start" value="" style="ellipse;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="180" y="140" width="20" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act1" value="Enter credentials and submit" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="190" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act2" value="Validate user, issue JWT" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="190" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act3" value="Create or update draft decision" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="290" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act4" value="Submit decision" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="390" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act5" value="Build approval chain + SLA deadline" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="390" width="260" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act6" value="Call internal compliance validation" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="490" width="260" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act7" value="Evaluate policies and create violations" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="490" width="260" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision1" value="Violations found?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="610" width="120" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act8" value="Notify decision maker with violation warnings" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="640" width="280" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act9" value="Continue to reviewer stage" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="760" width="260" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act10" value="Reviewer takes action\n(Approve / Reject / Revise)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="760" width="230" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="act11" value="Validate transition and update state" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="870" width="260" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="fork1" value="" style="shape=line;strokeWidth=6;" vertex="1" parent="1">
+          <mxGeometry x="600" y="960" width="20" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act12" value="Write immutable audit log" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="960" width="240" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act13" value="Send decision-update webhook" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="960" width="230" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="join1" value="" style="shape=line;strokeWidth=6;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="1080" width="20" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act14" value="Invalidate Redis and recompute KPI snapshot" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1120" width="280" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act15" value="Display updated dashboards (30s polling)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="1120" width="250" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="fork2" value="" style="shape=line;strokeWidth=6;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="1220" width="20" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act16" value="Daily anomaly job" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1230" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="act17" value="Daily risk scoring job" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1310" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="act18" value="Daily forecasting job" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1390" width="220" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act19" value="Run Isolation Forest" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="1230" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="act20" value="Run Random Forest" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="1310" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="act21" value="Run Prophet Forecast" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="1390" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="act22" value="Persist m3_anomalies, m3_kpi_snapshots, m3_forecasts" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1480" width="300" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="end" value="" style="shape=doubleEllipse;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="1535" width="30" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ae1" style="endArrow=block;html=1;" edge="1" parent="1" source="start" target="act1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae2" style="endArrow=block;html=1;" edge="1" parent="1" source="act1" target="act2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae3" style="endArrow=block;html=1;" edge="1" parent="1" source="act2" target="act3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae4" style="endArrow=block;html=1;" edge="1" parent="1" source="act3" target="act4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae5" style="endArrow=block;html=1;" edge="1" parent="1" source="act4" target="act5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae6" style="endArrow=block;html=1;" edge="1" parent="1" source="act5" target="act6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae7" style="endArrow=block;html=1;" edge="1" parent="1" source="act6" target="act7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae8" style="endArrow=block;html=1;" edge="1" parent="1" source="act7" target="decision1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae9" value="Yes" style="endArrow=block;html=1;" edge="1" parent="1" source="decision1" target="act8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae10" value="No" style="endArrow=block;html=1;" edge="1" parent="1" source="decision1" target="act9"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae11" style="endArrow=block;html=1;" edge="1" parent="1" source="act8" target="act9"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae12" style="endArrow=block;html=1;" edge="1" parent="1" source="act9" target="act10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae13" style="endArrow=block;html=1;" edge="1" parent="1" source="act10" target="act11"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae14" style="endArrow=block;html=1;" edge="1" parent="1" source="act11" target="fork1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae15" style="endArrow=block;html=1;" edge="1" parent="1" source="fork1" target="act12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae16" style="endArrow=block;html=1;" edge="1" parent="1" source="fork1" target="act13"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae17" style="endArrow=block;html=1;" edge="1" parent="1" source="act12" target="join1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae18" style="endArrow=block;html=1;" edge="1" parent="1" source="act13" target="join1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae19" style="endArrow=block;html=1;" edge="1" parent="1" source="join1" target="act14"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae20" style="endArrow=block;html=1;" edge="1" parent="1" source="act14" target="act15"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae21" style="endArrow=block;html=1;" edge="1" parent="1" source="act15" target="fork2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae22" style="endArrow=block;html=1;" edge="1" parent="1" source="fork2" target="act16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae23" style="endArrow=block;html=1;" edge="1" parent="1" source="fork2" target="act17"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae24" style="endArrow=block;html=1;" edge="1" parent="1" source="fork2" target="act18"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae25" style="endArrow=block;html=1;" edge="1" parent="1" source="act16" target="act19"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae26" style="endArrow=block;html=1;" edge="1" parent="1" source="act17" target="act20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae27" style="endArrow=block;html=1;" edge="1" parent="1" source="act18" target="act21"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ae28" style="endArrow=block;html=1;" edge="1" parent="1" source="act19" target="act22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae29" style="endArrow=block;html=1;" edge="1" parent="1" source="act20" target="act22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae30" style="endArrow=block;html=1;" edge="1" parent="1" source="act21" target="act22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ae31" style="endArrow=block;html=1;" edge="1" parent="1" source="act22" target="end"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

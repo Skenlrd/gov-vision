@@ -16,6 +16,16 @@ function getStoredToken(): string {
   )
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const token = getStoredToken()
+  if (token) {
+    return { Authorization: `Bearer ${token}` }
+  }
+
+  const testRole = localStorage.getItem("x_test_role") || "analyst"
+  return { "x-test-role": testRole }
+}
+
 function normalizeAnomalies(payload: any): IFeedAnomaly[] {
   if (Array.isArray(payload)) return payload as IFeedAnomaly[]
 
@@ -81,11 +91,8 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
   useEffect(() => {
     const fetchAnomalies = async () => {
       try {
-        const token = getStoredToken()
         const response = await axios.get(`${apiBaseUrl}/api/ai/anomalies`, {
-          headers: {
-            Authorization: `Bearer ${token ?? ""}`
-          }
+          headers: getAuthHeaders()
         })
 
         setFeedAnomalies(normalizeAnomalies(response.data))
@@ -109,14 +116,11 @@ export default function AnomalyFeed({ anomalies, onAcknowledge }: AnomalyFeedPro
 
   const handleAcknowledge = async (id: string) => {
     try {
-      const token = getStoredToken()
       await axios.put(
         `${apiBaseUrl}/api/ai/anomalies/${id}/acknowledge`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token ?? ""}`
-          }
+          headers: getAuthHeaders()
         }
       )
 

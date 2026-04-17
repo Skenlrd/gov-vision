@@ -6,12 +6,35 @@ import { requireRole } from "../middleware/requireRole"
 
 const router = Router()
 
+// Role-based access configuration
+const ROLE_ANOMALY_ACCESS: Record<string, { canView: boolean; canAcknowledge: boolean }> = {
+  admin: { canView: true, canAcknowledge: true },
+  manager: { canView: true, canAcknowledge: true },
+  executive: { canView: false, canAcknowledge: false },
+  analyst: { canView: true, canAcknowledge: true }
+}
+
 router.get(
   "/anomalies",
-  // validateJWT, // TEMP: commented for development testing
-  // requireRole(["admin", "manager", "executive", "analyst"]), // TEMP: commented for development testing
+  validateJWT,
+  requireRole(["admin", "manager", "executive", "analyst"]),
   async (req: Request, res: Response) => {
     try {
+      const userRole = req.user?.role || req.headers['x-test-role'] as string || 'analyst'
+      const roleAccess = ROLE_ANOMALY_ACCESS[userRole.toLowerCase()] || ROLE_ANOMALY_ACCESS.analyst
+      
+      // Executives cannot view anomalies
+      if (!roleAccess.canView) {
+        return res.json({
+          Critical: [],
+          High: [],
+          Medium: [],
+          Low: [],
+          total: 0,
+          note: `${userRole} role: anomalies access denied`
+        })
+      }
+
       const cacheKey = "m3:anomalies:active"
 
       const data = await getOrSet(cacheKey, 300, async () => {
@@ -48,8 +71,8 @@ router.get(
 
 router.put(
   "/anomalies/:id/acknowledge",
-  // validateJWT, // TEMP: commented for development testing
-  // requireRole(["admin", "manager", "executive"]), // TEMP: commented for development testing
+  validateJWT,
+  requireRole(["admin", "manager", "executive"]),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params

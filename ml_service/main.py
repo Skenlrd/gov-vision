@@ -21,6 +21,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 from pydantic import BaseModel
 
 from app.services.forecast_service import generate_forecast
+from app.services.risk_service import score_departments
 
 # Always load .env from ml_service/ regardless of where uvicorn was launched
 load_dotenv(Path(__file__).parent / ".env")
@@ -82,6 +83,21 @@ class ForecastResponse(BaseModel):
     horizon: int
     target: str
     forecast: List[ForecastPoint]
+
+
+class RiskFeature(BaseModel):
+    dept: str
+    violationCount: float = 0
+    openViolationRate: float = 0
+    avgCompositeRisk: float = 0
+    overdueCount: float = 0
+    complianceRate: float = 75
+    policyBreachFreq: float = 0
+    escalationCount: float = 0
+
+
+class RiskScoreRequest(BaseModel):
+    features: List[RiskFeature]
 
 
 # ---------------------------------------------------------------------------
@@ -160,3 +176,14 @@ def forecast_predict(body: ForecastRequest):
         target=str(payload["target"]),
         forecast=[ForecastPoint(**point) for point in payload["forecastData"]],
     )
+
+
+@app.post("/ml/risk/score", dependencies=[Depends(require_service_key)])
+def risk_score(body: RiskScoreRequest):
+    """Score risk level for each department feature vector."""
+    try:
+        scored = score_departments([item.model_dump() for item in body.features])
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error))
+
+    return {"scores": scored}

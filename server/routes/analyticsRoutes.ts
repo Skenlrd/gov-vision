@@ -237,6 +237,7 @@ router.get(
 
         return KPISnapshot.aggregate([
           { $match: match },
+          { $sort: { snapshotDate: -1 } },
           {
             $group: {
               _id: '$departmentId',
@@ -244,6 +245,9 @@ router.get(
               Medium: { $sum: { $cond: [{ $eq: ['$riskLevel', 'medium'] }, 1, 0] } },
               High: { $sum: { $cond: [{ $eq: ['$riskLevel', 'high'] }, 1, 0] } },
               Critical: { $sum: { $cond: [{ $eq: ['$riskLevel', 'critical'] }, 1, 0] } },
+              riskScore: { $first: '$riskScore' },
+              riskLevel: { $first: '$riskLevel' },
+              featureImportance: { $first: '$featureImportance' },
             },
           },
           {
@@ -255,6 +259,9 @@ router.get(
               Medium: 1,
               High: 1,
               Critical: 1,
+              riskScore: { $ifNull: ['$riskScore', 0] },
+              riskLevel: { $ifNull: ['$riskLevel', 'low'] },
+              featureImportance: { $ifNull: ['$featureImportance', null] },
             },
           },
         ]);
@@ -284,15 +291,18 @@ router.get(
       target?: string;
     };
 
-    const horizonNum = Number.parseInt(horizon, 10);
-    const targetValue = String(target).toLowerCase();
+    const parsedHorizon = Number.parseInt(horizon, 10);
+    const parsedTarget = String(target).toLowerCase();
 
-    if (![7, 14, 30].includes(horizonNum)) {
+    if (![7, 14, 30].includes(parsedHorizon)) {
       return res.status(400).json({ error: 'horizon must be 7, 14, or 30' });
     }
-    if (!['volume', 'delay'].includes(targetValue)) {
+    if (!['volume', 'delay'].includes(parsedTarget)) {
       return res.status(400).json({ error: "target must be 'volume' or 'delay'" });
     }
+
+    const horizonNum = parsedHorizon as 7 | 14 | 30;
+    const targetValue = parsedTarget as 'volume' | 'delay';
 
     const cacheKey = `m3:forecast:${deptId}:${targetValue}:${horizonNum}`;
 

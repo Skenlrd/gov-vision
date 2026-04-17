@@ -10,7 +10,11 @@ import type {
   IRiskHeatmapRow,
   IReport,
   IForecastData,
-  ForecastTarget
+  ForecastTarget,
+  GenerateReportResponse,
+  ReportRecord,
+  ReportConfig,
+  ReportSchedule
 } from "../types"
 
 /*
@@ -50,6 +54,9 @@ api.interceptors.request.use(config => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (import.meta.env.DEV) {
+    const testRole = localStorage.getItem("x_test_role") || "analyst"
+    config.headers["x-test-role"] = testRole
   }
 
   return config
@@ -128,12 +135,11 @@ export const getComplianceTrend = async (
 }
 
 export const getRiskHeatmap = async (
-  filters: Pick<IFilter, "dateFrom" | "dateTo">
+  filters?: Partial<Pick<IFilter, "dateFrom" | "dateTo">>
 ): Promise<IRiskHeatmapRow[]> => {
-  const params: Record<string, string> = {
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo
-  }
+  const params: Record<string, string> = {}
+  if (filters?.dateFrom) params.dateFrom = filters.dateFrom
+  if (filters?.dateTo) params.dateTo = filters.dateTo
 
   const res = await api.get("/api/analytics/risk-heatmap", { params })
   const data = unwrap<IRiskHeatmapRow[]>(res.data)
@@ -225,4 +231,50 @@ export const getReportHistory = async (): Promise<IReport[]> => {
   const res = await api.get("/api/reports/history")
   const data = unwrap<IReport[]>(res.data)
   return Array.isArray(data) ? data : []
+}
+
+export async function generateReport(config: ReportConfig): Promise<GenerateReportResponse> {
+  const res = await api.post("/api/reports/generate", config)
+  return unwrap<GenerateReportResponse>(res.data)
+}
+
+export async function getReports(): Promise<ReportRecord[]> {
+  const res = await api.get("/api/reports")
+  const data = unwrap<ReportRecord[]>(res.data)
+  return Array.isArray(data) ? data : []
+}
+
+export async function downloadReport(reportId: string, filename: string): Promise<void> {
+  const res = await api.get(`/api/reports/${reportId}/download`, {
+    responseType: "blob",
+  })
+
+  const url = URL.createObjectURL(new Blob([res.data]))
+  const link = document.createElement("a")
+  link.href = url
+  link.setAttribute("download", filename)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+export async function getSchedules(): Promise<ReportSchedule[]> {
+  const res = await api.get("/api/reports/schedules")
+  const data = unwrap<ReportSchedule[]>(res.data)
+  return Array.isArray(data) ? data : []
+}
+
+export async function createSchedule(data: Partial<ReportSchedule>): Promise<ReportSchedule> {
+  const res = await api.post("/api/reports/schedules", data)
+  return unwrap<ReportSchedule>(res.data)
+}
+
+export async function toggleSchedule(id: string): Promise<ReportSchedule> {
+  const res = await api.patch(`/api/reports/schedules/${id}/toggle`)
+  return unwrap<ReportSchedule>(res.data)
+}
+
+export async function deleteSchedule(id: string): Promise<void> {
+  await api.delete(`/api/reports/schedules/${id}`)
 }

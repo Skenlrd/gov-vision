@@ -107,6 +107,12 @@ const kpiSnapshotSchema = new Schema(
       type: String,
       enum: ["low", "medium", "high", "critical"],
       default: "low"
+    },
+
+    // Filled in later by risk scoring cron job (Day 10)
+    featureImportance: {
+      type: Schema.Types.Mixed,
+      default: null
     }
 
   },

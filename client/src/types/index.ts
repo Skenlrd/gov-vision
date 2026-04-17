@@ -129,6 +129,60 @@ export interface IRiskHeatmapRow {
   Medium: number
   High: number
   Critical: number
+  riskScore?: number
+  riskLevel?: "low" | "medium" | "high" | "critical"
+  featureImportance?: Record<string, number> | null
+}
+
+export interface RiskEntry {
+  departmentId: string
+  department: string
+  riskScore: number
+  riskLevel: RiskLevel
+  Low: number
+  Medium: number
+  High: number
+  Critical: number
+  featureImportance?: Record<string, number>
+}
+
+export const RISK_LEVEL_COLORS: Record<RiskLevel, string> = {
+  Low: "#57B877",
+  Medium: "#FFC107",
+  High: "#E08C3E",
+  Critical: "#DE6D6D"
+}
+
+export const RISK_LEVEL_THEME: Record<RiskLevel, {
+  fill: string
+  text: string
+  bg: string
+  border: string
+}> = {
+  Low: {
+    fill: "#57B877",
+    text: "#2E7D32",
+    bg: "#DDF3E5",
+    border: "#9FD7AF"
+  },
+  Medium: {
+    fill: "#FFC107",
+    text: "#8A6A00",
+    bg: "#FFF6CC",
+    border: "#F2D979"
+  },
+  High: {
+    fill: "#E08C3E",
+    text: "#9C4A00",
+    bg: "#FDE9D6",
+    border: "#E9BC92"
+  },
+  Critical: {
+    fill: "#DE6D6D",
+    text: "#9C2F2F",
+    bg: "#FADDDD",
+    border: "#E8A9A9"
+  }
 }
 
 export type ForecastTarget = "volume" | "delay"
@@ -146,4 +200,48 @@ export interface IForecastData {
   horizon: number
   generatedAt: string
   forecastData: IForecastPoint[]
+}
+
+export type ReportFormat = "csv" | "excel" | "pdf"
+export type ReportType = "executive_summary" | "compliance" | "anomaly" | "risk"
+
+export interface ReportConfig {
+  type: ReportType
+  format: ReportFormat
+  dateFrom: string
+  dateTo: string
+  departments: string[]
+}
+
+export interface GenerateReportResponse {
+  reportId: string
+  status: "completed" | "pending" | "failed"
+}
+
+export interface ReportRecord {
+  _id: string
+  type: string
+  format: ReportFormat
+  status: "completed" | "pending" | "failed"
+  generatedAt: string
+  generatedBy: string
+  parameters: ReportConfig
+  filePath: string
+}
+
+export interface ReportSchedule {
+  _id: string
+  name: string
+  reportConfig: {
+    type: string
+    format: string
+    departments: string[]
+    dateRangeMode: "last_7_days" | "last_30_days" | "last_90_days"
+  }
+  frequency: "daily" | "weekly" | "monthly"
+  nextRunAt: string
+  lastRunAt?: string
+  lastRunStatus?: "success" | "failed" | "pending"
+  isActive: boolean
+  recipients: string[]
 }

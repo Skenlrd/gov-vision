@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net" modified="2026-04-17T00:00:00.000Z" agent="GPT-5.3-Codex" version="24.7.17">
+  <diagram id="govvision-sequence" name="GovVision Sequence Diagram">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="s_title" value="GovVision - UML Sequence Diagram (End-to-End Core Flow)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontStyle=1;fontSize=22;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="900" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="l1" value="User Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="60" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l2" value="M1 Frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="280" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l3" value="M1 API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="500" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l4" value="M2 API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="720" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l5" value="M3 API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="940" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l6" value="FastAPI ML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1160" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l7" value="MongoDB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1380" y="80" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="l8" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1600" y="80" width="150" height="50" as="geometry"/></mxCell>
+
+        <mxCell id="lifeline1" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="135" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline2" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="355" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline3" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="575" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline4" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="795" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline5" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="1015" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline6" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="1235" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline7" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="1455" y="140" width="1" height="1700" as="geometry"/></mxCell>
+        <mxCell id="lifeline8" value="" style="shape=line;strokeWidth=1;dashed=1;" vertex="1" parent="1"><mxGeometry x="1675" y="140" width="1" height="1700" as="geometry"/></mxCell>
+
+        <mxCell id="m1" value="1. POST /api/auth/login" style="endArrow=block;html=1;" edge="1" parent="1" source="l1" target="l3"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="575" y="190"/></Array></mxGeometry></mxCell>
+        <mxCell id="m2" value="2. bcrypt.compare + lookup user" style="endArrow=block;html=1;" edge="1" parent="1" source="l3" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="240"/></Array></mxGeometry></mxCell>
+        <mxCell id="m3" value="3. 200 JWT access+refresh" style="endArrow=classic;dashed=1;html=1;" edge="1" parent="1" source="l3" target="l1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="135" y="290"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m4" value="4. POST /api/decisions" style="endArrow=block;html=1;" edge="1" parent="1" source="l1" target="l3"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="575" y="340"/></Array></mxGeometry></mxCell>
+        <mxCell id="m5" value="5. insert m1_decisions (draft)" style="endArrow=block;html=1;" edge="1" parent="1" source="l3" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="390"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m6" value="6. POST /api/decisions/:id/submit" style="endArrow=block;html=1;" edge="1" parent="1" source="l1" target="l3"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="575" y="440"/></Array></mxGeometry></mxCell>
+        <mxCell id="m7" value="7. POST /api/internal/compliance/validate" style="endArrow=block;html=1;" edge="1" parent="1" source="l3" target="l4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="490"/></Array></mxGeometry></mxCell>
+        <mxCell id="m8" value="8. read published policies and detect violations" style="endArrow=block;html=1;" edge="1" parent="1" source="l4" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="540"/></Array></mxGeometry></mxCell>
+        <mxCell id="m9" value="9. return {valid, violations}" style="endArrow=classic;dashed=1;html=1;" edge="1" parent="1" source="l4" target="l3"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="575" y="590"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m10" value="10. POST /api/internal/audit/log" style="endArrow=block;html=1;" edge="1" parent="1" source="l3" target="l4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="640"/></Array></mxGeometry></mxCell>
+        <mxCell id="m11" value="11. insert m2_audit_logs(hash)" style="endArrow=block;html=1;" edge="1" parent="1" source="l4" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="690"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m12" value="12. POST /api/events/decision-update" style="endArrow=block;html=1;" edge="1" parent="1" source="l3" target="l5"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1015" y="740"/></Array></mxGeometry></mxCell>
+        <mxCell id="m13" value="13. DEL m3:kpi:{dept}:{date}" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l8"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1675" y="790"/></Array></mxGeometry></mxCell>
+        <mxCell id="m14" value="14. aggregate m1+m2 metrics" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="840"/></Array></mxGeometry></mxCell>
+        <mxCell id="m15" value="15. upsert m3_kpi_snapshots" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="890"/></Array></mxGeometry></mxCell>
+        <mxCell id="m16" value="16. SET redis KPI cache (TTL 5m)" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l8"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1675" y="940"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m17" value="17. Daily cron -> anomaly batch" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="1010"/></Array></mxGeometry></mxCell>
+        <mxCell id="m18" value="18. POST /ml/anomaly/predict" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="1060"/></Array></mxGeometry></mxCell>
+        <mxCell id="m19" value="19. return anomaly scores" style="endArrow=classic;dashed=1;html=1;" edge="1" parent="1" source="l6" target="l5"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1015" y="1110"/></Array></mxGeometry></mxCell>
+        <mxCell id="m20" value="20. write m3_anomalies" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="1160"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m21" value="21. Daily cron -> risk scoring" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="1210"/></Array></mxGeometry></mxCell>
+        <mxCell id="m22" value="22. GET /api/risks/score/:deptId" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="1260"/></Array></mxGeometry></mxCell>
+        <mxCell id="m23" value="23. POST /ml/risk/score" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="1310"/></Array></mxGeometry></mxCell>
+        <mxCell id="m24" value="24. update riskScore/riskLevel" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="1360"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m25" value="25. Daily cron -> forecasting" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="1430"/></Array></mxGeometry></mxCell>
+        <mxCell id="m26" value="26. POST /ml/forecast/predict" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="1480"/></Array></mxGeometry></mxCell>
+        <mxCell id="m27" value="27. upsert m3_forecasts" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1455" y="1530"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="m28" value="28. GET /api/analytics/kpi-summary (poll 30s)" style="endArrow=block;html=1;" edge="1" parent="1" source="l1" target="l5"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1015" y="1600"/></Array></mxGeometry></mxCell>
+        <mxCell id="m29" value="29. GET redis KPI key" style="endArrow=block;html=1;" edge="1" parent="1" source="l5" target="l8"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1675" y="1650"/></Array></mxGeometry></mxCell>
+        <mxCell id="m30" value="30. 200 kpi payload" style="endArrow=classic;dashed=1;html=1;" edge="1" parent="1" source="l5" target="l1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="135" y="1700"/></Array></mxGeometry></mxCell>
+
+        <mxCell id="frag1" value="alt: compliance result" style="shape=umlFrame;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="600" width="430" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="frag2" value="loop: daily jobs (anomaly/risk/forecast)" style="shape=umlFrame;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="930" y="980" width="650" height="600" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

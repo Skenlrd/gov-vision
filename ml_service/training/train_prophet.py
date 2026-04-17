@@ -8,7 +8,7 @@ This script trains two Prophet model families:
 2) delay: average cycle time hours per day
 
 Each family is trained per department plus org-level and saved under
-ml_service/models/.
+ml_service/models/forecast/.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB = os.getenv("MONGODB_DB", "govvision")
-MODELS_DIR = Path(__file__).resolve().parents[1] / "models"
+MODELS_DIR = Path(__file__).resolve().parents[1] / "models" / "forecast"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 

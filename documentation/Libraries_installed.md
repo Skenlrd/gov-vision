@@ -4,6 +4,33 @@ npm create vite@latest client
 ## Libraries/Packages Installed
 This document lists all libraries/packages installed for each architecture layer, with the install command and a one-line explanation.
 
+## Session Updates (2026-04-12)
+
+Packages/libraries used in this session:
+- Existing frontend stack referenced in updated files: React, TypeScript, react-router-dom, echarts-for-react/recharts chart surfaces, and CSS variable-based styling.
+
+Installation status:
+No new packages installed.
+
+## Session Updates (2026-04-13)
+
+Packages/libraries used in this session:
+- Backend report generation/runtime libraries:
+	- exceljs
+	- jspdf
+	- jspdf-autotable
+	- json2csv
+- Type definitions used with the backend report stack:
+	- @types/json2csv (dev dependency)
+
+Installation status:
+- New packages were installed in the server workspace for reporting implementation.
+
+Verified runtime imports:
+- exceljs: ok
+- jspdf: ok
+- json2csv: ok
+
 ## 1. Client (Frontend)
 
 **Setup:**

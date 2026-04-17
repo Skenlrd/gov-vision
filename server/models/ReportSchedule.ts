@@ -2,29 +2,39 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReportSchedule extends Document {
   name: string;
-  cronExpression: string;
-  reportType: string;
-  format: string;
+  reportConfig: {
+    type: string;
+    format: string;
+    departments: string[];
+    dateRangeMode: "last_7_days" | "last_30_days" | "last_90_days";
+  };
+  frequency: "daily" | "weekly" | "monthly";
+  nextRunAt: Date;
+  lastRunAt?: Date;
+  lastRunStatus?: "success" | "failed" | "pending";
   recipients: string[];
   isActive: boolean;
-  lastRun?: Date;
-  nextRun?: Date;
+  createdBy: string;
 }
 
-const ReportScheduleSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  cronExpression: { type: String, required: true },
-  reportType: { type: String, required: true },
-  format: { type: String, required: true },
-  recipients: [{ type: String, required: true }],
-  isActive: {
-    type: Boolean,
-    required: true,
-    default: true
+const ReportScheduleSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    reportConfig: { type: Schema.Types.Mixed, required: true },
+    frequency: { type: String, enum: ["daily", "weekly", "monthly"], required: true },
+    nextRunAt: { type: Date, required: true },
+    lastRunAt: { type: Date },
+    lastRunStatus: { type: String, enum: ["success", "failed", "pending"], default: "pending" },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true
+    },
+    createdBy: { type: String, default: "unknown" },
+    recipients: [{ type: String }]
   },
-  lastRun: Date,
-  nextRun: Date
-});
+  { timestamps: true }
+);
 
 export default mongoose.model<IReportSchedule>(
   "m3_report_schedules",

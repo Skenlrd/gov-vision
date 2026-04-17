@@ -48,9 +48,9 @@ What it does:
 Commands:
 & "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" -c "from pymongo import MongoClient; c=MongoClient('mongodb://localhost:27017/govvision'); col=c.get_default_database()['m3_forecasts']; q={'department':'FI001','target':'delay','horizon':7}; d=col.find_one(q, {'_id':0,'department':1,'target':1,'horizon':1,'generatedAt':1,'forecastData':1}); print('NO_DOC' if not d else {'department':d['department'],'target':d['target'],'horizon':d['horizon'],'generatedAt':str(d['generatedAt']),'points':len(d.get('forecastData',[])),'first2':d.get('forecastData',[])[:2]})"
 
-python .\plot_forecast.py --dept FI001 --target delay --periods 30 --history-days 120 --no-band
+python .\plot_forecast.py --dept FI001 --target delay --periods 30 --no-band
 
-& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\scripts\plot_forecast.py" --dept FI001 --target volume --periods 30 --history-days 120 --no-band --save "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\models\FI001_volume_quickcheck.png" --no-show
+& "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\scripts\plot_forecast.py" --dept FI001 --target volume --periods 30 --no-band --save "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\models\FI001_volume_quickcheck.png" --no-show
 
 Expected result:
 - Mongo check prints a matching `delay` forecast row for `FI001` and `horizon=7`
@@ -65,7 +65,7 @@ What it does:
 Commands:
 & "C:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\python.exe" -m pip install -r "C:\Users\win\Desktop\GithubUploads\gov_vision\ml_service\requirements.txt"
 
-python .\plot_forecast.py --dept FI001 --target delay --periods 30 --history-days 120 --no-band
+python .\plot_forecast.py --dept FI001 --target delay --periods 30 --no-band
 
 Set-Location "C:\Users\win\Desktop\GithubUploads\gov_vision\server"
 npm run dev
@@ -74,6 +74,68 @@ Expected result:
 - requirements command reports dependencies satisfied in `.venv`
 - plot command runs successfully once script header corruption is removed
 - running `npm run dev` from repo root fails (missing package.json), while running from `server` directory is the correct path
+
+---
+
+## UI Accent and Dropdown Consistency Session Commands (2026-04-12)
+
+Grouped commands and validation checks that were actually executed for universal dark-gray accent and dropdown consistency updates.
+
+### 1) Startup commands
+
+What it does:
+- records startup command status for this session
+
+Commands:
+No startup command was executed in this session.
+
+Expected result:
+- n/a
+
+### 2) API test commands (curl/PowerShell)
+
+What it does:
+- records API command status for this session
+
+Commands:
+No direct API curl or Invoke-RestMethod command was executed in this session.
+
+Expected result:
+- n/a
+
+### 3) Validation commands
+
+What it does:
+- validates edited frontend files and confirms dropdown option rendering was moved away from native select/option controls
+
+Commands:
+get_errors filePaths:
+- client/src/pages/DeepInsights.tsx
+- client/src/pages/Dashboard.tsx
+- client/src/components/Sidebar.tsx
+- client/src/index.css
+
+grep_search query: <select|<option
+includePattern: client/src/**
+
+grep_search query: 3B82F6|2563EB|4F46E5|6366F1|8B5CF6|A855F7
+includePattern: client/src/**
+
+Expected result:
+- diagnostics output: No errors found for all edited files
+- native select/option scan returns no matches in client/src
+- hardcoded-blue scan returns matches in chart-related files, confirming chart palette remains independent
+
+### 4) Troubleshooting commands
+
+What it does:
+- records command-level troubleshooting status for this session
+
+Commands:
+No terminal troubleshooting command was required beyond validation checks.
+
+Expected result:
+- n/a
 
 ---
 
@@ -189,6 +251,70 @@ Expected result:
   - Reset 5 anomalies to unacknowledged
   - Unacknowledged total: 5
   - By severity: [{"_id":"Low","count":5}]
+
+---
+
+## Reporting and Risk Session Commands (2026-04-13)
+
+Grouped commands that were actually used during reporting backend/frontend integration and risk/report runtime verification checks.
+
+### 1) Startup commands
+
+What it does:
+- activates the repository Python virtual environment used by ML and utility commands
+
+Commands:
+& c:\Users\win\Desktop\GithubUploads\gov_vision\.venv\Scripts\Activate.ps1
+
+Expected result:
+- virtual environment activation completes successfully (exit code 0)
+
+### 2) API test commands (PowerShell/Node quick checks)
+
+What it does:
+- confirms required report-generation Node libraries are resolvable at runtime
+- confirms report output directory can be listed
+
+Commands:
+Push-Location server; node -e "require('exceljs'); console.log('exceljs: ok')"; node -e "require('jspdf'); console.log('jspdf: ok')"; node -e "const {parse}=require('json2csv'); console.log('json2csv: ok')"; Get-ChildItem generated_reports | Out-String; Pop-Location
+
+Expected result:
+- prints:
+  - exceljs: ok
+  - jspdf: ok
+  - json2csv: ok
+- generated_reports directory listing command executes without failure
+
+### 3) Validation commands
+
+What it does:
+- verifies Python-side model path resolution for anomaly/forecast/risk services
+- validates backend/frontend compile status after report + schedule implementation
+
+Commands:
+Push-Location c:\Users\win\Desktop\GithubUploads\gov_vision\ml_service; python -c "from app.services.anomaly_service import _MODELS_DIR as a; from app.services.forecast_service import MODELS_DIR as f; from app.services.risk_service import MODEL_PATH as r; print('anomaly_dir=', a); print('forecast_dir=', f); print('risk_model=', r)"; Pop-Location
+
+cd server
+npm run typecheck
+
+cd ../client
+npm run typecheck
+
+Expected result:
+- model-path command prints resolved paths for anomaly_dir, forecast_dir, and risk_model
+- backend typecheck completes with no TypeScript errors
+- client typecheck completes with no TypeScript errors
+
+### 4) Troubleshooting commands
+
+What it does:
+- captures dependency/runtime verification path used to confirm report package availability before endpoint runtime testing
+
+Commands:
+Push-Location server; node -e "require('exceljs'); console.log('exceljs: ok')"; node -e "require('jspdf'); console.log('jspdf: ok')"; node -e "const {parse}=require('json2csv'); console.log('json2csv: ok')"; Pop-Location
+
+Expected result:
+- each package check prints `ok`; missing module errors do not occur
 
 ---
 

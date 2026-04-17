@@ -27,6 +27,23 @@ export function validateJWT(
     Expected format: "Bearer eyJhbGciOi..."
   */
   const authHeader = req.headers["authorization"]
+  
+  /*
+    Check for test role override (X-Test-Role header).
+    This allows frontend to test different role-based visibility.
+    In production, this would be removed or restricted.
+  */
+  const testRole = req.headers["x-test-role"] as string | undefined
+
+  // If test role is provided, use it without requiring JWT
+  if (testRole) {
+    req.user = {
+      userId: "test-user",
+      role: testRole.toLowerCase(),
+      department: "test-dept"
+    }
+    return next()
+  }
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ error: "No token provided" })

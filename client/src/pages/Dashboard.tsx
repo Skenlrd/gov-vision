@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import type { IKpiSummary, IFilter, IRiskHeatmapRow } from "../types"
+import type { IKpiSummary, IFilter, IRiskHeatmapRow, RiskLevel } from "../types"
+import { RISK_LEVEL_THEME } from "../types"
 import {
   getKpiSummary, getDeptKpiSummary, getRiskHeatmap
 } from "../services/api"
@@ -39,6 +40,35 @@ const DEPARTMENTS = [
   { label: "Information Technology", value: "IT004" },
   { label: "Customer Service", value: "CS005" }
 ]
+
+function getRiskCellStyle(level: RiskLevel, value: number) {
+  const theme = RISK_LEVEL_THEME[level]
+  if (value <= 0) {
+    return {
+      background: "#F8FAFC",
+      color: "#64748B"
+    }
+  }
+
+  if (value >= 8) {
+    return {
+      background: theme.fill,
+      color: theme.text
+    }
+  }
+
+  if (value >= 4) {
+    return {
+      background: theme.border,
+      color: theme.text
+    }
+  }
+
+  return {
+    background: theme.bg,
+    color: theme.text
+  }
+}
 
 function getDepartmentLabel(deptIdOrName: string): string {
   const match = DEPARTMENTS.find(d => d.value === deptIdOrName)
@@ -470,12 +500,21 @@ export default function Dashboard() {
                 <h2 style={{ fontSize:"14px", fontWeight:700, color:"#1E293B", margin:0 }}>Departmental Risk Heatmap</h2>
                 <p style={{ fontSize:"12px", color:"#94A3B8", margin:"2px 0 0" }}>Risk concentration by category</p>
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-                <span style={{ fontSize:"11px", color:"#94A3B8" }}>Low</span>
-                {["#D1FAE5","#A7F3D0","#FDE68A","#FCA5A5","#F87171","#EF4444"].map((c,i) => (
-                  <div key={i} style={{ width:"20px", height:"12px", background:c, borderRadius:"3px" }} />
+              <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
+                {(["Low", "Medium", "High", "Critical"] as const).map(level => (
+                  <div key={level} style={{ display:"flex", alignItems:"center", gap:"5px" }}>
+                    <div
+                      style={{
+                        width:"12px",
+                        height:"12px",
+                        background:RISK_LEVEL_THEME[level].fill,
+                        border:`1px solid ${RISK_LEVEL_THEME[level].border}`,
+                        borderRadius:"3px"
+                      }}
+                    />
+                    <span style={{ fontSize:"11px", color:"#94A3B8" }}>{level}</span>
+                  </div>
                 ))}
-                <span style={{ fontSize:"11px", color:"#94A3B8" }}>High</span>
               </div>
             </div>
 
@@ -513,25 +552,20 @@ export default function Dashboard() {
                             {getDepartmentLabel(row.department || row.deptId)}
                           </td>
                           {values.map((v, i) => {
-                            const bg = v >= 8
-                              ? "#FCA5A5"
-                              : v >= 4
-                              ? "#FDE68A"
-                              : v >= 1
-                              ? "#A7F3D0"
-                              : "#F1F5F9"
+                            const level = (["Low", "Medium", "High", "Critical"] as const)[i]
+                            const cellStyle = getRiskCellStyle(level, v)
 
                             return (
                               <td
                                 key={`${row.deptId}-${i}`}
                                 style={{
-                                  background: bg,
+                                  background: cellStyle.background,
                                   borderRadius: "8px",
                                   textAlign: "center",
                                   padding: "10px 6px",
                                   fontSize: "13px",
                                   fontWeight: 700,
-                                  color: "#1E293B",
+                                  color: cellStyle.color,
                                   minWidth: "70px"
                                 }}
                               >

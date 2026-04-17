@@ -1,38 +1,39 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReport extends Document {
-  reportName: string;
-  reportType: "Executive" | "Compliance" | "Decision" | "Department" | "Custom";
-  format: string;
-  status: "Completed" | "Failed" | "Generating";
+  type: "executive_summary" | "compliance" | "anomaly" | "risk";
+  format: "csv" | "excel" | "pdf";
+  status: "completed" | "pending" | "failed";
   filePath: string;
-  dateFrom: Date;
-  dateTo: Date;
-  departments: string[];
+  parameters: {
+    type: "executive_summary" | "compliance" | "anomaly" | "risk";
+    format: "csv" | "excel" | "pdf";
+    dateFrom: string;
+    dateTo: string;
+    departments: string[];
+    requestedBy: string;
+  };
   generatedAt: Date;
-  generatedBy: mongoose.Types.ObjectId;
+  generatedBy: string;
 }
 
 const ReportSchema: Schema = new Schema({
-  reportName: { type: String, required: true },
-  reportType: {
+  type: {
     type: String,
-    enum: ["Executive", "Compliance", "Decision", "Department", "Custom"],
+    enum: ["executive_summary", "compliance", "anomaly", "risk"],
     required: true
   },
   format: { type: String, enum: ["pdf", "excel", "csv"], required: true },
   status: {
     type: String,
-    enum: ["Completed", "Failed", "Generating"],
-    default: "Generating",
+    enum: ["completed", "pending", "failed"],
+    default: "pending",
     required: true
   },
   filePath: { type: String, required: true },
-  dateFrom: { type: Date, required: true },
-  dateTo: { type: Date, required: true },
-  departments: [{ type: String, required: true }],
+  parameters: { type: Schema.Types.Mixed, required: true },
   generatedAt: { type: Date, required: true, default: Date.now },
-  generatedBy: { type: Schema.Types.ObjectId, ref: "users", required: true }
+  generatedBy: { type: String, required: true }
 });
 
 export default mongoose.model<IReport>("m3_reports", ReportSchema);

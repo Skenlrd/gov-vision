@@ -10,10 +10,13 @@ import { connectMongo } from "./config/db"
 import { connectRedis } from "./config/redis"
 import "./jobs/anomalyJob"
 import "./jobs/forecastJob"
+import "./jobs/riskScoringJob"
+import "./jobs/reportScheduleJob"
 
 import analyticsRoutes from "./routes/analyticsRoutes"
 import eventRoutes     from "./routes/eventRoutes"
 import aiRoutes        from "./routes/aiRoutes"
+import reportRoutes    from "./routes/reportRoutes"
 
 const app  = express()
 const PORT = process.env.PORT || 5002
@@ -60,6 +63,7 @@ app.use(express.json())
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/events",    eventRoutes)
 app.use("/api/ai",        aiRoutes)
+app.use("/api/reports",   reportRoutes)
 
 /*
   Health check — useful to confirm the server is running

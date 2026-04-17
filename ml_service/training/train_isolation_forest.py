@@ -136,7 +136,7 @@ print_kv(
     f"{train_anomalies} ({train_anomalies / len(X_all) * 100:.1f}%)",
 )
 
-models_dir = Path(__file__).resolve().parents[1] / "models"
+models_dir = Path(__file__).resolve().parents[1] / "models" / "anomaly"
 models_dir.mkdir(parents=True, exist_ok=True)
 joblib.dump(model, models_dir / "isolation_forest.pkl")
 joblib.dump(scaler, models_dir / "isolation_forest_scaler.pkl")

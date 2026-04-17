@@ -38,8 +38,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-dir",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "models",
-        help="Directory containing prophet_*.pkl models",
+        default=Path(__file__).resolve().parents[1] / "models" / "forecast",
+        help="Directory containing forecast prophet_*.pkl models",
     )
     parser.add_argument(
         "--save",

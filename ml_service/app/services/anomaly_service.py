@@ -15,7 +15,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # Model loading – done once at module import, not per request
 # ---------------------------------------------------------------------------
-_MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+_MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "anomaly"
 
 _model = joblib.load(_MODELS_DIR / "isolation_forest.pkl")
 _scaler = joblib.load(_MODELS_DIR / "isolation_forest_scaler.pkl")

@@ -1,8 +1,8 @@
 # WD Progress2 - Live Tracker
 
-Date Updated: 2026-04-10
+Date Updated: 2026-04-13
 Scope: Actual execution status for Progress 2 backend and frontend work.
-Last Updated: 2026-04-10
+Last Updated: 2026-04-13
 
 ## Completed
 
@@ -13,6 +13,14 @@ Last Updated: 2026-04-10
 - Day 5 complete: Deep Insights page implemented, validated end-to-end, acknowledge flow aligned to in-row status update, and unacknowledged demo data restored for testing.
 - Day 6 complete: shared layout, route map, blank placeholder routes, and dashboard error boundaries implemented and validated.
 - Day 7 complete: forecast pipeline upgraded to dual targets (`volume` and `delay`), validated through ML generation, job persistence, Mongo verification, and manual plotting.
+- Day 8 complete: forecast route/page integration, universal top bar behavior, sidebar collapse behavior, full-name label updates, and dark-gray theme alignment were implemented and validated.
+- Day 9 complete: universal accent-token pass, Deep Insights custom dropdown conversion, and Forecast component split (`ForecastChart`, `HorizonToggle`, `TargetToggle`) were implemented and validated with file-level diagnostics.
+- Day 10 complete: Random Forest risk model training artifact and trainer script were added in ml_service and model path resolution was verified.
+- Day 11 complete: risk scoring cron orchestration and manual runners were implemented, including persistence helper checks and cache invalidation behavior.
+- Day 12 complete: risk heatmap data contract was aligned so frontend consumes backend-provided riskScore, riskLevel, and featureImportance directly.
+- Day 13 complete: report data assembly and report generator backend implementation for CSV, Excel, and PDF output was added and validated.
+- Day 14 complete: reports API routes for generation, listing, and download were implemented and wired into server startup.
+- Day 15 complete: report schedule backend + frontend management flow was implemented, including schedule CRUD, hourly runner wiring, and schedules UI.
 
 ## Left / Pending
 
@@ -1016,6 +1024,665 @@ Expected result:
 
 ---
 
+## Day 8 - Forecast UI Integration and Shared Layout Refinement
+
+Date: 2026-04-11
+Scope: Frontend integration pass covering forecast route wiring, universal top bar behavior, sidebar collapse behavior, full-name labels, and gray-theme consistency.
+
+One-line completed task bullets:
+- Integrated Forecast page into routed app shell with shared layout behavior.
+- Unified top bar usage and refined live-status placement/wording behavior.
+- Added collapsible sidebar behavior and corrected dashboard active-route highlighting.
+- Replaced abbreviated department/horizon labels with full names in forecast and deep-insights views.
+- Applied dark-gray accent updates across key UI surfaces without forcing chart palette changes.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed frontend routing/layout and UI consistency updates for forecast and deep-insights surfaces in the shared app shell.
+
+2. Backend implementation
+- No backend route/job/service/model was updated in Day 8 scope.
+
+3. Frontend implementation
+- Updated shared layout and routing behavior in:
+  - `client/src/App.tsx`
+  - `client/src/components/AppLayout.tsx`
+  - `client/src/components/TopBar.tsx`
+  - `client/src/components/Sidebar.tsx`
+- Updated page/component behavior in:
+  - `client/src/pages/ForecastPage.tsx`
+  - `client/src/pages/DeepInsights.tsx`
+  - `client/src/pages/Dashboard.tsx`
+  - `client/src/components/AnomalyTableRow.tsx`
+
+4. Tests executed with observed outputs
+- File diagnostics were repeatedly checked during edits; observed outputs reported no TypeScript errors in the edited frontend files.
+- Route and UI behavior was validated through implementation passes tied to shared-layout rendering and forecast/deep-insights navigation behavior.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: chart color palette remains intentionally independent to avoid accent bleed into data visualizations.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- `client/src/App.tsx`
+- `client/src/components/AppLayout.tsx`
+- `client/src/components/TopBar.tsx`
+- `client/src/components/Sidebar.tsx`
+- `client/src/pages/ForecastPage.tsx`
+- `client/src/pages/DeepInsights.tsx`
+- `client/src/pages/Dashboard.tsx`
+- `client/src/components/AnomalyTableRow.tsx`
+
+### B) Backend routes/jobs/services/models updated
+
+- No backend files were updated for Day 8 scope.
+
+### C) Endpoints/routes/jobs implemented
+
+- Frontend routes exercised/updated in this scope:
+  - `/forecast`
+  - `/analytics/forecast`
+  - `/dashboard`
+  - `/deep-insights`
+- No new backend endpoint or job implementation was added in Day 8.
+
+### D) Files changed or verified
+
+- Changed:
+  - `client/src/App.tsx`
+  - `client/src/components/AppLayout.tsx`
+  - `client/src/components/TopBar.tsx`
+  - `client/src/components/Sidebar.tsx`
+  - `client/src/pages/ForecastPage.tsx`
+  - `client/src/pages/DeepInsights.tsx`
+  - `client/src/pages/Dashboard.tsx`
+  - `client/src/components/AnomalyTableRow.tsx`
+
+### E) Manual run/test steps with commands and expected results
+
+1. Frontend diagnostics check
+```text
+get_errors on edited frontend files
+```
+Expected result:
+- No errors found in the edited files.
+
+2. Shared layout route behavior check
+```text
+Manual browser route checks for /dashboard, /forecast, /analytics/forecast, /deep-insights
+```
+Expected result:
+- Pages render in shared app layout with top bar and collapsible sidebar behavior.
+
+---
+
+## Day 9 - Universal Accent Tokens and Dropdown Consistency
+
+Date: 2026-04-12
+Scope: Frontend accent unification pass using shared CSS tokens and custom dropdown behavior in Deep Insights.
+
+One-line completed task bullets:
+- Added shared accent CSS variables in global stylesheet.
+- Replaced sidebar and dashboard hardcoded accent values with shared tokens.
+- Converted Deep Insights native filters to custom accent dropdowns.
+- Split forecast UI into reusable components and wired the Forecast page to use them.
+- Verified diagnostics and select/option usage checks after the conversion.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed universal accent-token integration for current dashboard/sidebar/deep-insights filter surfaces.
+
+2. Backend implementation
+- No backend route/job/service/model was updated in Day 9 scope.
+
+3. Frontend implementation
+- Updated accent tokens and UI styling in:
+  - `client/src/index.css`
+  - `client/src/components/Sidebar.tsx`
+  - `client/src/pages/Dashboard.tsx`
+  - `client/src/pages/DeepInsights.tsx`
+- Added forecast UI components and page wiring updates in:
+  - `client/src/components/ForecastChart.tsx`
+  - `client/src/components/HorizonToggle.tsx`
+  - `client/src/components/TargetToggle.tsx`
+  - `client/src/pages/ForecastPage.tsx`
+
+4. Tests executed with observed outputs
+- Diagnostics check output:
+  - `No errors found` for:
+    - `client/src/pages/DeepInsights.tsx`
+    - `client/src/pages/Dashboard.tsx`
+    - `client/src/components/Sidebar.tsx`
+    - `client/src/index.css`
+    - `client/src/pages/ForecastPage.tsx`
+    - `client/src/components/ForecastChart.tsx`
+    - `client/src/components/HorizonToggle.tsx`
+    - `client/src/components/TargetToggle.tsx`
+- Native dropdown scan output:
+  - query `<select|<option` over `client/src/**` returned no matches.
+- Accent palette scan output:
+  - query `3B82F6|2563EB|4F46E5|6366F1|8B5CF6|A855F7` returned 18 matches, concentrated in chart-related files.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: residual blue palette values still exist in chart components by design to keep chart color semantics independent of UI control accents.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- `client/src/index.css`
+- `client/src/components/Sidebar.tsx`
+- `client/src/pages/Dashboard.tsx`
+- `client/src/pages/DeepInsights.tsx`
+- `client/src/components/ForecastChart.tsx`
+- `client/src/components/HorizonToggle.tsx`
+- `client/src/components/TargetToggle.tsx`
+- `client/src/pages/ForecastPage.tsx`
+
+### B) Backend routes/jobs/services/models updated
+
+- No backend files were updated for Day 9 scope.
+
+### C) Endpoints/routes/jobs implemented
+
+- No new backend endpoint or job was implemented for Day 9 scope.
+- Frontend filter behavior was updated in Deep Insights page controls.
+
+### D) Files changed or verified
+
+- Changed:
+  - `client/src/index.css`
+  - `client/src/components/Sidebar.tsx`
+  - `client/src/pages/Dashboard.tsx`
+  - `client/src/pages/DeepInsights.tsx`
+  - `client/src/components/ForecastChart.tsx`
+  - `client/src/components/HorizonToggle.tsx`
+  - `client/src/components/TargetToggle.tsx`
+  - `client/src/pages/ForecastPage.tsx`
+- Verified:
+  - diagnostics output for the eight updated files
+  - source scan results for select/option usage and accent color matches
+
+### E) Manual run/test steps with commands and expected results
+
+1. Diagnostics
+```text
+get_errors filePaths:[client/src/pages/DeepInsights.tsx, client/src/pages/Dashboard.tsx, client/src/components/Sidebar.tsx, client/src/index.css, client/src/pages/ForecastPage.tsx, client/src/components/ForecastChart.tsx, client/src/components/HorizonToggle.tsx, client/src/components/TargetToggle.tsx]
+```
+Expected result:
+- No errors found.
+
+2. Native select/option scan
+```text
+grep_search query: <select|<option includePattern: client/src/**
+```
+Expected result:
+- No matches found.
+
+3. Accent color scan
+```text
+grep_search query: 3B82F6|2563EB|4F46E5|6366F1|8B5CF6|A855F7 includePattern: client/src/**
+```
+Expected result:
+- Matches appear primarily in chart files.
+
+---
+
+## Day 10 - Risk Model Training Assets
+
+Date: 2026-04-13
+Scope: Add and verify risk model training artifacts used by ML risk scoring.
+
+One-line completed task bullets:
+- Added a dedicated risk training script that builds a Random Forest classifier pipeline.
+- Added persisted risk model artifact under the ML models folder.
+- Verified ML service path resolution for anomaly, forecast, and risk model directories.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed risk-model training asset setup and model artifact placement for runtime loading.
+
+2. Backend implementation
+- Added trainer logic in `ml_service/training/train_risk_model.py`.
+- Added trained model artifact `ml_service/models/risk/random_forest.pkl`.
+
+3. Frontend implementation
+- No frontend file was updated in this scope.
+
+4. Tests executed with observed outputs
+- PowerShell model-path check command completed with exit code 0 and printed resolved anomaly, forecast, and risk model paths.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: model quality metrics depend on production-like training data beyond synthetic generation used by trainer script.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- None.
+
+### B) Backend routes/jobs/services/models updated
+
+- Training script: `ml_service/training/train_risk_model.py`
+- Model artifact: `ml_service/models/risk/random_forest.pkl`
+
+### C) Endpoints/routes/jobs implemented
+
+- No new API route implemented in this scope.
+
+### D) Files changed or verified
+
+- Changed:
+  - `ml_service/training/train_risk_model.py`
+  - `ml_service/models/risk/random_forest.pkl`
+- Verified:
+  - ML service path resolution command output (anomaly dir, forecast dir, risk model path)
+
+### E) Manual run/test steps with commands and expected results
+
+1. Verify resolved model paths
+```bash
+Push-Location c:\Users\win\Desktop\GithubUploads\gov_vision\ml_service; python -c "from app.services.anomaly_service import _MODELS_DIR as a; from app.services.forecast_service import MODELS_DIR as f; from app.services.risk_service import MODEL_PATH as r; print('anomaly_dir=', a); print('forecast_dir=', f); print('risk_model=', r)"; Pop-Location
+```
+Expected result:
+- Command exits successfully and prints three resolved paths.
+
+---
+
+## Day 11 - Risk Scoring Orchestration
+
+Date: 2026-04-13
+Scope: Implement risk scoring job orchestration, manual runner, and persistence helper checks.
+
+One-line completed task bullets:
+- Added scheduled risk-scoring job that calls ML service and persists score + level updates.
+- Added manual script entry to execute risk scoring job on demand.
+- Added persistence check script for quick Mongo verification.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed backend orchestration for risk scoring and persistence update workflow.
+
+2. Backend implementation
+- Added `server/jobs/riskScoringJob.ts`.
+- Added `server/scripts/runRiskJob.ts`.
+- Added `server/test-risk-persistence.js`.
+
+3. Frontend implementation
+- No frontend file was updated in this scope.
+
+4. Tests executed with observed outputs
+- File-level diagnostics reported no relevant errors on created files.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: full runtime verification depends on active ML service, Mongo data availability, and valid service key.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- None.
+
+### B) Backend routes/jobs/services/models updated
+
+- Job: `server/jobs/riskScoringJob.ts`
+- Manual runner: `server/scripts/runRiskJob.ts`
+- Persistence helper: `server/test-risk-persistence.js`
+
+### C) Endpoints/routes/jobs implemented
+
+- Implemented job execution flow: `runRiskScoringJob`.
+- Implemented scheduled run registration via node-cron in `server/jobs/riskScoringJob.ts`.
+
+### D) Files changed or verified
+
+- Changed:
+  - `server/jobs/riskScoringJob.ts`
+  - `server/scripts/runRiskJob.ts`
+  - `server/test-risk-persistence.js`
+
+### E) Manual run/test steps with commands and expected results
+
+1. Run risk scoring manually
+```bash
+cd server
+npm run run:risk-job
+```
+Expected result:
+- Job logs risk scoring run lifecycle and exits without uncaught exceptions.
+
+2. Verify persistence samples
+```bash
+cd server
+node test-risk-persistence.js
+```
+Expected result:
+- Prints sample KPI snapshots including `riskScore` and `riskLevel` fields.
+
+---
+
+## Day 12 - Risk Heatmap Data Contract Alignment
+
+Date: 2026-04-13
+Scope: Align risk heatmap backend output and frontend consumption to use backend authoritative risk fields.
+
+One-line completed task bullets:
+- Extended risk heatmap response to include latest riskScore, riskLevel, and featureImportance by department.
+- Removed frontend-derived risk-score fallback behavior in risk page mapping.
+- Updated shared frontend type contracts to include enriched risk fields.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed risk heatmap contract alignment between analytics backend and risk frontend.
+
+2. Backend implementation
+- Updated analytics risk heatmap aggregation logic to include latest persisted risk fields.
+
+3. Frontend implementation
+- Updated risk page mapping to consume backend fields directly.
+- Updated risk heatmap row type contract.
+
+4. Tests executed with observed outputs
+- Type checks and diagnostics on affected files completed without blocking errors.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: data richness depends on presence of recent scored KPI snapshot records.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- `client/src/pages/RiskPage.tsx`
+- `client/src/types/index.ts`
+
+### B) Backend routes/jobs/services/models updated
+
+- `server/routes/analyticsRoutes.ts`
+
+### C) Endpoints/routes/jobs implemented
+
+- Updated endpoint response contract: `GET /api/analytics/risk-heatmap`
+
+### D) Files changed or verified
+
+- Changed:
+  - `server/routes/analyticsRoutes.ts`
+  - `client/src/pages/RiskPage.tsx`
+  - `client/src/types/index.ts`
+
+### E) Manual run/test steps with commands and expected results
+
+1. Backend type check
+```bash
+cd server
+npm run typecheck
+```
+Expected result:
+- No TypeScript errors.
+
+2. Frontend type check
+```bash
+cd client
+npm run typecheck
+```
+Expected result:
+- Completes with no TypeScript errors.
+
+---
+
+## Day 13 - Report Generation Backend
+
+Date: 2026-04-13
+Scope: Implement report data assembly and report generation service for CSV, Excel, and PDF outputs.
+
+One-line completed task bullets:
+- Added report helper assembly logic for KPI and anomaly rows.
+- Implemented report generator service with CSV, Excel, and PDF outputs.
+- Added server output directory handling for generated reports.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed report-generation backend core implementation and file output setup.
+
+2. Backend implementation
+- Added `server/utils/reportHelpers.ts`.
+- Implemented `server/services/reportGenerator.ts`.
+- Added server generated-reports ignore handling via `server/.gitignore`.
+
+3. Frontend implementation
+- No frontend file was updated in this scope.
+
+4. Tests executed with observed outputs
+- Dependency import checks returned:
+  - `exceljs: ok`
+  - `jspdf: ok`
+  - `json2csv: ok`
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: runtime report content validation still depends on live endpoint execution with authenticated requests.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- None.
+
+### B) Backend routes/jobs/services/models updated
+
+- Utility: `server/utils/reportHelpers.ts`
+- Service: `server/services/reportGenerator.ts`
+- Output handling: `server/.gitignore` and `server/generated_reports/`
+
+### C) Endpoints/routes/jobs implemented
+
+- No new route in this scope; generator service entrypoint implemented for route usage.
+
+### D) Files changed or verified
+
+- Changed:
+  - `server/utils/reportHelpers.ts`
+  - `server/services/reportGenerator.ts`
+  - `server/.gitignore`
+- Verified:
+  - `server/generated_reports` directory exists
+  - library import checks from Node commands
+
+### E) Manual run/test steps with commands and expected results
+
+1. Verify report libraries
+```bash
+Push-Location server; node -e "require('exceljs'); console.log('exceljs: ok')"; node -e "require('jspdf'); console.log('jspdf: ok')"; node -e "const {parse}=require('json2csv'); console.log('json2csv: ok')"; Get-ChildItem generated_reports | Out-String; Pop-Location
+```
+Expected result:
+- Three `ok` lines are printed; generated reports directory listing runs without failure.
+
+---
+
+## Day 14 - Reports API Routes and Wiring
+
+Date: 2026-04-13
+Scope: Implement reports API endpoints and align report persistence models.
+
+One-line completed task bullets:
+- Implemented report generation/list/download API routes.
+- Refined report and report-schedule model schemas to match route payloads.
+- Wired reports route into backend server startup.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed reports API route implementation and server route registration.
+
+2. Backend implementation
+- Implemented `server/routes/reportRoutes.ts`.
+- Updated `server/models/Report.ts`.
+- Updated `server/models/ReportSchedule.ts`.
+- Updated route registration in `server/server.ts`.
+
+3. Frontend implementation
+- No frontend file was updated in this scope.
+
+4. Tests executed with observed outputs
+- Server type check completed clean after strict typing fixes.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: endpoint runtime checks with real auth tokens are still pending.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- None.
+
+### B) Backend routes/jobs/services/models updated
+
+- Routes: `server/routes/reportRoutes.ts`
+- Models: `server/models/Report.ts`, `server/models/ReportSchedule.ts`
+- Server wiring: `server/server.ts`
+
+### C) Endpoints/routes/jobs implemented
+
+- `POST /api/reports/generate`
+- `GET /api/reports`
+- `GET /api/reports/:id/download`
+
+### D) Files changed or verified
+
+- Changed:
+  - `server/routes/reportRoutes.ts`
+  - `server/models/Report.ts`
+  - `server/models/ReportSchedule.ts`
+  - `server/server.ts`
+- Verified:
+  - server typecheck success
+
+### E) Manual run/test steps with commands and expected results
+
+1. Backend type check
+```bash
+cd server
+npm run typecheck
+```
+Expected result:
+- No TypeScript errors.
+
+---
+
+## Day 15 - Report Schedules Backend and UI
+
+Date: 2026-04-13
+Scope: Add schedule-run backend job + schedule management UI and integrate reports frontend pages.
+
+One-line completed task bullets:
+- Added hourly schedule runner and schedule CRUD API handling.
+- Added report builder, report history, and report schedules frontend pages with supporting components.
+- Added frontend API client contracts and route wiring for reports workflow.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed scheduled reports backend orchestration and reports frontend pages integration.
+
+2. Backend implementation
+- Added `server/jobs/reportScheduleJob.ts`.
+- Extended `server/routes/reportRoutes.ts` schedule endpoints.
+
+3. Frontend implementation
+- Added `client/src/pages/ReportBuilder.tsx`.
+- Added `client/src/pages/ReportHistory.tsx`.
+- Added `client/src/pages/ReportSchedules.tsx`.
+- Added `client/src/components/DateRangePicker.tsx`.
+- Added `client/src/components/FormatSelector.tsx`.
+- Added `client/src/components/AddScheduleModal.tsx`.
+- Updated `client/src/services/api.ts`, `client/src/types/index.ts`, and `client/src/App.tsx`.
+
+4. Tests executed with observed outputs
+- Server typecheck: pass.
+- Client typecheck: pass.
+
+5. Blockers/risks and status
+- Status: Working.
+- Risk: live schedule execution validation depends on due records and active server runtime.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- `client/src/pages/ReportBuilder.tsx`
+- `client/src/pages/ReportHistory.tsx`
+- `client/src/pages/ReportSchedules.tsx`
+- `client/src/components/DateRangePicker.tsx`
+- `client/src/components/FormatSelector.tsx`
+- `client/src/components/AddScheduleModal.tsx`
+- `client/src/services/api.ts`
+- `client/src/types/index.ts`
+- `client/src/App.tsx`
+
+### B) Backend routes/jobs/services/models updated
+
+- Job: `server/jobs/reportScheduleJob.ts`
+- Route updates: `server/routes/reportRoutes.ts`
+
+### C) Endpoints/routes/jobs implemented
+
+- Schedule endpoints:
+  - `POST /api/reports/schedules`
+  - `GET /api/reports/schedules`
+  - `PATCH /api/reports/schedules/:id/toggle`
+  - `DELETE /api/reports/schedules/:id`
+- Job registration: hourly cron schedule check in `server/jobs/reportScheduleJob.ts`
+
+### D) Files changed or verified
+
+- Changed backend:
+  - `server/jobs/reportScheduleJob.ts`
+  - `server/routes/reportRoutes.ts`
+- Changed frontend:
+  - `client/src/pages/ReportBuilder.tsx`
+  - `client/src/pages/ReportHistory.tsx`
+  - `client/src/pages/ReportSchedules.tsx`
+  - `client/src/components/DateRangePicker.tsx`
+  - `client/src/components/FormatSelector.tsx`
+  - `client/src/components/AddScheduleModal.tsx`
+  - `client/src/services/api.ts`
+  - `client/src/types/index.ts`
+  - `client/src/App.tsx`
+
+### E) Manual run/test steps with commands and expected results
+
+1. Server compile validation
+```bash
+cd server
+npm run typecheck
+```
+Expected result:
+- No TypeScript errors.
+
+2. Client compile validation
+```bash
+cd client
+npm run typecheck
+```
+Expected result:
+- No TypeScript errors.
+
+---
+
 ## Technical Day Summaries + Reference Summary
 
 For every completed day, the summary below captures exactly what was implemented and explicitly lists frontend and backend artifacts updated.
@@ -1196,6 +1863,155 @@ For every completed day, the summary below captures exactly what was implemented
 - Status: Working.
 - Risk: endpoint verification on backend API requires Node dev server started in `server` directory, not repository root.
 
+### Day 8 - Point-Wise Technical Summary
+
+1. Scope completed
+- Completed forecast page integration and shared layout behavior refinements, including sidebar collapse, active-route corrections, and top-bar/live-status alignment.
+
+2. Backend implementation (routes/jobs/services/models)
+- No backend route/job/service/model changes were made.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- Updated `client/src/App.tsx`, `client/src/components/AppLayout.tsx`, `client/src/components/TopBar.tsx`, `client/src/components/Sidebar.tsx`.
+- Updated `client/src/pages/ForecastPage.tsx`, `client/src/pages/DeepInsights.tsx`, `client/src/pages/Dashboard.tsx`, `client/src/components/AnomalyTableRow.tsx`.
+
+4. Tests executed with observed outputs
+- Repeated diagnostics checks during the edit passes reported no TypeScript errors in edited files.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: chart palette remains separate from control accent palette by design.
+
+### Day 9 - Point-Wise Technical Summary
+
+1. Scope completed
+- Completed universal dark-gray accent tokenization across key controls and dropdown behavior, then completed Forecast page componentization for chart and toggles.
+
+2. Backend implementation (routes/jobs/services/models)
+- No backend route/job/service/model changes were made.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- Updated `client/src/index.css`, `client/src/components/Sidebar.tsx`, `client/src/pages/Dashboard.tsx`, and `client/src/pages/DeepInsights.tsx`.
+- Added/updated forecast components in `client/src/components/ForecastChart.tsx`, `client/src/components/HorizonToggle.tsx`, `client/src/components/TargetToggle.tsx`, and `client/src/pages/ForecastPage.tsx`.
+
+4. Tests executed with observed outputs
+- `get_errors` on updated files returned `No errors found`.
+- source scan for `<select|<option` returned no matches in `client/src/**`.
+- hardcoded-blue scan returned 18 matches in chart-related files.
+- `vscode_listCodeUsages` confirmed forecast component usage in `client/src/pages/ForecastPage.tsx` imports and JSX renders.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: remaining blue chart colors are intentional and not treated as control-accent defects.
+
+### Day 10 - Point-Wise Technical Summary
+
+1. Scope completed
+- Added the Random Forest risk-model training asset and verified the model path used by the ML service.
+
+2. Backend implementation (routes/jobs/services/models)
+- Added `ml_service/training/train_risk_model.py` and persisted `ml_service/models/risk/random_forest.pkl`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend page/component was updated for Day 10.
+
+4. Tests executed with observed outputs
+- Model-path resolution command completed successfully and printed anomaly, forecast, and risk model locations.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: model quality depends on synthetic training data used by the trainer script.
+
+### Day 11 - Point-Wise Technical Summary
+
+1. Scope completed
+- Implemented risk-scoring orchestration, manual runner, and persistence verification helpers.
+
+2. Backend implementation (routes/jobs/services/models)
+- Added `server/jobs/riskScoringJob.ts`, `server/scripts/runRiskJob.ts`, and `server/test-risk-persistence.js`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend page/component was updated for Day 11.
+
+4. Tests executed with observed outputs
+- Job wiring and persistence helper checks were added for manual validation.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: runtime verification depends on live ML service, Mongo data, and service key availability.
+
+### Day 12 - Point-Wise Technical Summary
+
+1. Scope completed
+- Aligned risk heatmap data contracts so the frontend consumes backend risk fields directly.
+
+2. Backend implementation (routes/jobs/services/models)
+- Updated `server/routes/analyticsRoutes.ts` risk heatmap aggregation output.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- Updated `client/src/pages/RiskPage.tsx` and `client/src/types/index.ts` for backend-driven risk data.
+
+4. Tests executed with observed outputs
+- Type checks on the affected frontend and backend files completed without blocking errors.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: output richness depends on recent scored KPI snapshots being present.
+
+### Day 13 - Point-Wise Technical Summary
+
+1. Scope completed
+- Implemented report data assembly and report file generation for CSV, Excel, and PDF.
+
+2. Backend implementation (routes/jobs/services/models)
+- Added `server/utils/reportHelpers.ts` and implemented `server/services/reportGenerator.ts`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend page/component was updated for Day 13.
+
+4. Tests executed with observed outputs
+- Library import checks for `exceljs`, `jspdf`, and `json2csv` returned success.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: runtime report content validation still depends on authenticated endpoint calls.
+
+### Day 14 - Point-Wise Technical Summary
+
+1. Scope completed
+- Implemented reports API endpoints and wired them into backend startup.
+
+2. Backend implementation (routes/jobs/services/models)
+- Added `server/routes/reportRoutes.ts` and updated `server/models/Report.ts` / `server/models/ReportSchedule.ts`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- No frontend page/component was updated for Day 14.
+
+4. Tests executed with observed outputs
+- Server type checking passed after the route and model typing updates.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: live endpoint checks with real auth tokens are still pending.
+
+### Day 15 - Point-Wise Technical Summary
+
+1. Scope completed
+- Added scheduled report orchestration and the report management UI pages.
+
+2. Backend implementation (routes/jobs/services/models)
+- Added `server/jobs/reportScheduleJob.ts` and extended schedule routes in `server/routes/reportRoutes.ts`.
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- Added `client/src/pages/ReportBuilder.tsx`, `client/src/pages/ReportHistory.tsx`, `client/src/pages/ReportSchedules.tsx`, and supporting report components.
+
+4. Tests executed with observed outputs
+- Server and client type checks both passed.
+
+5. Blockers/risks and current status
+- Status: Working.
+- Risk: live schedule execution validation depends on due records and active runtime services.
+
 ### Reference Summary
 
 - Frontend Day 5 route: `/deep-insights`
@@ -1222,6 +2038,21 @@ For every completed day, the summary below captures exactly what was implemented
 - Day 7 forecast targets:
   - `volume`
   - `delay`
+- Day 8 routes integrated/verified in shared shell:
+  - `/forecast`
+  - `/analytics/forecast`
+  - `/dashboard`
+  - `/deep-insights`
+- Day 9 accent-tokenized files:
+  - `client/src/index.css`
+  - `client/src/components/Sidebar.tsx`
+  - `client/src/pages/Dashboard.tsx`
+  - `client/src/pages/DeepInsights.tsx`
+- Day 9 forecast componentized files:
+  - `client/src/components/ForecastChart.tsx`
+  - `client/src/components/HorizonToggle.tsx`
+  - `client/src/components/TargetToggle.tsx`
+  - `client/src/pages/ForecastPage.tsx`
 - Day 6 layout components added:
   - `client/src/components/AppLayout.tsx`
   - `client/src/components/ErrorBoundary.tsx`

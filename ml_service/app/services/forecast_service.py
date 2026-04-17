@@ -14,7 +14,7 @@ from typing import Dict, List
 import joblib
 from prophet import Prophet
 
-MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "forecast"
 TARGET_MODEL_PREFIX = {
 	"volume": "prophet",
 	"delay": "prophet_delay",
