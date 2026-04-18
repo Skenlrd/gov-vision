@@ -76,7 +76,7 @@ export default function ReportHistory() {
             onClick={() => setFormatFilter(f)}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
               formatFilter === f
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-gray-800 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -147,7 +147,7 @@ export default function ReportHistory() {
                     <button
                       onClick={() => handleDownload(report)}
                       disabled={downloading === report._id}
-                      className="text-indigo-600 hover:text-indigo-800 text-xs font-medium disabled:text-indigo-300"
+                      className="text-gray-700 hover:text-gray-900 text-xs font-medium disabled:text-gray-400"
                     >
                       {downloading === report._id ? 'Downloading...' : '↓ Download'}
                     </button>

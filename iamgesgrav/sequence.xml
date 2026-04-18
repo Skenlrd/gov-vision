@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mxfile host="draw.io" modified="2026-04-19T00:00:00.000Z" agent="GovVision" etag="seq_v2" version="24.0" type="device">
   <diagram name="Sequence Diagram" id="seq_v2_001">
-    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <!-- ===== TITLE ===== -->
-        <mxCell id="title" value="Sequence Diagram — Dashboard Polling, AI/ML Pipeline and Report Generation" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#000000;align=center;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="title" value="Sequence Diagram — Webhook-Driven Data Flow, AI/ML Pipeline and Report Generation" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#000000;align=center;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="100" y="15" width="1450" height="35" as="geometry" />
         </mxCell>
 
@@ -59,23 +59,23 @@
 
         <!-- ===== FRAGMENT BOXES ===== -->
         <!-- Loop: Dashboard Poll -->
-        <mxCell id="frag1" value="loop  [every 30 seconds — Dashboard Poll]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="frag1" value="User Request — Dashboard Data Flow" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1;dashed=1;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="115" y="130" width="810" height="200" as="geometry" />
         </mxCell>
         <!-- Alt: Cache -->
-        <mxCell id="frag2" value="alt  [Cache Miss — aggregate from database]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="frag2" value="alt  [Cache Miss — aggregate from database]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1;dashed=1;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="595" y="230" width="580" height="90" as="geometry" />
         </mxCell>
         <!-- Alt: Anomaly Cron -->
-        <mxCell id="frag3" value="alt  [Daily Cron 00:00 — Anomaly Detection]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="frag3" value="alt  [Daily Cron 00:00 — Anomaly Detection]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1;dashed=1;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="595" y="400" width="1000" height="170" as="geometry" />
         </mxCell>
         <!-- Alt: Risk Scoring -->
-        <mxCell id="frag4" value="alt  [Daily Cron 01:30 — Risk Scoring]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="frag4" value="alt  [Daily Cron 01:30 — Risk Scoring]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1;dashed=1;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="595" y="640" width="1030" height="160" as="geometry" />
         </mxCell>
         <!-- Report Generation -->
-        <mxCell id="frag5" value="Report Generation — On-demand by User" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="frag5" value="opt  [Report Generation — On-demand by User]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1;dashed=1;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="115" y="870" width="1260" height="200" as="geometry" />
         </mxCell>
 

@@ -44,7 +44,7 @@ export default function AddScheduleModal({ open, onClose, onCreated }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Weekly Finance Summary"
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
           />
         </div>
 
@@ -109,7 +109,7 @@ export default function AddScheduleModal({ open, onClose, onCreated }: Props) {
           <button
             onClick={handleCreate}
             disabled={loading || !name.trim()}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white py-2 rounded-lg text-sm font-semibold transition-colors"
+            className="flex-1 bg-gray-800 hover:bg-gray-900 disabled:bg-gray-400 text-white py-2 rounded-lg text-sm font-semibold transition-colors"
           >
             {loading ? "Creating..." : "Create Schedule"}
           </button>

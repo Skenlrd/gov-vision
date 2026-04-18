@@ -1,8 +1,8 @@
 interface DateRangePickerProps {
-  dateFrom: string
-  dateTo: string
-  onFromChange: (date: string) => void
-  onToChange: (date: string) => void
+  dateFrom: string;
+  dateTo: string;
+  onFromChange: (date: string) => void;
+  onToChange: (date: string) => void;
 }
 
 export default function DateRangePicker({
@@ -19,7 +19,7 @@ export default function DateRangePicker({
           type="date"
           value={dateFrom}
           onChange={(e) => onFromChange(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
         />
       </div>
       <span className="text-gray-400 mt-4">-&gt;</span>
@@ -29,9 +29,9 @@ export default function DateRangePicker({
           type="date"
           value={dateTo}
           onChange={(e) => onToChange(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
         />
       </div>
     </div>
-  )
+  );
 }

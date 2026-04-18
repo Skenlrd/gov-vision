@@ -66,7 +66,7 @@ export default function RiskTable({ data, onRowClick }: Props) {
                 <RiskLevelBadge level={entry.riskLevel} />
               </td>
               <td className="px-4 py-3">
-                <button className="text-indigo-600 hover:text-indigo-800 text-xs font-medium">
+                <button className="text-gray-700 hover:text-gray-900 text-xs font-medium">
                   View breakdown -&gt;
                 </button>
               </td>

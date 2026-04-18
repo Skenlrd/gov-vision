@@ -329,12 +329,12 @@ export default function ForecastPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: "16px", marginBottom: "18px" }}>
           <div style={{ gridColumn: "span 12", background: "white", border: "1px solid #E2E6ED", borderRadius: "18px", padding: "18px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "end", justifyContent: "space-between" }}>
-              <div style={{ minWidth: "280px", flex: "1 1 auto" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "36px", alignItems: "flex-start" }}>
+              <div>
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "11px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Departments
                 </label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, max-content)", gap: "8px" }}>
                   {DEPARTMENT_PRESETS.map(preset => (
                     <ButtonPill key={preset.value} active={deptId === preset.value} onClick={() => setDeptId(preset.value)}>
                       {preset.label}
@@ -360,7 +360,7 @@ export default function ForecastPage() {
                 <label style={{ display: "block", marginBottom: "6px", fontSize: "11px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Target
                 </label>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, max-content)", gap: "8px" }}>
                   {TARGETS.map(option => (
                     <ButtonPill key={option.value} active={target === option.value} onClick={() => setTarget(option.value)}>
                       {option.label}
@@ -369,7 +369,7 @@ export default function ForecastPage() {
                 </div>
               </div>
 
-              <div style={{ minWidth: "240px", textAlign: "right" }}>
+              <div style={{ marginLeft: "auto", textAlign: "right", alignSelf: "flex-end" }}>
                 <p style={{ margin: 0, fontSize: "12px", color: "#64748B" }}>
                   Active department: <strong style={{ color: "#1E293B" }}>{activeDeptLabel}</strong>
                 </p>

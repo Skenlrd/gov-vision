@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import Dashboard from "./pages/Dashboard"
-import DeepInsights from "./pages/DeepInsights"
 import ForecastPage from "./pages/ForecastPage"
 import RiskPage from "./pages/RiskPage"
 import ReportBuilder from "./pages/ReportBuilder"
@@ -16,7 +15,6 @@ export default function App() {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/deep-insights" element={<DeepInsights />} />
         <Route path="/anomaly" element={<AnomalyDetectionPage />} />
         <Route path="/forecast" element={<ForecastPage />} />
         <Route path="/analytics/forecast" element={<ForecastPage />} />

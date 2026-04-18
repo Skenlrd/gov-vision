@@ -87,7 +87,7 @@ Time flows **top to bottom**. Each vertical dashed line (called a **Lifeline**) 
 | 6 | **ML Service (Python)** | Python FastAPI service running the AI models |
 | 7 | **Compliance Engine** | The separate compliance module that owns risk data |
 
-### Interaction Block 1 — Dashboard Poll `loop [every 30 seconds]`
+### Interaction Block 1 — Dashboard Data Request
 
 | Message | Direction | Meaning |
 |---|---|---|
@@ -138,7 +138,7 @@ The Class Diagram answers: **"What are the main building blocks of the system, w
 
 It is organised into **three rows** from top to bottom:
 
-### Row 1 — Data Models (Mongoose Schemas)
+### Row 1 — Mongoose Schemas (Database Collections)
 These define the structure of every record stored in the database.
 
 | Class | Database Collection | Purpose |

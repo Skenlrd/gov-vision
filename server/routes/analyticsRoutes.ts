@@ -125,7 +125,7 @@ router.get(
           },
           { $sort: { _id: 1 } },
           { $project: { _id: 0, date: '$_id', count: 1 } },
-        ]);
+        ]).exec();
       });
 
       return res.json(data);
@@ -217,7 +217,7 @@ router.get(
             },
           },
           { $project: { department: '$_id', data: 1, _id: 0 } },
-        ]);
+        ]).exec();
       });
 
       return res.json(data);
@@ -275,7 +275,7 @@ router.get(
               featureImportance: { $ifNull: ['$featureImportance', null] },
             },
           },
-        ]);
+        ]).exec();
       });
 
       return res.json(data);

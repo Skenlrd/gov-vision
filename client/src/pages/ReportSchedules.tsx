@@ -44,7 +44,7 @@ export default function ReportSchedules() {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
           + Add Schedule
         </button>
@@ -99,7 +99,7 @@ export default function ReportSchedules() {
                     <button
                       onClick={() => handleToggle(s._id)}
                       className={`w-10 h-6 rounded-full transition-colors relative ${
-                        s.isActive ? 'bg-indigo-600' : 'bg-gray-200'
+                        s.isActive ? 'bg-gray-800' : 'bg-gray-200'
                       }`}
                     >
                       <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow ${

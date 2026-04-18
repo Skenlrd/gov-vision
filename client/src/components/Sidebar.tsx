@@ -30,16 +30,6 @@ const reportsItem = {
 
 const aiFeatureItems = [
   {
-    label: "Deep Insights",
-    path: "/deep-insights",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-      </svg>
-    )
-  },
-  {
     label: "Anomaly Detection",
     path: "/anomaly",
     icon: (
@@ -65,9 +55,7 @@ const aiFeatureItems = [
     path: "/risk",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     )
   }
@@ -149,7 +137,8 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         padding: collapsed ? "18px 12px" : "24px 20px 20px",
         borderBottom: "1px solid rgba(255,255,255,0.07)",
         position: "relative",
-        zIndex: 1
+        zIndex: 1,
+        minHeight: "73px"
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between" }}>
           <div style={{ color: "white", fontWeight: 700, fontSize: collapsed ? "16px" : "21px", letterSpacing: "-0.3px", fontFamily: "'Outfit', sans-serif" }}>
@@ -161,17 +150,20 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               title="Collapse sidebar"
               onClick={onToggleCollapse}
               style={{
-                width: "26px",
-                height: "26px",
-                borderRadius: "7px",
+                width: "34px",
+                height: "28px",
+                borderRadius: "8px",
                 border: "1px solid rgba(255,255,255,0.16)",
                 background: "rgba(255,255,255,0.06)",
                 color: "rgba(255,255,255,0.9)",
-                cursor: "pointer"
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="14" height="14">
-                <path d="M15 18l-6-6 6-6" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
               </svg>
             </button>
           )}
@@ -184,36 +176,43 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               onClick={onToggleCollapse}
               style={{
                 marginTop: "10px",
-                width: "100%",
-                height: "26px",
-                borderRadius: "7px",
+                width: "44px",
+                height: "28px",
+                borderRadius: "8px",
                 border: "1px solid rgba(255,255,255,0.16)",
                 background: "rgba(255,255,255,0.06)",
                 color: "rgba(255,255,255,0.9)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                margin: "10px auto 0"
               }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width="14" height="14">
-                <path d="M9 18l6-6-6-6" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
               </svg>
             </button>
             {activeNavLabel && (
               <div
                 style={{
                   marginTop: "8px",
-                  fontSize: "10px",
+                  fontSize: "7.5px",
                   color: "rgba(255,255,255,0.75)",
                   textAlign: "center",
-                  fontWeight: 600,
+                  fontWeight: 800,
                   letterSpacing: "0.02em",
-                  lineHeight: 1.2,
-                  wordBreak: "break-word"
+                  lineHeight: 1.1,
+                  whiteSpace: "nowrap",
+                  width: "100%",
+                  padding: "0"
                 }}
               >
-                {activeNavLabel}
+                {activeNavLabel === "Risk Assessment" 
+                  ? "RISK" 
+                  : activeNavLabel === "Anomaly Detection"
+                  ? "ANOMALY"
+                  : activeNavLabel.toUpperCase()}
               </div>
             )}
           </>
@@ -249,15 +248,71 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             })}
           >
             {dashboardItem.icon}
-            {!collapsed && dashboardItem.label}
+            {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dashboardItem.label}</span>}
           </NavLink>
 
-          {aiFeatureItems.map(item => (
+          <div style={{ marginTop: "12px", marginBottom: "4px" }}>
+            {!collapsed && (
+              <div style={{
+                padding: "8px 12px 10px",
+                color: "rgba(255,255,255,0.6)",
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontFamily: "'Outfit', sans-serif",
+                borderBottom: "1px solid rgba(255,255,255,0.07)",
+                marginBottom: "6px"
+              }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Deep Insights</span>
+              </div>
+            )}
+            {collapsed && (
+              <div style={{
+                width: "30px",
+                height: "1px",
+                background: "rgba(255,255,255,0.07)",
+                margin: "12px auto"
+              }} />
+            )}
+            
+            {aiFeatureItems.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === "/"}
+                title={item.label}
+                style={({ isActive }) => ({
+                  display: "flex",
+                  alignItems: "center",
+                  gap: collapsed ? "0" : "10px",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  marginBottom: "2px",
+                  textDecoration: "none",
+                  color: isActive ? "white" : "rgba(255,255,255,0.5)",
+                  background: isActive
+                    ? "var(--accent-grad-soft)"
+                    : "transparent",
+                  borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
+                  transition: "all 0.18s ease",
+                  fontSize: "12.8px",
+                  fontWeight: isActive ? 600 : 400,
+                  fontFamily: "'Outfit', sans-serif"
+                })}
+              >
+                {item.icon}
+                {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>}
+              </NavLink>
+            ))}
+          </div>
+
+          <div style={{ marginTop: "12px" }}>
             <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/"}
-              title={item.label}
+              key={reportsItem.path}
+              to={reportsItem.path}
+              title={reportsItem.label}
               style={({ isActive }) => ({
                 display: "flex",
                 alignItems: "center",
@@ -273,43 +328,15 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   : "transparent",
                 borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
                 transition: "all 0.18s ease",
-                fontSize: "12.8px",
+                fontSize: "13px",
                 fontWeight: isActive ? 600 : 400,
                 fontFamily: "'Outfit', sans-serif"
               })}
             >
-              {item.icon}
-              {!collapsed && <span>{item.label}</span>}
+              {reportsItem.icon}
+              {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{reportsItem.label}</span>}
             </NavLink>
-          ))}
-
-          <NavLink
-            key={reportsItem.path}
-            to={reportsItem.path}
-            title={reportsItem.label}
-            style={({ isActive }) => ({
-              display: "flex",
-              alignItems: "center",
-              gap: collapsed ? "0" : "10px",
-              justifyContent: collapsed ? "center" : "flex-start",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              marginBottom: "2px",
-              textDecoration: "none",
-              color: isActive ? "white" : "rgba(255,255,255,0.5)",
-              background: isActive
-                ? "var(--accent-grad-soft)"
-                : "transparent",
-              borderLeft: isActive ? "3px solid var(--accent-edge)" : "3px solid transparent",
-              transition: "all 0.18s ease",
-              fontSize: "13px",
-              fontWeight: isActive ? 600 : 400,
-              fontFamily: "'Outfit', sans-serif"
-            })}
-          >
-            {reportsItem.icon}
-            {!collapsed && reportsItem.label}
-          </NavLink>
+          </div>
         </div>
       </nav>
 
@@ -350,7 +377,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           WebkitTapHighlightColor: "transparent",
           transition: "all 0.2s ease"
         }}>
-          <span style={{ fontSize: "15px" }}>+</span>{!collapsed && " New Report"}
+          <span style={{ fontSize: "15px" }}>+</span>{!collapsed && <span style={{ whiteSpace: "nowrap" }}> New Report</span>}
         </button>
       </div>
 
@@ -382,7 +409,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             }}
           >
             {item.icon}
-            {!collapsed && item.label}
+            {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>}
           </NavLink>
         ))}
       </div>
