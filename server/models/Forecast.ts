@@ -11,7 +11,7 @@ export interface IForecast extends Document {
   department: string;
   generatedAt: Date;
   horizon: 7 | 14 | 30;
-  target: "volume" | "delay";
+  target: "volume" | "delay" | "approval_rate" | "rejection_rate" | "pending_workload" | "sla_misses";
   forecastData: IForecastPoint[];
 }
 
@@ -19,7 +19,12 @@ const ForecastSchema: Schema = new Schema({
   department: { type: String, required: true },
   generatedAt: { type: Date, required: true, default: Date.now },
   horizon: { type: Number, enum: [7, 14, 30], required: true },
-  target: { type: String, enum: ["volume", "delay"], required: true, default: "volume" },
+  target: {
+    type: String,
+    enum: ["volume", "delay", "approval_rate", "rejection_rate", "pending_workload", "sla_misses"],
+    required: true,
+    default: "volume"
+  },
   forecastData: [
     {
       ds: { type: Date, required: true },

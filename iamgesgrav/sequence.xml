@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="draw.io" modified="2026-04-19T00:00:00.000Z" agent="GovVision" etag="seq_v2" version="24.0" type="device">
+  <diagram name="Sequence Diagram" id="seq_v2_001">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== TITLE ===== -->
+        <mxCell id="title" value="Sequence Diagram — Dashboard Polling, AI/ML Pipeline and Report Generation" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#000000;align=center;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="15" width="1450" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ===== LIFELINE HEADER BOXES ===== -->
+        <mxCell id="ll1_box" value="User" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll2_box" value="React Frontend" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="320" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll3_box" value="API Server" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="560" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll4_box" value="Cache (Redis)" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#E8E4E0;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="800" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll5_box" value="Database&#xa;(MongoDB)" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll6_box" value="ML Service&#xa;(Python)" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ll7_box" value="Compliance&#xa;Engine" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#E8E4E0;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="60" width="140" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- ===== LIFELINE DASHED LINES ===== -->
+        <mxCell id="ll1_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="150" y="105" as="sourcePoint" /><mxPoint x="150" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll2_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="390" y="105" as="sourcePoint" /><mxPoint x="390" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll3_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="105" as="sourcePoint" /><mxPoint x="630" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll4_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="870" y="105" as="sourcePoint" /><mxPoint x="870" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll5_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1110" y="105" as="sourcePoint" /><mxPoint x="1110" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll6_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1350" y="105" as="sourcePoint" /><mxPoint x="1350" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="ll7_line" style="html=1;strokeColor=#000000;strokeWidth=1;dashed=1;dashPattern=8 5;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1580" y="105" as="sourcePoint" /><mxPoint x="1580" y="1140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- ===== FRAGMENT BOXES ===== -->
+        <!-- Loop: Dashboard Poll -->
+        <mxCell id="frag1" value="loop  [every 30 seconds — Dashboard Poll]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="115" y="130" width="810" height="200" as="geometry" />
+        </mxCell>
+        <!-- Alt: Cache -->
+        <mxCell id="frag2" value="alt  [Cache Miss — aggregate from database]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="595" y="230" width="580" height="90" as="geometry" />
+        </mxCell>
+        <!-- Alt: Anomaly Cron -->
+        <mxCell id="frag3" value="alt  [Daily Cron 00:00 — Anomaly Detection]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="595" y="400" width="1000" height="170" as="geometry" />
+        </mxCell>
+        <!-- Alt: Risk Scoring -->
+        <mxCell id="frag4" value="alt  [Daily Cron 01:30 — Risk Scoring]" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="595" y="640" width="1030" height="160" as="geometry" />
+        </mxCell>
+        <!-- Report Generation -->
+        <mxCell id="frag5" value="Report Generation — On-demand by User" style="text;html=1;fontSize=11;fontStyle=3;fontColor=#000000;align=left;strokeColor=#000000;fillColor=none;strokeWidth=1.5;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="115" y="870" width="1260" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- ===== MESSAGES ===== -->
+
+        <!-- Msg 1: User -> Frontend -->
+        <mxCell id="m01" value="1. Open Dashboard" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="150" y="160" as="sourcePoint" /><mxPoint x="390" y="160" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 2: Frontend -> API -->
+        <mxCell id="m02" value="2. GET /api/analytics/kpi-summary" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="390" y="190" as="sourcePoint" /><mxPoint x="630" y="190" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 3: API -> Cache -->
+        <mxCell id="m03" value="3. Check Cache Key" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="220" as="sourcePoint" /><mxPoint x="870" y="220" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 4: Cache MISS -> DB -->
+        <mxCell id="m04" value="4. [Cache Miss] Aggregate KPI Data" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;fontStyle=2;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="260" as="sourcePoint" /><mxPoint x="1110" y="260" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 5: DB return -->
+        <mxCell id="m05" value="5. KPI Data" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1110" y="295" as="sourcePoint" /><mxPoint x="630" y="295" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 6: API return to Frontend -->
+        <mxCell id="m06" value="6. 200 OK — KPI JSON" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="325" as="sourcePoint" /><mxPoint x="150" y="325" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Separator line between loop and cron -->
+        <mxCell id="sep1" style="html=1;strokeColor=#555555;strokeWidth=1;dashed=1;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="115" y="375" as="sourcePoint" /><mxPoint x="1610" y="375" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Msg 7: API -> DB (anomaly cron) -->
+        <mxCell id="m07" value="7. Query Decisions (last 30 days)" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="430" as="sourcePoint" /><mxPoint x="1110" y="430" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 8: DB return decisions -->
+        <mxCell id="m08" value="8. Decision Feature Array" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1110" y="470" as="sourcePoint" /><mxPoint x="630" y="470" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 9: API -> ML (anomaly predict) -->
+        <mxCell id="m09" value="9. POST /ml/anomaly/predict" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="510" as="sourcePoint" /><mxPoint x="1350" y="510" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 10: ML return anomalies -->
+        <mxCell id="m10" value="10. Anomaly Scores &amp; Severity Labels" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1350" y="550" as="sourcePoint" /><mxPoint x="630" y="550" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 11: API -> DB (save anomalies) -->
+        <mxCell id="m11" value="11. Save Anomaly Records" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="590" as="sourcePoint" /><mxPoint x="1110" y="590" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep2" style="html=1;strokeColor=#555555;strokeWidth=1;dashed=1;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="115" y="625" as="sourcePoint" /><mxPoint x="1610" y="625" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Msg 12: API -> Compliance Engine (risk features) -->
+        <mxCell id="m12" value="12. GET Risk Features per Department" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="670" as="sourcePoint" /><mxPoint x="1580" y="670" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 13: Compliance return -->
+        <mxCell id="m13" value="13. Risk Feature Vectors" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1580" y="710" as="sourcePoint" /><mxPoint x="630" y="710" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 14: API -> ML (risk score) -->
+        <mxCell id="m14" value="14. POST /ml/risk/score" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="750" as="sourcePoint" /><mxPoint x="1350" y="750" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 15: ML return risk scores -->
+        <mxCell id="m15" value="15. Risk Score &amp; Level per Department" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="1350" y="790" as="sourcePoint" /><mxPoint x="630" y="790" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep3" style="html=1;strokeColor=#555555;strokeWidth=1;dashed=1;endArrow=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="115" y="855" as="sourcePoint" /><mxPoint x="1610" y="855" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- Report generation messages -->
+        <!-- Msg 16: User -> Frontend (generate) -->
+        <mxCell id="m16" value="16. Click Generate Report" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="150" y="900" as="sourcePoint" /><mxPoint x="390" y="900" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 17: Frontend -> API -->
+        <mxCell id="m17" value="17. POST /api/reports/generate" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="390" y="940" as="sourcePoint" /><mxPoint x="630" y="940" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 18: API -> DB (assemble data) -->
+        <mxCell id="m18" value="18. Fetch KPI, Anomaly &amp; Risk Data" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="980" as="sourcePoint" /><mxPoint x="1110" y="980" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 19: API writes report file (self) -->
+        <mxCell id="m19" value="19. Generate File (PDF / Excel / CSV)" style="html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="1020" as="sourcePoint" /><mxPoint x="1110" y="1020" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <!-- Msg 20: return download URL to User -->
+        <mxCell id="m20" value="20. 200 OK — Report Download URL" style="html=1;strokeColor=#000000;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=open;endSize=10;fontSize=10;fontColor=#000000;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="630" y="1060" as="sourcePoint" /><mxPoint x="150" y="1060" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -7,6 +7,17 @@ import m1Decision from '../models/m1Decisions';
 import KPISnapshot from '../models/KPI_Snapshot';
 import Forecast from '../models/Forecast';
 
+const FORECAST_TARGETS = [
+  'volume',
+  'delay',
+  'approval_rate',
+  'rejection_rate',
+  'pending_workload',
+  'sla_misses',
+] as const;
+
+type ForecastTarget = (typeof FORECAST_TARGETS)[number];
+
 const router = Router();
 
 // ─────────────────────────────────────────────
@@ -297,12 +308,15 @@ router.get(
     if (![7, 14, 30].includes(parsedHorizon)) {
       return res.status(400).json({ error: 'horizon must be 7, 14, or 30' });
     }
-    if (!['volume', 'delay'].includes(parsedTarget)) {
-      return res.status(400).json({ error: "target must be 'volume' or 'delay'" });
+    if (!FORECAST_TARGETS.includes(parsedTarget as ForecastTarget)) {
+      return res.status(400).json({
+        error:
+          "target must be one of 'volume', 'delay', 'approval_rate', 'rejection_rate', 'pending_workload', or 'sla_misses'",
+      });
     }
 
     const horizonNum = parsedHorizon as 7 | 14 | 30;
-    const targetValue = parsedTarget as 'volume' | 'delay';
+    const targetValue = parsedTarget as ForecastTarget;
 
     const cacheKey = `m3:forecast:${deptId}:${targetValue}:${horizonNum}`;
 

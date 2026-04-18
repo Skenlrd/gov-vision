@@ -4,6 +4,21 @@ npm create vite@latest client
 ## Libraries/Packages Installed
 This document lists all libraries/packages installed for each architecture layer, with the install command and a one-line explanation.
 
+## Session Updates (2026-04-18)
+
+Packages/libraries used in this session:
+- ML runtime dependency verified during forecast troubleshooting:
+	- pyarrow
+- Existing build/runtime toolchain exercised:
+	- TypeScript (`tsc` in server/client scripts)
+	- Vite build pipeline
+
+Installation status:
+No new packages installed.
+
+Observed installer output:
+- `Requirement already satisfied: pyarrow ...`
+
 ## Session Updates (2026-04-12)
 
 Packages/libraries used in this session:

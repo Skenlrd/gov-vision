@@ -18,13 +18,20 @@ MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "forecast"
 TARGET_MODEL_PREFIX = {
 	"volume": "prophet",
 	"delay": "prophet_delay",
+	"approval_rate": "prophet_approval_rate",
+	"rejection_rate": "prophet_rejection_rate",
+	"pending_workload": "prophet_pending_workload",
+	"sla_misses": "prophet_sla_misses",
 }
 
 
 def load_prophet_model(dept_id: str, target: str) -> Prophet:
 	"""Load a trained Prophet model for a department or the org-level model."""
 	if target not in TARGET_MODEL_PREFIX:
-		raise ValueError("target must be 'volume' or 'delay'")
+		raise ValueError(
+			"target must be one of 'volume', 'delay', 'approval_rate', "
+			"'rejection_rate', 'pending_workload', or 'sla_misses'"
+		)
 
 	safe_dept_id = dept_id.replace("/", "_").replace(" ", "_")
 	prefix = TARGET_MODEL_PREFIX[target]
@@ -47,7 +54,10 @@ def generate_forecast(payload: dict) -> Dict[str, object]:
 	if horizon not in (7, 14, 30):
 		raise ValueError("horizon must be 7, 14, or 30")
 	if target not in TARGET_MODEL_PREFIX:
-		raise ValueError("target must be 'volume' or 'delay'")
+		raise ValueError(
+			"target must be one of 'volume', 'delay', 'approval_rate', "
+			"'rejection_rate', 'pending_workload', or 'sla_misses'"
+		)
 
 	model = load_prophet_model(dept_id, target)
 	future = model.make_future_dataframe(periods=horizon, freq="D")

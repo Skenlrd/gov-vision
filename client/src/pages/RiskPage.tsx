@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getRiskHeatmap } from '../services/api';
 import type { RiskEntry, RiskLevel } from '../types';
 import RiskTable from '../components/RiskTable';

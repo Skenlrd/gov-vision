@@ -185,7 +185,13 @@ export const RISK_LEVEL_THEME: Record<RiskLevel, {
   }
 }
 
-export type ForecastTarget = "volume" | "delay"
+export type ForecastTarget =
+  | "volume"
+  | "delay"
+  | "approval_rate"
+  | "rejection_rate"
+  | "pending_workload"
+  | "sla_misses"
 
 export interface IForecastPoint {
   ds: string

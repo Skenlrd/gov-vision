@@ -7,7 +7,11 @@ type TargetToggleProps = {
 
 const TARGETS: Array<{ label: string; value: ForecastTarget }> = [
   { label: "Decision Volume", value: "volume" },
-  { label: "Approval Delay", value: "delay" }
+  { label: "Approval Delay", value: "delay" },
+  { label: "Approval Rate", value: "approval_rate" },
+  { label: "Rejection Rate", value: "rejection_rate" },
+  { label: "Pending Workload", value: "pending_workload" },
+  { label: "SLA Misses", value: "sla_misses" }
 ]
 
 export default function TargetToggle({ selected, onChange }: TargetToggleProps) {

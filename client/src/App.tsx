@@ -8,6 +8,7 @@ import ReportHistory from "./pages/ReportHistory"
 import ReportSchedules from "./pages/ReportSchedules"
 import AppLayout from "./components/AppLayout"
 import PlaceholderPage from "./pages/PlaceholderPage"
+import AnomalyDetectionPage from "./pages/AnomalyDetection"
 
 export default function App() {
   return (
@@ -16,7 +17,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/deep-insights" element={<DeepInsights />} />
-        <Route path="/anomaly" element={<PlaceholderPage title="Anomaly Detection" />} />
+        <Route path="/anomaly" element={<AnomalyDetectionPage />} />
         <Route path="/forecast" element={<ForecastPage />} />
         <Route path="/analytics/forecast" element={<ForecastPage />} />
         <Route path="/risk" element={<RiskPage />} />

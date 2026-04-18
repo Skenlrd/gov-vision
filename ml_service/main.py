@@ -71,6 +71,16 @@ class ForecastRequest(BaseModel):
     target: str = "volume"
 
 
+FORECAST_TARGETS = {
+    "volume",
+    "delay",
+    "approval_rate",
+    "rejection_rate",
+    "pending_workload",
+    "sla_misses",
+}
+
+
 class ForecastPoint(BaseModel):
     ds: str
     yhat: float
@@ -159,10 +169,13 @@ def forecast_predict(body: ForecastRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="horizon must be 7, 14, or 30",
         )
-    if body.target not in ("volume", "delay"):
+    if body.target not in FORECAST_TARGETS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="target must be 'volume' or 'delay'",
+            detail=(
+                "target must be one of 'volume', 'delay', 'approval_rate', "
+                "'rejection_rate', 'pending_workload', or 'sla_misses'"
+            ),
         )
 
     try:

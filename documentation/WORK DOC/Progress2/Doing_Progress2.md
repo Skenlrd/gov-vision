@@ -1,8 +1,8 @@
 # WD Progress2 - Live Tracker
 
-Date Updated: 2026-04-13
+Date Updated: 2026-04-18
 Scope: Actual execution status for Progress 2 backend and frontend work.
-Last Updated: 2026-04-13
+Last Updated: 2026-04-18
 
 ## Completed
 
@@ -21,18 +21,23 @@ Last Updated: 2026-04-13
 - Day 13 complete: report data assembly and report generator backend implementation for CSV, Excel, and PDF output was added and validated.
 - Day 14 complete: reports API routes for generation, listing, and download were implemented and wired into server startup.
 - Day 15 complete: report schedule backend + frontend management flow was implemented, including schedule CRUD, hourly runner wiring, and schedules UI.
+- Session 2026-04-18 complete: runtime verification executed for anomaly, forecast, and risk jobs; forecast failures were resolved by restarting ML service with the workspace `.venv` interpreter.
+- Session 2026-04-18 complete: Day 17 failure-mode behavior was validated by stopping backend and confirming pages rendered with service-unavailable behavior instead of blank crashes.
+- Session 2026-04-18 complete: report generation and schedule CRUD runtime checks were executed through live API calls.
+- Session 2026-04-18 complete: frontend build blocker in `client/src/pages/RiskPage.tsx` was fixed and final backend/frontend checks are green.
 
 ## Left / Pending
 
 - Redis runtime verification is pending (cache-hit proof cannot be completed until Redis is reachable on localhost:6379).
 - Final auth hardening pass pending before demo/submission (remove temporary middleware bypass in dev).
-- Node dev server endpoint check is pending when launched from correct folder (`server`) for final `/api/analytics/forecast` HTTP retrieval proof.
+- Remove `x-test-role` development bypass from `server/middleware/validateJWT.ts` for final hardened auth behavior.
 
 ## Skipped / Deferred
 
 - Redis key lifecycle verification steps skipped in current environment due to Redis service down.
 - Frontend pages tied to later scheduled days remain deferred (backend-first execution path used for Days 1-3).
 - Deep Insights professional recolor and alternate font pass deferred after functional Day 5 completion.
+- Seeding was skipped in this runtime pass because MongoDB already contained usable data.
 
 ## Day 4 UI Naming Alignment Log
 
@@ -1680,6 +1685,144 @@ npm run typecheck
 ```
 Expected result:
 - No TypeScript errors.
+
+---
+
+# WD Progress2 - Session Update (2026-04-18 Runtime Validation + Build Green)
+
+Date: 2026-04-18
+Scope: Execute refresh jobs, validate runtime route behavior, verify report workflows, and re-run compile/build checks to confirm current status.
+
+One-line completed task bullets:
+- Re-ran anomaly, forecast, and risk refresh jobs and verified end-to-end execution status.
+- Diagnosed forecast failures to ML interpreter mismatch and resolved by starting FastAPI with workspace `.venv` python.
+- Validated graceful failure behavior with backend down and normal rendering behavior after backend restart.
+- Executed report generation and schedule create/toggle/delete runtime API checks.
+- Fixed client build blocker in `RiskPage.tsx` and re-ran server/client validation commands to green.
+
+## 1) Mandatory 5-Point Summary
+
+1. Scope completed
+- Completed runtime refresh verification, route walkthrough checks, report workflow smoke tests, and final compile/build validation for the current pass.
+
+2. Backend implementation (routes/jobs/services/models)
+- No new backend route/job/model code was added in this session.
+- Verified runtime behavior in:
+  - `server/jobs/anomalyJob.ts`
+  - `server/jobs/forecastJob.ts`
+  - `server/jobs/riskJob.ts`
+  - `server/routes/reportRoutes.ts`
+  - `server/middleware/validateJWT.ts`
+
+3. Frontend implementation (pages/components/charts/state wiring)
+- Updated one frontend file to remove an unused import blocking build:
+  - `client/src/pages/RiskPage.tsx`
+
+4. Tests executed with observed outputs
+- `npm run run:anomaly-job` -> ran successfully and logged `No completed decisions found. Skipping.`
+- `npm run run:forecast-job` + `npm run run:risk-job` -> passed after ML restart with `.venv` interpreter; forecast completed all department/target/horizon combinations and risk updated snapshot scores/levels.
+- Failure-mode check with backend stopped -> routes remained renderable and showed service-unavailable behavior.
+- Runtime endpoint checks returned live JSON for anomalies, forecast, risk heatmap, reports, and schedules.
+- Report schedule flow using nested `reportConfig` payload -> create/toggle/delete succeeded.
+- `npm run typecheck` in `server` -> pass.
+- `npm run build` in `client` -> pass after import fix in `RiskPage.tsx`.
+
+5. Blockers/risks and current status (working/partial/not working)
+- Status: Working for runtime validation and compile/build checks.
+- Risk: final auth hardening is still pending because `x-test-role` bypass remains in `server/middleware/validateJWT.ts`.
+- Risk: Redis cache-hit runtime proof remains pending while Redis is unavailable on localhost:6379.
+
+## 2) Explicit Implementation Inventory
+
+### A) Frontend files updated
+
+- `client/src/pages/RiskPage.tsx`
+
+### B) Backend routes/jobs/services/models updated
+
+- No backend source file was edited in this session.
+
+### C) Endpoints/routes/jobs implemented or exercised
+
+- Jobs exercised:
+  - `npm run run:anomaly-job`
+  - `npm run run:forecast-job`
+  - `npm run run:risk-job`
+- Endpoints exercised:
+  - `GET /api/ai/anomalies`
+  - `GET /api/analytics/forecast?deptId=org&horizon=30&target=volume`
+  - `GET /api/analytics/risk-heatmap`
+  - `GET /api/reports`
+  - `GET /api/reports/schedules`
+  - `POST /api/reports/generate`
+  - `POST /api/reports/schedules`
+  - `PATCH /api/reports/schedules/:id/toggle`
+  - `DELETE /api/reports/schedules/:id`
+
+### D) Files changed or verified
+
+- Changed:
+  - `client/src/pages/RiskPage.tsx`
+- Verified:
+  - `server/middleware/validateJWT.ts`
+  - `server/routes/reportRoutes.ts`
+  - `server/models/ReportSchedule.ts`
+  - `server/package.json`
+  - `client/package.json`
+
+### E) Manual run/test steps with commands and expected results
+
+1. Start ML service with workspace interpreter
+```bash
+cd ml_service
+..\.venv\Scripts\python.exe -m uvicorn main:app --port 8000
+```
+Expected result:
+- FastAPI starts on port 8000 and `/health` responds with `status: ok`.
+
+2. Start backend service
+```bash
+cd server
+npm run dev
+```
+Expected result:
+- Server starts on port 5002; cron schedule registrations are logged.
+
+3. Run refresh jobs
+```bash
+cd server
+npm run run:anomaly-job
+npm run run:forecast-job
+npm run run:risk-job
+```
+Expected result:
+- anomaly job runs (may skip when no completed decisions exist).
+- forecast job logs completion for each department, target, and horizon.
+- risk job logs updated snapshots by department.
+
+4. Run endpoint checks
+```powershell
+$headers = @{ 'x-test-role'='manager' }
+Invoke-RestMethod -Uri "http://localhost:5002/api/ai/anomalies" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "http://localhost:5002/api/analytics/forecast?deptId=org&horizon=30&target=volume" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "http://localhost:5002/api/analytics/risk-heatmap" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "http://localhost:5002/api/reports" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "http://localhost:5002/api/reports/schedules" -Headers $headers -Method GET
+```
+Expected result:
+- Commands return valid JSON payloads without runtime exceptions.
+
+5. Validate compile/build
+```bash
+cd server
+npm run typecheck
+
+cd ../client
+npm run build
+```
+Expected result:
+- TypeScript typecheck passes in server.
+- Client production build completes successfully.
 
 ---
 

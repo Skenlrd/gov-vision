@@ -16,15 +16,25 @@ function formatDateLabel(dateValue: string): string {
 }
 
 function metricLabel(target: ForecastTarget): string {
-  return target === "volume" ? "Decision volume" : "Delay signal"
+  const labels: Record<ForecastTarget, string> = {
+    volume: "Decision volume",
+    delay: "Delay",
+    approval_rate: "Approval rate",
+    rejection_rate: "Rejection rate",
+    pending_workload: "Pending workload",
+    sla_misses: "SLA misses"
+  }
+
+  return labels[target]
 }
 
 export default function ForecastChart({ data, target, horizon, department }: ForecastChartProps) {
   const option = useMemo<EChartsOption>(() => {
     const dates = data.map(point => formatDateLabel(point.ds))
     const maxValue = Math.max(...data.map(point => point.yhat_upper), 0)
-    const baseColor = target === "volume" ? "#3B82F6" : "#4B5563"
-    const bandColor = target === "volume" ? "rgba(59,130,246,0.18)" : "rgba(75,85,99,0.18)"
+    const isVolumeLike = target === "volume" || target === "pending_workload" || target === "sla_misses"
+    const baseColor = isVolumeLike ? "#3B82F6" : "#4B5563"
+    const bandColor = isVolumeLike ? "rgba(59,130,246,0.18)" : "rgba(75,85,99,0.18)"
 
     return {
       backgroundColor: "transparent",

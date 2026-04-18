@@ -6,7 +6,14 @@ import m1Decision from "../models/m1Decisions"
 import Forecast from "../models/Forecast"
 
 const HORIZONS = [7, 14, 30]
-const TARGETS = ["volume", "delay"] as const
+const TARGETS = [
+	"volume",
+	"delay",
+	"approval_rate",
+	"rejection_rate",
+	"pending_workload",
+	"sla_misses",
+] as const
 
 export async function runForecastJob(): Promise<void> {
 	console.log("[ForecastJob] Starting nightly forecast run...")
@@ -38,7 +45,13 @@ export async function runForecastJob(): Promise<void> {
 				const response = await axios.post<{
 					dept_id: string
 					horizon: number
-					target: "volume" | "delay"
+					target:
+						| "volume"
+						| "delay"
+						| "approval_rate"
+						| "rejection_rate"
+						| "pending_workload"
+						| "sla_misses"
 					forecast: Array<{
 						ds: string
 						yhat: number

@@ -30,6 +30,15 @@ MONGODB_DB = os.getenv("MONGODB_DB", "govvision")
 MODELS_DIR = Path(__file__).resolve().parents[1] / "models" / "forecast"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
+TARGET_PREFIX = {
+	"volume": "prophet",
+	"delay": "prophet_delay",
+	"approval_rate": "prophet_approval_rate",
+	"rejection_rate": "prophet_rejection_rate",
+	"pending_workload": "prophet_pending_workload",
+	"sla_misses": "prophet_sla_misses",
+}
+
 
 def get_database(client: MongoClient):
 	"""Return the configured MongoDB database, falling back to govvision."""
@@ -90,6 +99,10 @@ def get_decisions() -> pd.DataFrame:
 		df["departmentId"] = None
 	if "departmentName" not in df.columns:
 		df["departmentName"] = None
+	if "status" not in df.columns:
+		df["status"] = ""
+	if "daysOverSLA" not in df.columns:
+		df["daysOverSLA"] = 0
 
 	df["department"] = (
 		df["department"]
@@ -104,6 +117,8 @@ def get_decisions() -> pd.DataFrame:
 
 	df["ds"] = df["createdAt"].dt.floor("D")
 	df["cycleTimeHours"] = pd.to_numeric(df["cycleTimeHours"], errors="coerce")
+	df["daysOverSLA"] = pd.to_numeric(df["daysOverSLA"], errors="coerce").fillna(0)
+	df["status"] = df["status"].astype(str).str.lower().str.strip()
 
 	# Backfill missing cycleTimeHours from completedAt - createdAt.
 	missing_cycle = df["cycleTimeHours"].isna() & df["completedAt"].notna()
@@ -118,23 +133,73 @@ def get_decisions() -> pd.DataFrame:
 	return df
 
 
-def _fit_and_save_model(dept_id: str, daily: pd.DataFrame, prefix: str) -> bool:
+def build_target_series(target: str, df_dept: pd.DataFrame) -> pd.DataFrame:
+	"""Build a daily ds/y time series for the requested forecast target."""
+	if target == "volume":
+		return df_dept.groupby("ds").size().reset_index(name="y").sort_values("ds")
+
+	if target == "delay":
+		df_delay = df_dept.dropna(subset=["cycleTimeHours"]).copy()
+		if df_delay.empty:
+			return pd.DataFrame(columns=["ds", "y"])
+		return (
+			df_delay.groupby("ds")["cycleTimeHours"]
+			.mean()
+			.reset_index(name="y")
+			.sort_values("ds")
+		)
+
+	if target in ("approval_rate", "rejection_rate"):
+		daily = (
+			df_dept.groupby("ds")
+			.agg(
+				total=("status", "size"),
+				approved=("status", lambda s: (s == "approved").sum()),
+				rejected=("status", lambda s: (s == "rejected").sum()),
+			)
+			.reset_index()
+			.sort_values("ds")
+		)
+
+		if target == "approval_rate":
+			daily["y"] = (daily["approved"] / daily["total"].clip(lower=1)) * 100.0
+		else:
+			daily["y"] = (daily["rejected"] / daily["total"].clip(lower=1)) * 100.0
+
+		return daily[["ds", "y"]]
+
+	if target == "pending_workload":
+		df_pending = df_dept[df_dept["status"] == "pending"].copy()
+		if df_pending.empty:
+			return pd.DataFrame(columns=["ds", "y"])
+		return df_pending.groupby("ds").size().reset_index(name="y").sort_values("ds")
+
+	if target == "sla_misses":
+		df_sla = df_dept[df_dept["daysOverSLA"] > 0].copy()
+		if df_sla.empty:
+			return pd.DataFrame(columns=["ds", "y"])
+		return df_sla.groupby("ds").size().reset_index(name="y").sort_values("ds")
+
+	raise ValueError(f"Unsupported target: {target}")
+
+
+def _fit_and_save_model(dept_id: str, target: str, daily: pd.DataFrame, prefix: str) -> bool:
 	"""Fit a Prophet model on daily ds/y points and persist to disk."""
 	if len(daily) < 10:
-		print(f"  Skipping {dept_id} ({prefix}): only {len(daily)} points (need >= 10)")
+		print(f"  Skipping {dept_id} ({target}): only {len(daily)} points (need >= 10)")
 		return False
 
 	date_range = pd.date_range(daily["ds"].min(), daily["ds"].max(), freq="D")
 	daily = daily.set_index("ds").reindex(date_range).reset_index()
 	daily.columns = ["ds", "y"]
 
-	if prefix == "prophet":
-		daily["y"] = daily["y"].fillna(0.0)
-	else:
+	if target == "delay":
 		daily["y"] = daily["y"].ffill().bfill()
+	else:
+		daily["y"] = daily["y"].fillna(0.0)
 
 	if daily["y"].isna().all():
-		print(f"  Skipping {dept_id} ({prefix}): no valid target values")
+		print(f"  Skipping {dept_id} ({target}): no valid target values")
 		return False
 
 	model = Prophet(
@@ -153,34 +218,19 @@ def _fit_and_save_model(dept_id: str, daily: pd.DataFrame, prefix: str) -> bool:
 	return True
 
 
-def train_volume_for_department(dept_id: str, df_dept: pd.DataFrame) -> bool:
-	"""Train daily decision volume Prophet model for one department."""
+def train_target_for_department(dept_id: str, target: str, df_dept: pd.DataFrame) -> bool:
+	"""Train one target-specific Prophet model for one department."""
 	if df_dept.empty:
-		print(f"  Skipping {dept_id} (volume): no training rows available")
+		print(f"  Skipping {dept_id} ({target}): no training rows available")
 		return False
 
-	daily = df_dept.groupby("ds").size().reset_index(name="y").sort_values("ds")
-	return _fit_and_save_model(dept_id, daily, "prophet")
-
-
-def train_delay_for_department(dept_id: str, df_dept: pd.DataFrame) -> bool:
-	"""Train average cycle-time-hours Prophet model for one department."""
-	if df_dept.empty:
-		print(f"  Skipping {dept_id} (delay): no training rows available")
+	daily = build_target_series(target, df_dept)
+	if daily.empty:
+		print(f"  Skipping {dept_id} ({target}): no usable rows for target")
 		return False
 
-	df_delay = df_dept.dropna(subset=["cycleTimeHours"]).copy()
-	if df_delay.empty:
-		print(f"  Skipping {dept_id} (delay): no cycleTimeHours data")
-		return False
-
-	daily = (
-		df_delay.groupby("ds")["cycleTimeHours"]
-		.mean()
-		.reset_index(name="y")
-		.sort_values("ds")
-	)
-	return _fit_and_save_model(dept_id, daily, "prophet_delay")
+	prefix = TARGET_PREFIX[target]
+	return _fit_and_save_model(dept_id, target, daily, prefix)
 
 
 def main() -> None:
@@ -188,32 +238,24 @@ def main() -> None:
 	df = get_decisions()
 	print(f"Loaded {len(df)} decisions across {df['department'].nunique()} departments.")
 
-	trained_volume = 0
-	trained_delay = 0
+	trained_counts = {target: 0 for target in TARGET_PREFIX}
 	for dept_id in df["department"].dropna().unique():
-		print(f"Training Prophet volume for department: {dept_id}")
 		dept_df = df[df["department"] == dept_id].copy()
-		if train_volume_for_department(str(dept_id), dept_df):
-			trained_volume += 1
+		for target in TARGET_PREFIX:
+			print(f"Training Prophet {target} for department: {dept_id}")
+			if train_target_for_department(str(dept_id), target, dept_df):
+				trained_counts[target] += 1
 
-		print(f"Training Prophet delay for department: {dept_id}")
-		if train_delay_for_department(str(dept_id), dept_df):
-			trained_delay += 1
+	for target in TARGET_PREFIX:
+		print(f"Training org-level Prophet {target} model...")
+		if train_target_for_department("org", target, df):
+			trained_counts[target] += 1
 
-	print("Training org-level Prophet volume model...")
-	if train_volume_for_department("org", df):
-		trained_volume += 1
-
-	print("Training org-level Prophet delay model...")
-	if train_delay_for_department("org", df):
-		trained_delay += 1
-
-	print(
-		"\nProphet training complete. "
-		f"Volume models saved: {trained_volume}, "
-		f"Delay models saved: {trained_delay}, "
-		f"Total: {trained_volume + trained_delay}"
-	)
+	total_models = sum(trained_counts.values())
+	print("\nProphet training complete.")
+	for target, count in trained_counts.items():
+		print(f"{target}: {count} models saved")
+	print(f"Total: {total_models}")
 
 
 if __name__ == "__main__":

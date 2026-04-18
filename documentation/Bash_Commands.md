@@ -7,6 +7,87 @@ This file contains manual commands you can run yourself. Each command block incl
 
 ---
 
+## Session Updates (2026-04-18 Runtime Verification and Build Green)
+
+Grouped commands that were actually executed during runtime verification, report workflow checks, and final compile/build validation.
+
+### 1) Startup commands
+
+What it does:
+- starts ML and backend services with the same interpreter/runtime used by the repository.
+
+Commands:
+cd ml_service
+..\\.venv\\Scripts\\python.exe -m uvicorn main:app --port 8000
+
+cd ../server
+npm run dev
+
+Expected result:
+- ML service starts on port 8000 and logs application startup complete.
+- server starts on port 5002 and logs cron registrations for anomaly, forecast, risk, and schedule jobs.
+
+### 2) API test commands (curl/PowerShell)
+
+What it does:
+- verifies runtime endpoint responses for anomalies, forecasts, risk heatmap, reports, and schedules.
+
+Commands:
+$headers = @{ 'x-test-role'='manager' }
+$base='http://localhost:5002'
+Invoke-RestMethod -Uri "$base/api/ai/anomalies" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "$base/api/analytics/forecast?deptId=org&horizon=30&target=volume" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "$base/api/analytics/risk-heatmap" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "$base/api/reports" -Headers $headers -Method GET
+Invoke-RestMethod -Uri "$base/api/reports/schedules" -Headers $headers -Method GET
+
+Expected result:
+- all commands return JSON payloads.
+- forecast endpoint returns a persisted forecast document with forecastData rows.
+- reports and schedules return arrays/count values.
+
+### 3) Validation commands
+
+What it does:
+- refreshes AI data and validates backend/frontend compile health.
+
+Commands:
+cd server
+npm run run:anomaly-job
+npm run run:forecast-job
+npm run run:risk-job
+npm run typecheck
+
+cd ../client
+npm run build
+
+Expected result:
+- anomaly job runs and may skip if no completed decisions are present.
+- forecast job logs completion across all department/target/horizon combinations.
+- risk job logs department score/level updates.
+- server typecheck passes.
+- client build completes successfully.
+
+### 4) Troubleshooting commands
+
+What it does:
+- addresses ML dependency/runtime mismatch and verifies report schedule payload requirements.
+
+Commands:
+cd ..
+.\\.venv\\Scripts\\python.exe -m pip install pyarrow
+
+$headers=@{'x-test-role'='manager';'Content-Type'='application/json'}
+$base='http://localhost:5002'
+$schedBody = @{ name='daily-smoke'; reportConfig=@{ type='executive_summary'; format='csv'; departments=@(); dateRangeMode='last_30_days' }; frequency='daily'; recipients=@('ops@govvision.local') } | ConvertTo-Json -Depth 8
+Invoke-RestMethod -Uri "$base/api/reports/schedules" -Method POST -Headers $headers -Body $schedBody
+
+Expected result:
+- pyarrow command reports `Requirement already satisfied` when already present.
+- schedule POST succeeds only when nested `reportConfig` is provided.
+
+---
+
 ## Forecast Session Commands (2026-04-10)
 
 Grouped commands that were actually used during forecast target implementation and validation.

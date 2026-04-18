@@ -18,8 +18,51 @@ const DEPARTMENT_PRESETS = [
 const HORIZONS = [7, 14, 30] as const
 const TARGETS: Array<{ label: string; value: ForecastTarget }> = [
   { label: "Volume", value: "volume" },
-  { label: "Delay", value: "delay" }
+  { label: "Delay", value: "delay" },
+  { label: "Approval Rate", value: "approval_rate" },
+  { label: "Rejection Rate", value: "rejection_rate" },
+  { label: "Pending Workload", value: "pending_workload" },
+  { label: "SLA Misses", value: "sla_misses" }
 ]
+
+const TARGET_META: Record<ForecastTarget, { label: string; title: string; unit: string; description: string }> = {
+  volume: {
+    label: "Decision volume",
+    title: "Decision Volume Forecast",
+    unit: "decisions",
+    description: "Predicted number of completed decisions by day from the nightly forecast cache."
+  },
+  delay: {
+    label: "Delay",
+    title: "Delay Forecast",
+    unit: "hours",
+    description: "Predicted average processing delay by day from the nightly forecast cache."
+  },
+  approval_rate: {
+    label: "Approval rate",
+    title: "Approval Rate Forecast",
+    unit: "%",
+    description: "Predicted percent of decisions approved each day from historical outcomes."
+  },
+  rejection_rate: {
+    label: "Rejection rate",
+    title: "Rejection Rate Forecast",
+    unit: "%",
+    description: "Predicted percent of decisions rejected each day from historical outcomes."
+  },
+  pending_workload: {
+    label: "Pending workload",
+    title: "Pending Workload Forecast",
+    unit: "decisions",
+    description: "Predicted number of decisions expected to remain pending each day."
+  },
+  sla_misses: {
+    label: "SLA misses",
+    title: "SLA Misses Forecast",
+    unit: "decisions",
+    description: "Predicted number of decisions likely to miss SLA each day."
+  }
+}
 
 function formatDateLabel(dateValue: string): string {
   const date = new Date(dateValue)
@@ -40,11 +83,11 @@ function formatDateTime(value: string): string {
 }
 
 function metricLabel(target: ForecastTarget): string {
-  return target === "volume" ? "Decision volume" : "Delay signal"
+  return TARGET_META[target].label
 }
 
 function metricUnit(target: ForecastTarget): string {
-  return target === "volume" ? "decisions" : "score"
+  return TARGET_META[target].unit
 }
 
 function getDepartmentDisplayName(value: string): string {
@@ -155,8 +198,9 @@ export default function ForecastPage() {
   const chartOption = useMemo<EChartsOption>(() => {
     const dates = points.map(point => formatDateLabel(point.ds))
     const maxValue = Math.max(...points.map(point => point.yhat_upper), 0)
-    const baseColor = target === "volume" ? "#3B82F6" : "#4B5563"
-    const bandColor = target === "volume" ? "rgba(59,130,246,0.18)" : "rgba(75,85,99,0.18)"
+    const isVolumeLike = target === "volume" || target === "pending_workload" || target === "sla_misses"
+    const baseColor = isVolumeLike ? "#3B82F6" : "#4B5563"
+    const bandColor = isVolumeLike ? "rgba(59,130,246,0.18)" : "rgba(75,85,99,0.18)"
 
     return {
       backgroundColor: "transparent",
@@ -276,10 +320,10 @@ export default function ForecastPage() {
             Forecast
           </p>
           <h1 style={{ margin: "8px 0 6px", fontSize: "30px", lineHeight: 1.1, fontWeight: 800, color: "#1E293B", fontFamily: "'Outfit', sans-serif" }}>
-            {target === "volume" ? "Decision Volume Forecast" : "Delay Forecast"}
+            {TARGET_META[target].title}
           </h1>
           <p style={{ margin: 0, color: "#64748B", fontSize: "14px" }}>
-            Prophet predictions with a shaded confidence band, served from the nightly forecast cache.
+            {TARGET_META[target].description}
           </p>
         </div>
 
