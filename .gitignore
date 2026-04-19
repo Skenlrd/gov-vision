@@ -19,3 +19,31 @@ TestNotes.md
 # Ignore large XES file
 server/scripts/BPI Challenge 2017.xes
 
+# VS Code settings
+.vscode/
+
+# Build outputs
+dist/
+build/
+server/dist/
+
+# Python virtual environments
+.venv/
+env/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Package lock files
+package-lock.json
+yarn.lock
+
+# OS files
+.DS_Store
+
+# Test/coverage caches
+.coverage
+.pytest_cache/
+.mypy_cache/
+coverage.xml
+
