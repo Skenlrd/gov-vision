@@ -72,7 +72,7 @@ router.get(
 router.put(
   "/anomalies/:id/acknowledge",
   validateJWT,
-  requireRole(["admin", "manager", "executive"]),
+  requireRole(["admin", "manager", "executive", "analyst"]),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params

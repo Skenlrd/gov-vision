@@ -65,7 +65,7 @@ async function generateCSV(data: ReportData, baseFilename: string): Promise<stri
 
 async function generateExcel(data: ReportData, baseFilename: string): Promise<string> {
 	const workbook = new ExcelJS.Workbook()
-	workbook.creator = "GovVision Module 3"
+	workbook.creator = "GovVision"
 	workbook.created = new Date()
 
 	const kpiSheet = workbook.addWorksheet("KPI Summary")
@@ -155,7 +155,7 @@ async function generatePDF(
 	doc.rect(0, 0, 210, 40, "F")
 	doc.setFontSize(20)
 	doc.setTextColor(255, 255, 255)
-	doc.text("GovVision Module 3", 14, 18)
+	doc.text("GovVision", 14, 18)
 	doc.setFontSize(13)
 	doc.text("Governance Analytics Report", 14, 28)
 
@@ -223,7 +223,7 @@ async function generatePDF(
 	doc.setFontSize(8)
 	doc.setTextColor(150, 150, 150)
 	doc.text(
-		"GovVision Module 3 - Analytics, Reporting & AI/ML Monitoring",
+		"GovVision - Analytics & Reporting",
 		14,
 		doc.internal.pageSize.height - 8
 	)

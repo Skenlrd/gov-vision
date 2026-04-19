@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getRiskHeatmap } from '../services/api';
 import type { RiskEntry, RiskLevel } from '../types';
 import RiskTable from '../components/RiskTable';
@@ -18,11 +18,142 @@ function normalizeRiskLevel(level: string | undefined): RiskLevel {
   return 'Low';
 }
 
+type DropdownOption = {
+  label: string
+  value: string
+}
+
+function AccentDropdown({
+  value,
+  options,
+  onChange,
+  width = "190px"
+}: {
+  value: string
+  options: DropdownOption[]
+  onChange: (value: string) => void
+  width?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!rootRef.current) return
+      if (!rootRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    window.addEventListener("mousedown", onMouseDown)
+    return () => window.removeEventListener("mousedown", onMouseDown)
+  }, [])
+
+  const selected = options.find(option => option.value === value) ?? options[0]
+
+  return (
+    <div ref={rootRef} style={{ position: "relative", width }}>
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        style={{
+          width: "100%",
+          padding: "8px 12px",
+          borderRadius: "9px",
+          border: open ? "1px solid var(--accent-600)" : "1px solid #E2E8F0",
+          background: "white",
+          fontSize: "13px",
+          fontWeight: 500,
+          color: "#334155",
+          fontFamily: "inherit",
+          cursor: "pointer",
+          outline: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: open ? "0 0 0 3px var(--accent-ring)" : "none"
+        }}
+      >
+        <span>{selected?.label}</span>
+        <svg
+          viewBox="0 0 20 20"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{ color: "#6B7280", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}
+        >
+          <path d="M5 7.5 10 12.5 15 7.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            width: "100%",
+            background: "#FFFFFF",
+            border: "1px solid var(--accent-300)",
+            borderRadius: "10px",
+            boxShadow: "0 12px 28px rgba(15,23,42,0.12)",
+            padding: "5px",
+            zIndex: 60
+          }}
+        >
+          {options.map(option => {
+            const isSelected = option.value === value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value)
+                  setOpen(false)
+                }}
+                style={{
+                  width: "100%",
+                  border: "none",
+                  background: isSelected ? "#E5E7EB" : "transparent",
+                  color: isSelected ? "#111827" : "#334155",
+                  borderRadius: "7px",
+                  textAlign: "left",
+                  padding: "7px 10px",
+                  fontSize: "12px",
+                  fontWeight: isSelected ? 700 : 500,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  transition: "background 0.15s ease,color 0.15s ease"
+                }}
+                onMouseEnter={event => {
+                  if (isSelected) return
+                  event.currentTarget.style.background = "#F3F4F6"
+                  event.currentTarget.style.color = "#1F2937"
+                }}
+                onMouseLeave={event => {
+                  if (isSelected) return
+                  event.currentTarget.style.background = "transparent"
+                  event.currentTarget.style.color = "#334155"
+                }}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function RiskPage() {
   const [data, setData] = useState<RiskEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [levelFilter, setLevelFilter] = useState<'All' | RiskLevel>('All');
+  const [deptFilter, setDeptFilter] = useState<string>('All');
   const [selectedEntry, setSelectedEntry] = useState<RiskEntry | null>(null); // For modal
 
   useEffect(() => {
@@ -52,10 +183,15 @@ export default function RiskPage() {
     load();
   }, []);
 
-  // Apply level filter
-  const filteredData = levelFilter === 'All'
-    ? data
-    : data.filter((row) => row.riskLevel === levelFilter);
+  // Filter options
+  const departmentOptions = Array.from(new Set(data.map(d => d.department))).sort();
+
+  // Apply filters
+  const filteredData = data.filter((row) => {
+    const levelMatch = levelFilter === 'All' || row.riskLevel === levelFilter;
+    const deptMatch = deptFilter === 'All' || row.department === deptFilter;
+    return levelMatch && deptMatch;
+  });
 
   // Summary counts for the header stat cards
   const counts = {
@@ -71,7 +207,7 @@ export default function RiskPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Risk Score Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Random Forest risk classification updated daily at 01:00. Click any department for feature breakdown.
+          Risk classification updated daily at 01:00. Click any department for feature breakdown.
         </p>
       </div>
 
@@ -94,21 +230,72 @@ export default function RiskPage() {
 
       {/* Filter row */}
       {!loading && !error && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 font-medium">Filter by level:</span>
-          {LEVEL_FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setLevelFilter(f)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                levelFilter === f
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 10,
+            background: "#fff",
+            border: "1px solid #E6EBF2",
+            borderRadius: 12,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+            padding: "12px 16px"
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#94A3B8", marginRight: 2 }}>
+              Filter by
+            </span>
+            <AccentDropdown
+              value={levelFilter}
+              options={[
+                { label: "All severities", value: "All" },
+                { label: "Critical", value: "Critical" },
+                { label: "High", value: "High" },
+                { label: "Medium", value: "Medium" },
+                { label: "Low", value: "Low" }
+              ]}
+              onChange={(val) => setLevelFilter(val as any)}
+            />
+            <AccentDropdown
+              value={deptFilter}
+              options={[
+                { label: "All departments", value: "All" },
+                ...departmentOptions.map(d => ({ label: d, value: d }))
+              ]}
+              onChange={setDeptFilter}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 12, color: "#94A3B8", fontWeight: 500 }}>
+              Showing{" "}
+              <strong style={{ color: "#0F172A" }}>{filteredData.length}</strong> of{" "}
+              {data.length} records
+            </span>
+            {(levelFilter !== "All" || deptFilter !== "All") && (
+              <button
+                onClick={() => {
+                  setLevelFilter("All")
+                  setDeptFilter("All")
+                }}
+                style={{
+                  border: "1px solid #E2E8F0",
+                  background: "transparent",
+                  color: "#64748B",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "5px 10px",
+                  borderRadius: 7,
+                  cursor: "pointer",
+                  fontFamily: "inherit"
+                }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       )}
 

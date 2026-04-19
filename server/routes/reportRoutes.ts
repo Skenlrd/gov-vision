@@ -12,7 +12,7 @@ const router = Router()
 router.post(
 	"/generate",
 	validateJWT,
-	requireRole(["admin", "manager", "executive"]),
+	requireRole(["admin", "manager", "executive", "analyst"]),
 	async (req: Request, res: Response) => {
 		try {
 			const config: ReportConfig = {

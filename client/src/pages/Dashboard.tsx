@@ -34,11 +34,11 @@ function getDefaultFilters(): IFilter {
 
 const DEPARTMENTS = [
   { label: "All Departments", value: "" },
-  { label: "Finance", value: "FI001" },
-  { label: "Human Resources", value: "HR002" },
-  { label: "Operations", value: "OP003" },
-  { label: "Information Technology", value: "IT004" },
-  { label: "Customer Service", value: "CS005" }
+  { label: "Finance", value: "Finance" },
+  { label: "Human Resources", value: "Human Resources" },
+  { label: "Operations", value: "Operations" },
+  { label: "Information Technology", value: "Information Technology" },
+  { label: "Customer Service", value: "Customer Service" }
 ]
 
 function getRiskCellStyle(level: RiskLevel, value: number) {
@@ -284,64 +284,6 @@ export default function Dashboard() {
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:4px}
         ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
-
-        .react-datepicker {
-          border: 1px solid #CBD5E1 !important;
-          border-radius: 10px !important;
-          font-family: 'Outfit', sans-serif !important;
-        }
-        .react-datepicker__header {
-          background: #F8FAFC !important;
-          border-bottom: 1px solid #E2E8F0 !important;
-        }
-        .react-datepicker__current-month,
-        .react-datepicker-time__header,
-        .react-datepicker-year-header {
-          color: #1F2937 !important;
-          font-weight: 700 !important;
-        }
-        .react-datepicker__day-name,
-        .react-datepicker__day,
-        .react-datepicker__time-name {
-          color: #334155 !important;
-        }
-        .react-datepicker__day:hover,
-        .react-datepicker__month-text:hover,
-        .react-datepicker__quarter-text:hover,
-        .react-datepicker__year-text:hover {
-          background: #E5E7EB !important;
-          color: #111827 !important;
-        }
-        .react-datepicker__day--selected,
-        .react-datepicker__day--keyboard-selected,
-        .react-datepicker__month-text--selected,
-        .react-datepicker__quarter-text--selected,
-        .react-datepicker__year-text--selected {
-          background: var(--accent-700) !important;
-          color: #F9FAFB !important;
-        }
-        .react-datepicker__day--today {
-          font-weight: 700 !important;
-          color: #111827 !important;
-        }
-        .react-datepicker__navigation-icon::before,
-        .react-datepicker__year-read-view--down-arrow,
-        .react-datepicker__month-read-view--down-arrow,
-        .react-datepicker__month-year-read-view--down-arrow {
-          border-color: var(--accent-600) !important;
-        }
-        .react-datepicker__month-dropdown,
-        .react-datepicker__year-dropdown,
-        .react-datepicker__month-year-dropdown {
-          border: 1px solid #CBD5E1 !important;
-          border-radius: 8px !important;
-        }
-        .react-datepicker__month-option:hover,
-        .react-datepicker__year-option:hover,
-        .react-datepicker__month-year-option:hover {
-          background: #E5E7EB !important;
-          color: #111827 !important;
-        }
       `}</style>
       <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
         <main style={{ padding:"24px", display:"flex", flexDirection:"column", gap:"20px", animation:"fadeSlideIn 0.5s ease" }}>
@@ -384,7 +326,8 @@ export default function Dashboard() {
                 dateFormat="dd MMM yyyy"
                 showMonthDropdown
                 showYearDropdown
-                dropdownMode="select"
+                dropdownMode="scroll"
+                popperPlacement="bottom-start"
                 maxDate={new Date(filters.dateTo)}
                 minDate={new Date("2024-01-01")}
                 customInput={
@@ -416,7 +359,8 @@ export default function Dashboard() {
                 dateFormat="dd MMM yyyy"
                 showMonthDropdown
                 showYearDropdown
-                dropdownMode="select"
+                dropdownMode="scroll"
+                popperPlacement="bottom-start"
                 minDate={new Date(filters.dateFrom)}
                 maxDate={new Date("2026-12-31")}
                 customInput={

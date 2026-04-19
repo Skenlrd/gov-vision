@@ -1,13 +1,3 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell
-} from "recharts"
 import type { IFeatureImportance } from "../types"
 
 interface Props {
@@ -23,7 +13,7 @@ const featureLabels: Record<string, string> = {
   hourOfDaySubmitted: "Submission Hour"
 }
 
-const barColors = ["#2563EB", "#3B82F6", "#06B6D4", "#14B8A6", "#6366F1", "#8B5CF6"]
+const BAR_COLORS = ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe", "#f5f3ff"]
 
 export default function FeatureImportanceChart({ data }: Props) {
   if (data.length === 0) {
@@ -32,7 +22,7 @@ export default function FeatureImportanceChart({ data }: Props) {
 
   const chartData = data.map(d => ({
     name: featureLabels[d.feature] || d.feature,
-    weight: d.weight
+    percentage: d.weight
   }))
 
   return (
@@ -42,25 +32,32 @@ export default function FeatureImportanceChart({ data }: Props) {
         borderRadius: "12px",
         border: "1px solid #E6EBF2",
         padding: "18px",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)"
       }}
     >
-      <h3 style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: 700, color: "#1F2937" }}>
+      <h3 style={{ margin: "0 0 16px", fontSize: "13px", fontWeight: 700, color: "#1F2937" }}>
         Feature Contribution to Anomalies (approximate)
       </h3>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart layout="vertical" data={chartData} margin={{ left: 8, right: 32 }}>
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <XAxis type="number" unit="%" domain={[0, 100]} tick={{ fontSize: 11 }} />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={112} />
-          <Tooltip />
-          <Bar dataKey="weight" radius={[0, 4, 4, 0]}>
-            {chartData.map((_, i) => (
-              <Cell key={i} fill={barColors[i % barColors.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {chartData.map((feature, index) => (
+          <div key={feature.name} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#4B5563" }}>
+              <span>{feature.name}</span>
+              <span style={{ fontFamily: "monospace" }}>{feature.percentage}%</span>
+            </div>
+            <div style={{ height: "10px", background: "#F3F4F6", borderRadius: "9999px", overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  borderRadius: "9999px",
+                  transition: "all 0.3s ease",
+                  width: `${feature.percentage}%`,
+                  backgroundColor: BAR_COLORS[index % BAR_COLORS.length]
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

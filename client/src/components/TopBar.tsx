@@ -162,24 +162,50 @@ export default function TopBar({ anomalyCount = 0, openViolations = 0 }: TopBarP
         {/* Divider */}
         <div style={{ width: "1px", height: "24px", background: "#E2E8F4", margin: "0 4px" }} />
 
-        {/* Avatar */}
-        <div
-          title="Admin"
-          style={{
-          minWidth: "56px", height: "36px",
-          borderRadius: "10px",
-          background: "linear-gradient(135deg, #3A3F48, #2A2F36)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: "white",
-          fontSize: "12px",
-          fontWeight: 700,
-          cursor: "pointer",
-          fontFamily: "'Outfit', sans-serif",
-          boxShadow: "0 2px 8px rgba(15,23,42,0.22)",
-          padding: "0 10px",
-          letterSpacing: "0.3px"
-        }}>
-          ADMIN
+        {/* Role Switcher Dropdown */}
+        <div style={{ position: "relative" }} className="role-switcher">
+          <select
+            value={localStorage.getItem("x_test_role") || "analyst"}
+            onChange={(e) => {
+              localStorage.setItem("x_test_role", e.target.value)
+              window.location.reload()
+            }}
+            style={{
+              height: "36px",
+              padding: "0 12px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #3A3F48, #2A2F36)",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "'Outfit', sans-serif",
+              border: "1px solid rgba(255,255,255,0.1)",
+              appearance: "none",
+              outline: "none",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              boxShadow: "0 2px 8px rgba(15,23,42,0.22)",
+              textAlign: "center",
+              minWidth: "100px"
+            }}
+          >
+            <option value="admin" style={{ color: "#1F2937", background: "white" }}>ADMIN</option>
+            <option value="manager" style={{ color: "#1F2937", background: "white" }}>MANAGER</option>
+            <option value="executive" style={{ color: "#1F2937", background: "white" }}>EXECUTIVE</option>
+            <option value="analyst" style={{ color: "#1F2937", background: "white" }}>ANALYST</option>
+          </select>
+          <div style={{
+            position: "absolute",
+            right: "10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            pointerEvents: "none",
+            color: "rgba(255,255,255,0.5)",
+            fontSize: "10px"
+          }}>
+            ▼
+          </div>
         </div>
       </div>
     </header>

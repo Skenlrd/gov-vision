@@ -21,14 +21,26 @@ const severityOptions = ["All", "Critical", "High", "Medium", "Low"]
 
 const DEPARTMENT_LABELS: Record<string, string> = {
   FI001: "Finance",
+  finance: "Finance",
+  Finance: "Finance",
+  HR001: "Human Resources",
   HR002: "Human Resources",
+  "human resources": "Human Resources",
+  OPS001: "Operations",
   OP003: "Operations",
+  operations: "Operations",
+  IT001: "Information Technology",
   IT004: "Information Technology",
-  CS005: "Customer Service"
+  "information technology": "Information Technology",
+  CS005: "Customer Service",
+  "customer service": "Customer Service",
+  LEGAL001: "Legal",
+  legal: "Legal"
 }
 
 function getDepartmentLabel(value: string): string {
-  return DEPARTMENT_LABELS[value] ?? value
+  if (!value) return "Unknown"
+  return DEPARTMENT_LABELS[value] || DEPARTMENT_LABELS[value.toLowerCase()] || value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 function flattenGroups(groups: IAnomalyGroup): IAnomaly[] {
@@ -356,7 +368,7 @@ export default function DeepInsights() {
             >
               <span style={{ fontSize: 12, color: "#94A3B8" }}>Home</span>
               <span style={{ color: "#CBD5E1", fontSize: 12 }}>›</span>
-              <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>Deep Insights</span>
+              <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>Anomaly Detection</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <div>
@@ -369,7 +381,7 @@ export default function DeepInsights() {
                     letterSpacing: "-0.6px"
                   }}
                 >
-                  Deep Insights
+                  Anomaly Detection
                 </h1>
                 <p style={{ margin: "5px 0 0", fontSize: 13, color: "#64748B" }}>
                   Detailed anomaly investigation with severity and department filtering.

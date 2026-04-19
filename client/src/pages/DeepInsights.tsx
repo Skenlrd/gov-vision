@@ -21,14 +21,26 @@ const severityOptions = ["All", "Critical", "High", "Medium", "Low"]
 
 const DEPARTMENT_LABELS: Record<string, string> = {
   FI001: "Finance",
+  finance: "Finance",
+  Finance: "Finance",
+  HR001: "Human Resources",
   HR002: "Human Resources",
+  "human resources": "Human Resources",
+  OPS001: "Operations",
   OP003: "Operations",
+  operations: "Operations",
+  IT001: "Information Technology",
   IT004: "Information Technology",
-  CS005: "Customer Service"
+  "information technology": "Information Technology",
+  CS005: "Customer Service",
+  "customer service": "Customer Service",
+  LEGAL001: "Legal",
+  legal: "Legal"
 }
 
 function getDepartmentLabel(value: string): string {
-  return DEPARTMENT_LABELS[value] ?? value
+  if (!value) return "Unknown"
+  return DEPARTMENT_LABELS[value] || DEPARTMENT_LABELS[value.toLowerCase()] || value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 function flattenGroups(groups: IAnomalyGroup): IAnomaly[] {
@@ -443,28 +455,28 @@ export default function DeepInsights() {
               label="Critical"
               value={anomalyData.Critical.length}
               sub="Needs immediate action"
-              subColor="#F87171"
-              accentColor="#B91C1C"
-              accentBg="#FFF5F5"
-              accentBorder="#FECACA"
+              subColor="#DE6D6D"
+              accentColor="#9C2F2F"
+              accentBg="#FADDDD"
+              accentBorder="#E8A9A9"
             />
             <StatCard
               label="High"
               value={anomalyData.High.length}
               sub="Review within 24h"
-              subColor="#FB923C"
-              accentColor="#C2410C"
-              accentBg="#FFF8F0"
-              accentBorder="#FED7AA"
+              subColor="#E08C3E"
+              accentColor="#9C4A00"
+              accentBg="#FDE9D6"
+              accentBorder="#E9BC92"
             />
             <StatCard
               label="Medium / Low"
               value={anomalyData.Medium.length + anomalyData.Low.length}
               sub="Monitor & schedule"
-              subColor="#4ADE80"
-              accentColor="#15803D"
-              accentBg="#F0FDF4"
-              accentBorder="#BBF7D0"
+              subColor="#FFC107"
+              accentColor="#8A6A00"
+              accentBg="#FFF6CC"
+              accentBorder="#F2D979"
             />
           </div>
 

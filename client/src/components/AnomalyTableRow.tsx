@@ -3,14 +3,26 @@ import type { IAnomaly } from "../types"
 
 const DEPARTMENT_LABELS: Record<string, string> = {
   FI001: "Finance",
+  finance: "Finance",
+  Finance: "Finance",
+  HR001: "Human Resources",
   HR002: "Human Resources",
+  "human resources": "Human Resources",
+  OPS001: "Operations",
   OP003: "Operations",
+  operations: "Operations",
+  IT001: "Information Technology",
   IT004: "Information Technology",
-  CS005: "Customer Service"
+  "information technology": "Information Technology",
+  CS005: "Customer Service",
+  "customer service": "Customer Service",
+  LEGAL001: "Legal",
+  legal: "Legal"
 }
 
 function getDepartmentLabel(value: string): string {
-  return DEPARTMENT_LABELS[value] ?? value
+  if (!value) return "Unknown"
+  return DEPARTMENT_LABELS[value] || DEPARTMENT_LABELS[value.toLowerCase()] || value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 interface Props {
@@ -19,18 +31,18 @@ interface Props {
 }
 
 const severityColors: Record<string, string> = {
-  Critical: "#FEE2E2",
-  High: "#FBE8D6",
-  Medium: "#F5E8D7",
-  Low: "#E8E2D8",
+  Critical: "#FADDDD",
+  High: "#FDE9D6",
+  Medium: "#FFF6CC",
+  Low: "#DDF3E5",
   Normal: "#E5E7EB"
 }
 
 const severityText: Record<string, string> = {
-  Critical: "#991B1B",
-  High: "#8A4B10",
-  Medium: "#7A5330",
-  Low: "#5C4A36",
+  Critical: "#9C2F2F",
+  High: "#9C4A00",
+  Medium: "#8A6A00",
+  Low: "#2E7D32",
   Normal: "#374151"
 }
 
