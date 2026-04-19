@@ -16,4 +16,6 @@ ml_service/models/*.pkl
 
 # local testing notes
 TestNotes.md
+# Ignore large XES file
+server/scripts/BPI Challenge 2017.xes
 
