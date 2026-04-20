@@ -17,7 +17,8 @@ ml_service/models/*.pkl
 # local testing notes
 TestNotes.md
 # Ignore large XES file
-server/scripts/BPI Challenge 2017.xes
+server/Dataset/BPI Challenge 2017.xes
+server/Dataset/AI_Workflow_Optimization_Dataset_2500_Rows_v1.csv
 
 # VS Code settings
 .vscode/
