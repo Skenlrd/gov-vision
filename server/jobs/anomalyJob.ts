@@ -21,15 +21,11 @@ interface ILeanDecision {
 export async function runAnomalyDetection(): Promise<void> {
 	console.log("[AnomalyJob] Starting anomaly detection run...")
 
-	const thirtyDaysAgo = new Date()
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
 	const decisions = await m1Decision.find({
-		completedAt: { $exists: true, $ne: null },
-		createdAt: { $gte: thirtyDaysAgo }
+		completedAt: { $exists: true, $ne: null }
 	})
 		.select(
-			"_id cycleTimeHours rejectionCount revisionCount daysOverSLA stageCount hourOfDaySubmitted department"
+			"_id cycleTimeHours rejectionCount revisionCount daysOverSLA department"
 		)
 		.lean<ILeanDecision[]>()
 
@@ -45,9 +41,7 @@ export async function runAnomalyDetection(): Promise<void> {
 		cycleTimeHours: d.cycleTimeHours || 0,
 		rejectionCount: d.rejectionCount || 0,
 		revisionCount: d.revisionCount || 0,
-		daysOverSLA: d.daysOverSLA || 0,
-		stageCount: d.stageCount || 0,
-		hourOfDaySubmitted: d.hourOfDaySubmitted || 0
+		daysOverSLA: d.daysOverSLA || 0
 	}))
 
 	let results: Array<{
@@ -81,9 +75,7 @@ export async function runAnomalyDetection(): Promise<void> {
 				cycleTimeHours: original.cycleTimeHours || 0,
 				rejectionCount: original.rejectionCount || 0,
 				revisionCount: original.revisionCount || 0,
-				daysOverSLA: original.daysOverSLA || 0,
-				stageCount: original.stageCount || 0,
-				hourOfDaySubmitted: original.hourOfDaySubmitted || 0
+				daysOverSLA: original.daysOverSLA || 0
 			}
 			: {}
 

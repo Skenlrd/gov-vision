@@ -54,8 +54,8 @@ def require_service_key(x_service_key: str = Header(...)):
 # ---------------------------------------------------------------------------
 # Request models
 # ---------------------------------------------------------------------------
-class AnomalyRequest(BaseModel):
-    """All feature fields are optional; missing values default to 0."""
+class AnomalyItem(BaseModel):
+    """Single decision item for anomaly scoring."""
     id: str = "unknown"
     cycleTimeHours: float = 0.0
     rejectionCount: float = 0.0
@@ -63,6 +63,10 @@ class AnomalyRequest(BaseModel):
     daysOverSLA: float = 0.0
     stageCount: float = 0.0
     hourOfDaySubmitted: float = 0.0
+
+class AnomalyRequest(BaseModel):
+    """Batch of decisions for anomaly scoring."""
+    decisions: List[AnomalyItem]
 
 
 class ForecastRequest(BaseModel):
@@ -97,13 +101,11 @@ class ForecastResponse(BaseModel):
 
 class RiskFeature(BaseModel):
     dept: str
-    violationCount: float = 0
-    openViolationRate: float = 0
-    avgCompositeRisk: float = 0
-    overdueCount: float = 0
-    complianceRate: float = 75
-    policyBreachFreq: float = 0
-    escalationCount: float = 0
+    hourOfDaySubmitted: float = 0
+    revisionCount: float = 0
+    stageCount: float = 0
+    department: str = "unknown"
+    priority: str = "normal"
 
 
 class RiskScoreRequest(BaseModel):
@@ -122,13 +124,15 @@ def health():
 @app.post("/ml/anomaly/predict", dependencies=[Depends(require_service_key)])
 def anomaly_predict(body: AnomalyRequest):
     """
-    Score a single decision document for anomalies.
+    Score a batch of decision documents for anomalies.
 
     Requires header:  x-service-key: <SERVICE_KEY>
     """
-    from app.services.anomaly_service import detect_anomaly
+    from app.services.anomaly_service import detect_anomalies_batch
 
-    return detect_anomaly(body.model_dump())
+    # Convert list of Pydantic models to list of dicts
+    items = [item.model_dump() for item in body.decisions]
+    return {"results": detect_anomalies_batch(items)}
 
 
 @app.post("/ml/models/train", dependencies=[Depends(require_service_key)])

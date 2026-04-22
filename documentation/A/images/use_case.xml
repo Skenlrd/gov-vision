@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="draw.io" modified="2026-04-19T00:00:00.000Z" agent="GovVision" etag="uc_v2" version="24.0" type="device">
+  <diagram name="Use Case Diagram" id="uc_v2_001">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== TITLE ===== -->
+        <mxCell id="title" value="Use Case Diagram — Analytics, Reporting &amp; AI/ML Monitoring System" style="text;html=1;fontSize=16;fontStyle=1;fontColor=#000000;align=center;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="1050" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ===== SYSTEM BOUNDARY ===== -->
+        <mxCell id="boundary" value="Analytics, Reporting &amp; AI/ML Monitoring System" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=none;strokeWidth=2;dashed=1;dashPattern=10 5;verticalAlign=top;align=left;spacingLeft=10;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="220" y="70" width="1100" height="1040" as="geometry" />
+        </mxCell>
+
+        <!-- ===== HUMAN ACTORS (LEFT) ===== -->
+        <!-- Admin -->
+        <mxCell id="actor_admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="130" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- Analyst -->
+        <mxCell id="actor_analyst" value="Analyst" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="380" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- Compliance Officer -->
+        <mxCell id="actor_co" value="Compliance&#xa;Officer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="680" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- ===== EXTERNAL SYSTEM ACTORS (RIGHT) ===== -->
+        <!-- Decision Management System -->
+        <mxCell id="actor_m1" value="Decision&#xa;Management&#xa;System" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="160" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- Compliance Engine -->
+        <mxCell id="actor_m2" value="Compliance&#xa;Engine" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="500" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- Python ML Service -->
+        <mxCell id="actor_ml" value="Python&#xa;ML Service" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;fontColor=#000000;strokeColor=#000000;fillColor=#FFFFFF;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="780" width="44" height="66" as="geometry" />
+        </mxCell>
+
+        <!-- ===== GROUP A: DASHBOARD & ANALYTICS USE CASES (Row 1-2) ===== -->
+        <!-- UC1 -->
+        <mxCell id="uc01" value="View Executive&#xa;Dashboard" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontStyle=0;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC2 -->
+        <mxCell id="uc02" value="View Decision&#xa;Volume Analytics" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="120" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC3 -->
+        <mxCell id="uc03" value="View Compliance&#xa;Trend Analytics" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="120" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC4 -->
+        <mxCell id="uc04" value="Apply Department&#xa;&amp; Date Filters" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#DAEAF6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="120" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- UC5 -->
+        <mxCell id="uc05" value="View AI Anomaly&#xa;Alerts" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="270" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC6 -->
+        <mxCell id="uc06" value="Acknowledge&#xa;Anomaly Alert" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="270" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC7 -->
+        <mxCell id="uc07" value="View Predictive&#xa;Delay Forecast" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="270" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC8 -->
+        <mxCell id="uc08" value="View Risk Score&#xa;Dashboard" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="270" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ===== GROUP B: REPORT USE CASES (Row 3-4) ===== -->
+        <!-- UC9 -->
+        <mxCell id="uc09" value="Generate Report&#xa;(PDF / Excel / CSV)" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="450" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC10 -->
+        <mxCell id="uc10" value="Download&#xa;Generated Report" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="450" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC11 -->
+        <mxCell id="uc11" value="Manage Automated&#xa;Report Schedules" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="450" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC12 -->
+        <mxCell id="uc12" value="View Report&#xa;History" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#D9EEDA;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="450" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- UC13 -->
+        <mxCell id="uc13" value="View Department&#xa;Performance" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E8E4E0;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="620" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC14 -->
+        <mxCell id="uc14" value="View AI / ML&#xa;Insights Panel" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E4DAEE;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="620" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC15 -->
+        <mxCell id="uc15" value="Configure KPI&#xa;Thresholds" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E8E4E0;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="620" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC16 -->
+        <mxCell id="uc16" value="Trigger AI Model&#xa;Retraining" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#E8E4E0;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="620" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ===== SYSTEM INTEGRATION USE CASES (Row 5) ===== -->
+        <!-- UC17 -->
+        <mxCell id="uc17" value="Receive Decision&#xa;State Webhook" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#F0E8D6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="820" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC18 -->
+        <mxCell id="uc18" value="Fetch Compliance&#xa;Risk Features" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#F0E8D6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="700" y="820" width="170" height="65" as="geometry" />
+        </mxCell>
+        <!-- UC19 -->
+        <mxCell id="uc19" value="Run ML Prediction&#xa;Pipeline" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;strokeColor=#000000;fillColor=#F0E8D6;strokeWidth=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="980" y="820" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ===== ADMIN ASSOCIATIONS ===== -->
+        <mxCell id="e_adm_uc01" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_admin" target="uc01" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_adm_uc15" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_admin" target="uc15" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_adm_uc16" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_admin" target="uc16" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== ANALYST ASSOCIATIONS ===== -->
+        <mxCell id="e_an_uc01" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc01" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc02" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc02" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc05" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc05" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc06" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc06" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc07" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc07" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc08" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc08" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc09" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc09" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc10" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc11" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc11" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc13" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc13" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an_uc14" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_analyst" target="uc14" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== COMPLIANCE OFFICER ASSOCIATIONS ===== -->
+        <mxCell id="e_co_uc03" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_co" target="uc03" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_co_uc09" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_co" target="uc09" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_co_uc12" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_co" target="uc12" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== EXTERNAL SYSTEM ASSOCIATIONS ===== -->
+        <mxCell id="e_m1_uc17" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_m1" target="uc17" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m2_uc18" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_m2" target="uc18" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ml_uc19" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=none;" edge="1" source="actor_ml" target="uc19" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== INCLUDE / EXTEND RELATIONSHIPS ===== -->
+        <mxCell id="inc_09_10" value="&lt;i&gt;&lt;&lt;include&gt;&gt;&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=8 4;strokeColor=#000000;strokeWidth=1.5;endArrow=open;endSize=10;fontSize=10;" edge="1" source="uc09" target="uc10" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_05_06" value="&lt;i&gt;&lt;&lt;extend&gt;&gt;&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=8 4;strokeColor=#000000;strokeWidth=1.5;endArrow=open;endSize=10;fontSize=10;" edge="1" source="uc06" target="uc05" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc_17_01" value="&lt;i&gt;&lt;&lt;include&gt;&gt;&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=8 4;strokeColor=#000000;strokeWidth=1.5;endArrow=open;endSize=10;fontSize=10;" edge="1" source="uc17" target="uc01" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc_19_14" value="&lt;i&gt;&lt;&lt;include&gt;&gt;&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=8 4;strokeColor=#000000;strokeWidth=1.5;endArrow=open;endSize=10;fontSize=10;" edge="1" source="uc19" target="uc14" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

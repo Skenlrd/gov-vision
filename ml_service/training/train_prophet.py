@@ -20,6 +20,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 from prophet import Prophet
 from pymongo import MongoClient
 
@@ -210,6 +211,24 @@ def _fit_and_save_model(dept_id: str, target: str, daily: pd.DataFrame, prefix: 
 		changepoint_prior_scale=0.05,
 	)
 	model.fit(daily)
+
+	# --- VISUAL DIAGNOSTICS (Org-level Volume only) ---
+	if dept_id == "org" and target == "volume":
+		print(f"\nGenerating visual diagnostics for Org-level Volume...")
+		future = model.make_future_dataframe(periods=90)
+		forecast = model.predict(future)
+		
+		# Chart 1: Main Forecast
+		fig1 = model.plot(forecast)
+		plt.title("Chart 1: Org-Level Volume Forecast (90-Day Outlook)")
+		plt.xlabel("Date")
+		plt.ylabel("Decision Volume")
+		plt.show()
+		
+		# Chart 2: Components (Seasonality)
+		fig2 = model.plot_components(forecast)
+		fig2.suptitle("Chart 2: Forecast Components (Trends & Seasonality)", y=1.02)
+		plt.show()
 
 	safe_dept_id = dept_id.replace("/", "_").replace(" ", "_")
 	path = MODELS_DIR / f"{prefix}_{safe_dept_id}.pkl"

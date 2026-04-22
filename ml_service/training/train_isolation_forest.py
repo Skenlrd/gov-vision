@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
@@ -27,8 +28,6 @@ FEATURE_COLUMNS = [
     "rejectionCount",
     "revisionCount",
     "daysOverSLA",
-    "stageCount",
-    "hourOfDaySubmitted",
 ]
 
 
@@ -50,7 +49,7 @@ def print_kv(label, value, width=30):
 
 
 def resolve_contamination():
-    raw_value = os.getenv("IF_CONTAMINATION", "0.06").strip().lower()
+    raw_value = os.getenv("IF_CONTAMINATION", "0.05").strip().lower()
     if raw_value == "auto":
         return "auto"
 
@@ -286,8 +285,6 @@ ax2.set_xticklabels(
         "rejection\ncount",
         "revision\ncount",
         "days over\nSLA",
-        "stage\ncount",
-        "submission\nhour",
     ],
     fontsize=8,
 )
@@ -318,28 +315,24 @@ ax3.set_title("Chart 3: Sanity Test Cases", fontsize=12)
 
 sanity_profiles = [
     {
-        "label": "Normal baseline\n(4h, 0 rej)",
-        "features": [4, 0, 1, 0, 2, 10],
+        "label": "Normal baseline\n(120h, 0 rej)",
+        "features": [120, 0, 0, 0],
     },
     {
-        "label": "Normal high-work\n(12h, 2 rej)",
-        "features": [12, 2, 4, 0.4, 2, 14],
+        "label": "Normal busy\n(200h, 1 rej)",
+        "features": [200, 1, 1, 0],
     },
     {
-        "label": "Borderline delay\n(22h, 3 rej)",
-        "features": [22, 3, 5, 1.1, 3, 11],
+        "label": "Borderline delay\n(350h, 3 rej)",
+        "features": [350, 3, 3, 2.0],
     },
     {
-        "label": "Elevated risk\n(46h, 6 rej)",
-        "features": [46, 6, 8, 2.8, 3, 9],
+        "label": "Elevated risk\n(500h, 5 rej)",
+        "features": [500, 5, 5, 5.0],
     },
     {
-        "label": "Critical late-night\n(58h, 9 rej)",
-        "features": [58, 9, 11, 5.6, 3, 2],
-    },
-    {
-        "label": "Critical combined\n(148h, 12 rej)",
-        "features": [148, 12, 14, 11.5, 3, 1],
+        "label": "Critical delay\n(650h, 8 rej)",
+        "features": [650, 8, 8, 12.0],
     },
 ]
 
@@ -449,21 +442,25 @@ ax4.text(
 plt.tight_layout()
 plt.show()
 
-# Chart 5 - Scatter map of cycle time vs rejection count.
+# Chart 5 - Scatter map: cycle time (log) vs rejection count, colored by anomaly score.
 fig5, ax5 = plt.subplots(figsize=(9, 5.5))
 ax5.set_title("Chart 5: Scatter Map (Cycle Time vs Rejection Count)", fontsize=12)
 
+rng5 = np.random.default_rng(42)
+jittered_rej = df["rejectionCount"].values + rng5.uniform(-0.2, 0.2, size=len(df))
+
 sc = ax5.scatter(
     df["cycleTimeHours"],
-    df["rejectionCount"],
+    jittered_rej,
     c=norm_scores,
     cmap="magma",
     s=18,
     alpha=0.8,
     edgecolors="none",
 )
-ax5.set_xlabel("Cycle time (hours)", fontsize=10)
-ax5.set_ylabel("Rejection count", fontsize=10)
+ax5.set_xscale("log")
+ax5.set_xlabel("Cycle time (hours, log scale)", fontsize=10)
+ax5.set_ylabel("Rejection count (jittered)", fontsize=10)
 ax5.grid(linestyle="--", alpha=0.3)
 
 cbar = plt.colorbar(sc, ax=ax5)

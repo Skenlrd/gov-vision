@@ -10,21 +10,18 @@ import pandas as pd
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "risk"
 MODEL_PATH = MODELS_DIR / "random_forest.pkl"
 
+# Matches train_random_forest.py
 FEATURE_COLS = [
-	"violationCount",
-	"openViolationRate",
-	"avgCompositeRisk",
-	"overdueCount",
-	"complianceRate",
-	"policyBreachFreq",
-	"escalationCount",
+    "hourOfDaySubmitted",
+    "revisionCount",
+    "stageCount",
+    "department",
+    "priority"
 ]
 
 LEVEL_MAP = {
-	0: "low",
-	1: "medium",
-	2: "high",
-	3: "critical",
+    0: "low",
+    1: "high", # Binary model: 0=Safe, 1=At Risk (mapped to high)
 }
 
 
@@ -32,17 +29,18 @@ def _load_model():
 	if not MODEL_PATH.exists():
 		raise FileNotFoundError(
 			f"random_forest.pkl not found at {MODEL_PATH}. "
-			"Run: python training/train_risk_model.py"
+			"Run: python training/train_random_forest.py"
 		)
 	return joblib.load(MODEL_PATH)
 
 
 def _normalize_features(features: list[dict]) -> pd.DataFrame:
-	frame = pd.DataFrame(features)
-	for col in FEATURE_COLS:
-		if col not in frame.columns:
-			frame[col] = 0
-	return frame[FEATURE_COLS].fillna(0)
+    frame = pd.DataFrame(features)
+    # Ensure all required columns exist, even if as None/NaN
+    for col in FEATURE_COLS:
+        if col not in frame.columns:
+            frame[col] = None
+    return frame[FEATURE_COLS]
 
 
 def score_departments(features: list[dict]) -> list[dict]:
@@ -57,13 +55,14 @@ def score_departments(features: list[dict]) -> list[dict]:
 	results: list[dict] = []
 	for index, row in enumerate(features):
 		predicted_class = int(predictions[index])
-		confidence = float(probabilities[index][predicted_class])
-		raw_score = (predicted_class / 3.0) * 70.0 + confidence * 30.0
+		# Use the probability of being 'At Risk' (class 1) as the base score
+		at_risk_prob = float(probabilities[index][1])
+		risk_score = at_risk_prob * 100.0
 
 		results.append(
 			{
 				"dept": row.get("dept", "unknown"),
-				"score": round(raw_score, 1),
+				"score": round(risk_score, 1),
 				"level": LEVEL_MAP[predicted_class],
 				"featureImportance": {
 					name: round(float(importance), 4)

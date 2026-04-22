@@ -25,8 +25,6 @@ FEATURE_COLUMNS = [
     "rejectionCount",
     "revisionCount",
     "daysOverSLA",
-    "stageCount",
-    "hourOfDaySubmitted",
 ]
 
 
@@ -58,39 +56,43 @@ def _get_severity(is_anomaly: bool, anomaly_score: float) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 def detect_anomaly(payload: dict) -> dict:
+    """Score a single decision document for anomalies (backward compat)."""
+    results = detect_anomalies_batch([payload])
+    return results[0]
+
+
+def detect_anomalies_batch(payloads: list[dict]) -> list[dict]:
     """
-    Score a single decision document for anomalies.
-
-    Expected payload keys (all numeric, all optional – missing → 0):
-        cycleTimeHours, rejectionCount, revisionCount,
-        daysOverSLA, stageCount, hourOfDaySubmitted
-
-    Returns:
-        id            – echoed from payload
-        anomalyScore  – float in [0, 1]; higher = more anomalous
-        isAnomaly     – bool
-        severity      – "Normal" | "Low" | "Medium" | "High" | "Critical"
+    Score a batch of decision documents for anomalies.
+    Returns: list of results with anomalyScore, isAnomaly, and severity.
     """
-    # Build feature vector in the same column order as training
-    features = np.array(
-        [[_to_float(payload.get(col), 0.0) for col in FEATURE_COLUMNS]]
-    )
+    if not payloads:
+        return []
 
-    # Scale using the FITTED scaler (never fit_transform during inference)
-    features_scaled = _scaler.transform(features)
+    # Build feature matrix in the same column order as training
+    X = np.array([
+        [_to_float(p.get(col), 0.0) for col in FEATURE_COLUMNS]
+        for p in payloads
+    ])
 
-    # decision_function: positive → normal, negative → anomalous
-    # Typical range ≈ [-0.5, +0.5]
-    raw_score: float = float(_model.decision_function(features_scaled)[0])
-    is_anomaly: bool = bool(_model.predict(features_scaled)[0] == -1)
+    # Scale and score
+    X_scaled = _scaler.transform(X)
+    raw_scores = _model.decision_function(X_scaled)
+    predictions = _model.predict(X_scaled)
 
-    # Normalise to [0, 1] where 1.0 = most anomalous
-    # Maps +0.5 → 0.0,  0.0 → 0.5,  -0.5 → 1.0
-    anomaly_score: float = round(max(0.0, min(1.0, (0.5 - raw_score) / 1.0)), 4)
+    results = []
+    for i, payload in enumerate(payloads):
+        # Normalise to [0, 1] where 1.0 = most anomalous
+        # Typical raw_score range is [-0.5, 0.5]
+        score = float(raw_scores[i])
+        is_anomaly = bool(predictions[i] == -1)
+        norm_score = round(max(0.0, min(1.0, (0.5 - score) / 1.0)), 4)
 
-    return {
-        "id": payload.get("id", "unknown"),
-        "anomalyScore": anomaly_score,
-        "isAnomaly": is_anomaly,
-        "severity": _get_severity(is_anomaly, anomaly_score),
-    }
+        results.append({
+            "id": payload.get("id", "unknown"),
+            "anomalyScore": norm_score,
+            "isAnomaly": is_anomaly,
+            "severity": _get_severity(is_anomaly, norm_score),
+        })
+
+    return results

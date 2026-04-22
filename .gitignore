@@ -48,3 +48,6 @@ yarn.lock
 .mypy_cache/
 coverage.xml
 
+# Redundant/archived files
+redundant/
+

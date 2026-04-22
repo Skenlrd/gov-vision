@@ -4,15 +4,15 @@ import axios from "axios"
 import KPI_Snapshot from "../models/KPI_Snapshot"
 import { invalidate } from "../services/cacheService"
 
+import m1Decision from "../models/m1Decisions"
+
 type RiskFeatureVector = {
 	dept: string
-	violationCount: number
-	openViolationRate: number
-	avgCompositeRisk: number
-	overdueCount: number
-	complianceRate: number
-	policyBreachFreq: number
-	escalationCount: number
+	hourOfDaySubmitted: number
+	revisionCount: number
+	stageCount: number
+	department: string
+	priority: string
 }
 
 type RiskScore = {
@@ -22,41 +22,43 @@ type RiskScore = {
 	featureImportance?: Record<string, number>
 }
 
-function toNumber(value: unknown, fallback = 0): number {
-	const parsed = Number(value)
-	return Number.isFinite(parsed) ? parsed : fallback
-}
-
 export async function runRiskScoringJob(): Promise<void> {
 	console.log("[RiskJob] Starting risk scoring run...")
 
-	const departments = await KPI_Snapshot.distinct("departmentId") as Array<string | null>
+	const departments = await m1Decision.distinct("department") as Array<string | null>
 	const filteredDepartments = Array.from(
 		new Set(departments.filter((dept): dept is string => typeof dept === "string" && dept.length > 0))
 	)
 
 	if (filteredDepartments.length === 0) {
-		console.log("[RiskJob] No departments found in KPI snapshots. Skipping run.")
+		console.log("[RiskJob] No departments found in decisions. Skipping run.")
 		return
 	}
 
 	const features: RiskFeatureVector[] = []
 
 	for (const dept of filteredDepartments) {
-		const snapshot = await KPI_Snapshot
-			.findOne({ departmentId: dept })
-			.sort({ snapshotDate: -1 })
-			.lean() as Record<string, unknown> | null
+		// Calculate averages for this department from m1_decisions
+		const stats = await m1Decision.aggregate([
+			{ $match: { department: dept } },
+			{
+				$group: {
+					_id: "$department",
+					avgRevisions: { $avg: "$revisionCount" },
+					avgStages: { $avg: "$stageCount" },
+					avgHour: { $avg: "$hourOfDaySubmitted" }
+				}
+			}
+		])
 
+		const s = stats[0] || {}
 		features.push({
 			dept,
-			violationCount: toNumber(snapshot?.violationCount),
-			openViolationRate: toNumber(snapshot?.openViolationRate ?? snapshot?.openViolationsRate),
-			avgCompositeRisk: toNumber(snapshot?.avgCompositeRisk ?? snapshot?.riskScore),
-			overdueCount: toNumber(snapshot?.overdueCount ?? snapshot?.overdueApprovalCount),
-			complianceRate: toNumber(snapshot?.complianceRate, 75),
-			policyBreachFreq: toNumber(snapshot?.policyBreachFreq ?? snapshot?.policyBreachFrequency),
-			escalationCount: toNumber(snapshot?.escalationCount),
+			hourOfDaySubmitted: s.avgHour || 12,
+			revisionCount: s.avgRevisions || 0,
+			stageCount: s.avgStages || 1,
+			department: dept,
+			priority: "normal" // Default to normal for aggregate scoring
 		})
 	}
 
