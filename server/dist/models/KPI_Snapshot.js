@@ -123,9 +123,20 @@ const kpiSnapshotSchema = new mongoose_1.Schema({
         type: String,
         enum: ["low", "medium", "high", "critical"],
         default: "low"
+    },
+    // Filled in later by risk scoring cron job (Day 10)
+    featureImportance: {
+        type: mongoose_1.Schema.Types.Mixed,
+        default: null
+    },
+    // Data source for filtering
+    source: {
+        type: String,
+        default: "ai_workflow"
     }
 }, {
-    collection: "m3_kpi_snapshots"
+    collection: "m3_kpi_snapshots",
+    timestamps: true
 });
 // Compound index so upsert matching is fast
 kpiSnapshotSchema.index({ departmentId: 1, snapshotDate: 1 });

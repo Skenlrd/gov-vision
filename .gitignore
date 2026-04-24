@@ -1,53 +1,128 @@
-# environment variables
+# ============================================
+# GovVision - Single Root .gitignore
+# ============================================
+
+# ============================================
+# ENVIRONMENT VARIABLES (NEVER COMMIT SECRETS)
+# ============================================
+.env
+.env.local
+.env.*.local
 server/.env
+ml_service/.env
+client/.env
 
-# node modules
+# Config folder (contains env files)
+config/
+
+# ============================================
+# NODE / JAVASCRIPT
+# ============================================
+# Dependencies
 node_modules/
-
-# logs
-*.log
-
-# python cache
-__pycache__/
-*.pyc
-
-# ml model artifacts
-ml_service/models/*.pkl
-
-# local testing notes
-TestNotes.md
-# Ignore large XES file
-server/Dataset/BPI Challenge 2017.xes
-server/Dataset/AI_Workflow_Optimization_Dataset_2500_Rows_v1.csv
-
-# VS Code settings
-.vscode/
 
 # Build outputs
 dist/
+dist-ssr/
 build/
 server/dist/
+client/dist/
 
-# Python virtual environments
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Package locks (optional - some teams commit these)
+# package-lock.json
+# yarn.lock
+
+# ============================================
+# PYTHON
+# ============================================
+# Virtual environments
 .venv/
 env/
+venv/
+ENV/
 
-# Jupyter notebook checkpoints
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter
 .ipynb_checkpoints/
 
-# Package lock files
-package-lock.json
-yarn.lock
+# ============================================
+# ML SERVICE
+# ============================================
+# Model artifacts
+ml_service/models/*.pkl
+ml_service/models/*.joblib
 
-# OS files
+# ============================================
+# SERVER SPECIFIC
+# ============================================
+# Generated reports
+server/generated_reports/
+*.xes
+server/Dataset/*.xes
+server/Dataset/*.csv
+
+# ============================================
+# CLIENT SPECIFIC (Vite/React)
+# ============================================
+*.local
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ============================================
+# EDITORS / IDES
+# ============================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================
+# OS FILES
+# ============================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+Thumbs.db
 
-# Test/coverage caches
+# ============================================
+# TESTING / COVERAGE
+# ============================================
 .coverage
 .pytest_cache/
 .mypy_cache/
 coverage.xml
+htmlcov/
 
-# Redundant/archived files
+# ============================================
+# PROJECT SPECIFIC
+# ============================================
+# Testing notes
+TestNotes.md
+
+# Archived files
 redundant/
 

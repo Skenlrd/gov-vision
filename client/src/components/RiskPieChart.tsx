@@ -9,7 +9,9 @@ interface Props {
 export default function RiskPieChart({ data }: Props) {
   const ALL_LEVELS = ["Low", "Medium", "High", "Critical"] as const
 
-  const totals = data.reduce(
+  const filteredDataForPie = data.filter(d => d.department !== "Organization Wide")
+
+  const totals = filteredDataForPie.reduce(
     (acc, row) => ({
       Low: acc.Low + (row.Low || 0),
       Medium: acc.Medium + (row.Medium || 0),

@@ -12,8 +12,6 @@ const FORECAST_TARGETS = [
   'delay',
   'approval_rate',
   'rejection_rate',
-  'pending_workload',
-  'sla_misses',
 ] as const;
 
 type ForecastTarget = (typeof FORECAST_TARGETS)[number];
@@ -34,7 +32,8 @@ router.get(
     const cacheKey = `m3:kpi:org:${today}`;
     const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
     const startDate = dateFrom ? new Date(dateFrom) : new Date('2024-01-01');
-    const endDate = dateTo ? new Date(dateTo) : new Date();
+    let endDate = dateTo ? new Date(dateTo) : new Date();
+    if (dateTo) endDate.setHours(23, 59, 59, 999);
 
     try {
       const data = await getOrSet(cacheKey, 300, () =>
@@ -63,7 +62,8 @@ router.get(
     const cacheKey = `m3:kpi:${deptId}:${today}`;
     const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
     const startDate = dateFrom ? new Date(dateFrom) : new Date('2024-01-01');
-    const endDate = dateTo ? new Date(dateTo) : new Date();
+    let endDate = dateTo ? new Date(dateTo) : new Date();
+    if (dateTo) endDate.setHours(23, 59, 59, 999);
 
     try {
       const data = await getOrSet(cacheKey, 300, () =>
@@ -104,7 +104,7 @@ router.get(
         };
 
         const format = formatMap[granularity] || '%Y-%m-%d';
-        const matchStage: any = {};
+        const matchStage: any = { source: 'ai_workflow' };
 
         if (dateFrom) matchStage.createdAt = { $gte: new Date(dateFrom) };
         if (dateTo) matchStage.createdAt = { ...matchStage.createdAt, $lte: new Date(dateTo) };
@@ -150,7 +150,7 @@ router.get(
 
     try {
       const data = await getOrSet(cacheKey, 300, async () => {
-        const match: any = { completedAt: { $exists: true, $ne: null } };
+        const match: any = { completedAt: { $exists: true, $ne: null }, source: 'ai_workflow' };
         if (deptId) match.departmentId = deptId;
 
         const decisions = await m1Decision
@@ -205,19 +205,30 @@ router.get(
         const match: any = {};
         if (dateFrom) match.snapshotDate = { $gte: new Date(dateFrom) };
         if (dateTo) match.snapshotDate = { ...match.snapshotDate, $lte: new Date(dateTo) };
-        if (deptIds) match.department = { $in: deptIds.split(',') };
+        
+        if (deptIds) {
+          match.departmentId = { $in: deptIds.split(',') };
+        }
+        // No filter if no deptIds, so it includes ORG and all departments
 
-        return KPISnapshot.aggregate([
+        const results = await KPISnapshot.aggregate([
           { $match: match },
           { $sort: { snapshotDate: 1 } },
           {
             $group: {
-              _id: '$department',
+              _id: '$departmentName',
               data: { $push: { date: '$snapshotDate', complianceRate: '$complianceRate' } },
             },
           },
           { $project: { department: '$_id', data: 1, _id: 0 } },
         ]).exec();
+
+        // Sort so "Organization Wide" is always first in the legend
+        return results.sort((a: any, b: any) => {
+          if (a.department === "Organization Wide") return -1;
+          if (b.department === "Organization Wide") return 1;
+          return 0;
+        });
       });
 
       return res.json(data);
@@ -246,12 +257,12 @@ router.get(
         if (dateFrom) match.snapshotDate = { $gte: new Date(dateFrom) };
         if (dateTo) match.snapshotDate = { ...match.snapshotDate, $lte: new Date(dateTo) };
 
-        return KPISnapshot.aggregate([
+        const results = await KPISnapshot.aggregate([
           { $match: match },
           { $sort: { snapshotDate: -1 } },
           {
             $group: {
-              _id: '$departmentId',
+              _id: '$departmentName',
               Low: { $sum: { $cond: [{ $eq: ['$riskLevel', 'low'] }, 1, 0] } },
               Medium: { $sum: { $cond: [{ $eq: ['$riskLevel', 'medium'] }, 1, 0] } },
               High: { $sum: { $cond: [{ $eq: ['$riskLevel', 'high'] }, 1, 0] } },
@@ -276,6 +287,13 @@ router.get(
             },
           },
         ]).exec();
+
+        // Sort so "Organization Wide" is always first
+        return results.sort((a: any, b: any) => {
+          if (a.department === "Organization Wide") return -1;
+          if (b.department === "Organization Wide") return 1;
+          return 0;
+        });
       });
 
       return res.json(data);

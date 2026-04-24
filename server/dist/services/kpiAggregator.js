@@ -23,6 +23,10 @@ function getSlaDays(decision) {
         return slaDays;
     }
     const stageCount = Number(decision.stageCount ?? 1);
+    const priority = String(decision.priority ?? "normal").toLowerCase();
+    if (stageCount === 1 && priority === 'high') {
+        return 1;
+    }
     return Math.max(1, stageCount * 2);
 }
 function getPendingDaysOverSLA(decision, now) {
@@ -40,16 +44,25 @@ function getPendingDaysOverSLA(decision, now) {
 }
 async function calculateKPIs(startDate, endDate, departmentId) {
     const decisionFilter = {
-        createdAt: { $gte: startDate, $lte: endDate }
+        createdAt: { $gte: startDate, $lte: endDate },
+        source: 'ai_workflow' // Only include live AI Workflow data
+    };
+    // Separate filter for pending - counts ALL pending regardless of createdAt
+    const pendingFilter = {
+        status: 'pending',
+        source: 'ai_workflow'
     };
     if (departmentId && departmentId !== "ORG") {
         decisionFilter.departmentId = departmentId;
+        pendingFilter.departmentId = departmentId;
     }
     const decisions = await m1Decisions_1.default.find(decisionFilter);
-    const totalDecisions = decisions.length;
+    // Count ALL pending cases (not filtered by date)
+    const allPending = await m1Decisions_1.default.find(pendingFilter);
+    const pendingCount = allPending.length;
+    const totalDecisions = decisions.length; // Fixed double-counting of pending tasks
     const approvedCount = decisions.filter(d => d.status === "approved").length;
     const rejectedCount = decisions.filter(d => d.status === "rejected").length;
-    const pendingCount = decisions.filter(d => d.status === "pending").length;
     const completed = decisions.filter(d => d.completedAt);
     const compliantDecisionCount = decisions.filter(d => d.status === "approved" && Number(d.daysOverSLA ?? 0) <= COMPLIANCE_SLA_GRACE_DAYS).length;
     const avgCycleTimeHours = completed.reduce((sum, d) => {
@@ -58,7 +71,8 @@ async function calculateKPIs(startDate, endDate, departmentId) {
         return sum + diff;
     }, 0) / (completed.length || 1);
     const violationFilter = {
-        createdAt: { $gte: startDate, $lte: endDate }
+        createdAt: { $gte: startDate, $lte: endDate },
+        source: 'ai_workflow' // Only include live data violations
     };
     if (departmentId && departmentId !== "ORG") {
         violationFilter.department = departmentId;
@@ -76,10 +90,8 @@ async function calculateKPIs(startDate, endDate, departmentId) {
     const complianceRate = (compliantDecisionCount / (totalDecisions || 1)) * 100;
     const bottleneckThresholds = {};
     const now = new Date();
-    const bottleneckCount = decisions.filter((d) => {
-        if (String(d.status ?? "").toLowerCase() !== "pending") {
-            return false;
-        }
+    // Use ALL pending for bottleneck calculation (not just date-filtered)
+    const bottleneckCount = allPending.filter((d) => {
         return getPendingDaysOverSLA(d, now) > 0;
     }).length;
     const bottleneckRate = totalDecisions

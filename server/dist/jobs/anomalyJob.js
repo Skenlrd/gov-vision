@@ -13,13 +13,11 @@ const Anomaly_1 = __importDefault(require("../models/Anomaly"));
 const cacheService_1 = require("../services/cacheService");
 async function runAnomalyDetection() {
     console.log("[AnomalyJob] Starting anomaly detection run...");
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const decisions = await m1Decisions_1.default.find({
         completedAt: { $exists: true, $ne: null },
-        createdAt: { $gte: thirtyDaysAgo }
+        isScored: false
     })
-        .select("_id cycleTimeHours rejectionCount revisionCount daysOverSLA stageCount hourOfDaySubmitted department")
+        .select("_id cycleTimeHours rejectionCount revisionCount daysOverSLA department")
         .lean();
     if (decisions.length === 0) {
         console.log("[AnomalyJob] No completed decisions found. Skipping.");
@@ -31,9 +29,7 @@ async function runAnomalyDetection() {
         cycleTimeHours: d.cycleTimeHours || 0,
         rejectionCount: d.rejectionCount || 0,
         revisionCount: d.revisionCount || 0,
-        daysOverSLA: d.daysOverSLA || 0,
-        stageCount: d.stageCount || 0,
-        hourOfDaySubmitted: d.hourOfDaySubmitted || 0
+        daysOverSLA: d.daysOverSLA || 0
     }));
     let results = [];
     try {
@@ -47,6 +43,20 @@ async function runAnomalyDetection() {
     }
     const anomalies = results.filter((r) => r.isAnomaly === true);
     console.log(`[AnomalyJob] ${anomalies.length} anomalies detected.`);
+    const bulkOps = results.map(r => ({
+        updateOne: {
+            filter: { _id: new mongoose_1.default.Types.ObjectId(r.id) },
+            update: {
+                $set: {
+                    isScored: true,
+                    anomalyScore: r.anomalyScore,
+                    isAnomaly: r.isAnomaly,
+                    lastScoredAt: new Date()
+                }
+            }
+        }
+    }));
+    await m1Decisions_1.default.bulkWrite(bulkOps);
     for (const anomaly of anomalies) {
         const original = decisions.find((d) => d._id.toString() === anomaly.id);
         const featureValues = original
@@ -54,9 +64,7 @@ async function runAnomalyDetection() {
                 cycleTimeHours: original.cycleTimeHours || 0,
                 rejectionCount: original.rejectionCount || 0,
                 revisionCount: original.revisionCount || 0,
-                daysOverSLA: original.daysOverSLA || 0,
-                stageCount: original.stageCount || 0,
-                hourOfDaySubmitted: original.hourOfDaySubmitted || 0
+                daysOverSLA: original.daysOverSLA || 0
             }
             : {};
         if (!mongoose_1.default.Types.ObjectId.isValid(anomaly.id)) {

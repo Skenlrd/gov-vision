@@ -5,12 +5,13 @@ import dotenv from "dotenv"
 import mongoose from "mongoose"
 
 import m1Decision from "../models/m1Decisions"
+import Anomaly from "../models/Anomaly"
 
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, "../.env") })
 
 const CSV_PATH = path.resolve(
-  process.cwd(),
-  "scripts",
+  __dirname,
+  "../Dataset",
   "AI_Workflow_Optimization_Dataset_2500_Rows_v1.csv"
 )
 
@@ -83,10 +84,11 @@ function mapStatus(
   taskType: string | undefined,
   completedAt: Date | null
 ): "approved" | "rejected" | "pending" {
+  // FIX: Check completedAt first - if null, decision is still pending
+  if (completedAt === null) return "pending"
   if (taskType === "Approval") return "approved"
   if (taskType === "Escalation") return "rejected"
-  if (completedAt !== null) return "approved"
-  return "pending"
+  return "approved"
 }
 
 function mapStageCount(level: string | undefined): number {
@@ -115,78 +117,30 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function deriveCycleTime(original: number): number {
-  if (original < 2.5) return randomBetween(0.5, 8, 2)
-  if (original < 4.5) return randomBetween(4, 24, 2)
-  return randomBetween(20, 120, 2)
+  // Center around 43h to match BPI model's 12x scaled distribution
+  const base = randomBetween(20, 60, 2)
+  if (original < 2.5) return base * 0.8
+  if (original < 4.5) return base * 1.0
+  return base * 1.5
 }
 
 function deriveRejectionCount(original: number): number {
-  if (original === 0) return randomBetween(0, 1.5, 1)
-  if (original === 1) return randomBetween(1, 3.5, 1)
-  if (original === 2) return randomBetween(2, 5.5, 1)
-  return randomBetween(4, 8, 1)
+  // Match BPI model's 0-1 rejection distribution
+  if (original === 0) return 0
+  if (original === 1) return randomBetween(0, 1, 0)
+  return 1
 }
 
-function recalcDaysOverSLA(cycleTimeHours: number, revisionCount: number): number {
-  const estimatedHours = revisionCount * 0.8
+function recalcDaysOverSLA(cycleTimeHours: number, stageCount: number, priority: string): number {
+  let estimatedDays = Math.max(1, stageCount * 2);
+  if (stageCount === 1 && priority.toLowerCase() === 'high') {
+    estimatedDays = 1;
+  }
+  const estimatedHours = estimatedDays * 24;
   return Math.max(0, Number(((cycleTimeHours - estimatedHours) / 24).toFixed(4)))
 }
 
-// Pure unsupervised distribution
-// No labels or pre-selected anomalies are assigned.
-// A random roll places each row into a realistic tier.
-// The model then discovers unusual rows statistically.
-
-function enrichOriginalDistribution(base: {
-  cycleTimeHours: number
-  rejectionCount: number
-  revisionCount: number
-  stageCount: number
-}): {
-  cycleTimeHours: number
-  rejectionCount: number
-  revisionCount: number
-  stageCount: number
-} {
-  const roll = Math.random()
-
-  let cycleTimeHours = base.cycleTimeHours
-  let rejectionCount = base.rejectionCount
-  let revisionCount = base.revisionCount
-  let stageCount = base.stageCount
-
-  if (roll < 0.82) {
-    // 82% normal decisions with slight variation.
-    cycleTimeHours = cycleTimeHours * randomBetween(0.9, 1.15, 3)
-    rejectionCount = rejectionCount + randomBetween(0, 0.8, 1)
-    revisionCount = revisionCount + randomBetween(0, 1.2, 1)
-  } else if (roll < 0.94) {
-    // 12% borderline decisions.
-    cycleTimeHours = cycleTimeHours * randomBetween(1.2, 2.0, 3)
-    rejectionCount = rejectionCount + randomBetween(0.8, 2.5, 1)
-    revisionCount = revisionCount + randomBetween(1, 3.5, 1)
-    stageCount = Math.max(stageCount, randomInt(2, 3))
-  } else if (roll < 0.99) {
-    // 5% elevated decisions.
-    cycleTimeHours = cycleTimeHours * randomBetween(2.0, 3.8, 3)
-    rejectionCount = rejectionCount + randomBetween(2, 5, 1)
-    revisionCount = revisionCount + randomBetween(3, 7, 1)
-    stageCount = 3
-  } else {
-    // 1% critical outliers.
-    cycleTimeHours = randomBetween(60, 160, 2)
-    rejectionCount = randomBetween(6, 12, 1)
-    revisionCount = randomBetween(8, 16, 1)
-    stageCount = 3
-  }
-
-  return {
-    cycleTimeHours: clamp(Number(cycleTimeHours.toFixed(2)), 0.3, 200),
-    rejectionCount: clamp(Number(rejectionCount.toFixed(1)), 0, 15),
-    revisionCount: clamp(Number(revisionCount.toFixed(1)), 0, 20),
-    stageCount: clamp(Math.round(stageCount), 1, 3)
-  }
-}
+// Removed enrichOriginalDistribution to maintain distribution alignment
 
 function normalize(value: unknown): string {
   return String(value ?? "").trim().toLowerCase()
@@ -248,7 +202,10 @@ const DEPT_ALIAS_TO_CANONICAL: Record<string, keyof typeof DEPT_CANONICAL_META> 
   "customer services": "customer service",
   "customer support": "customer service",
   "support": "customer service",
-  "cs": "customer service"
+  "cs": "customer service",
+  
+  "legal": "finance", // Assign Legal to Finance for heatmap coverage
+  "compliance": "finance"
 }
 
 function normalizeDepartmentKey(value: unknown): string {
@@ -320,11 +277,12 @@ async function main() {
     const sourceMinMs = Math.min(...sourceStartTimes)
     const sourceMaxMs = Math.max(...sourceStartTimes)
 
-    const targetMinMs = Date.UTC(2025, 0, 1, 0, 0, 0, 0)
-    const targetMaxMs = Date.UTC(2026, 2, 15, 23, 59, 59, 999)
+    const targetMaxMs = Date.now()
+    const targetMinMs = targetMaxMs - (365 * 24 * 60 * 60 * 1000) // 1 year ago
 
     await m1Decision.deleteMany({})
-    console.log("Cleared existing m1_decisions collection")
+    await Anomaly.deleteMany({})
+    console.log("Cleared existing m1_decisions and anomalies collections")
 
     const docs: Record<string, unknown>[] = []
     let unknownDepartmentCount = 0
@@ -350,10 +308,19 @@ async function main() {
           ? originalEnd.getTime() - originalStart.getTime()
           : null
 
-      const completedAt =
+      let completedAt =
         createdAt && durationMs !== null
           ? new Date(createdAt.getTime() + durationMs)
           : null
+
+      // Organic simulation of pending tasks
+      // Logic: Recent tasks (last 60 days) with high workload are more likely to be pending
+      const isRecent = createdAt && (Date.now() - createdAt.getTime() < 60 * 24 * 60 * 60 * 1000)
+      const workloadScore = parseInt(String(row.Employee_Workload ?? "0"), 10) || 0
+      
+      if (isRecent && Math.random() < (0.05 + (workloadScore / 100))) {
+        completedAt = null;
+      }
 
       const actualMinutes = parseNumber(row.Actual_Time_Minutes)
       const departmentMeta = mapDepartmentMeta(row.Department)
@@ -363,31 +330,30 @@ async function main() {
       }
 
       const originalCycleTimeHours = actualMinutes / 60
-      const originalRejectionCount = String(row.Delay_Flag ?? "").trim() === "1" ? randomOneToThree() : 0
-      const baseRevisionCount = parseInt(String(row.Employee_Workload ?? "0"), 10) || 0
+      const isDelayed = String(row.Delay_Flag ?? "").trim() === "1"
+      // Map rejectionCount to BPI distribution: Reduced to lower anomaly count
+      const baseRejectionCount = (isDelayed && Math.random() < 0.15) ? randomOneToThree() : 0
+      
+      const rawWorkload = parseInt(String(row.Employee_Workload ?? "0"), 10) || 0
+      
+      // Map revisionCount to BPI distribution: Reduced to lower anomaly count
+      const baseRevisionCount = (rawWorkload > 50 && Math.random() < 0.10) ? randomOneToThree() : 0
+      
       const baseCycleTimeHours = deriveCycleTime(originalCycleTimeHours)
-      const baseRejectionCount = deriveRejectionCount(originalRejectionCount)
       const baseStageCount = mapStageCount(row.Approval_Level)
+      const priority = normalize(row.Priority_Level)
 
-      // Pure unsupervised enrichment.
-      const enriched = enrichOriginalDistribution({
-        cycleTimeHours: baseCycleTimeHours,
-        rejectionCount: baseRejectionCount,
-        revisionCount: baseRevisionCount,
-        stageCount: baseStageCount
-      })
+      // Use BPI-scaled cycle time hours to match Isolation Forest training distribution
+      const cycleTimeHours = parseFloat(baseCycleTimeHours.toFixed(2))
+      
+      // Override completedAt based on BPI-scaled cycle time if task is complete
+      if (createdAt && completedAt !== null) {
+        completedAt = new Date(createdAt.getTime() + (cycleTimeHours * 3600 * 1000))
+      }
 
-      const cycleTimeHours = createdAt && completedAt
-        ? parseFloat(
-            (
-              (completedAt.getTime() - createdAt.getTime())
-              / 1000 / 3600
-            ).toFixed(2)
-          )
-        : parseFloat((actualMinutes / 60).toFixed(2))
-      const rejectionCount = enriched.rejectionCount
-      const revisionCount = enriched.revisionCount
-      const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, revisionCount)
+      const rejectionCount = baseRejectionCount
+      const revisionCount = baseRevisionCount
+      const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, baseStageCount, priority)
 
       docs.push({
         status: mapStatus(row.Task_Type, completedAt),
@@ -399,10 +365,25 @@ async function main() {
         rejectionCount,
         revisionCount,
         daysOverSLA,
-        stageCount: enriched.stageCount,
+        stageCount: baseStageCount,
         hourOfDaySubmitted: createdAt ? createdAt.getHours() : null,
-        priority: normalize(row.Priority_Level)
+        priority: priority,
+        source: 'ai_workflow',
+        isScored: false
       })
+
+      // Force demo anomalies (approx 2% of data)
+      if (Math.random() < 0.02) {
+        const last = docs[docs.length - 1];
+        if (last) {
+          last.rejectionCount = 15;
+          last.revisionCount = 10;
+          last.cycleTimeHours = 500;
+          last.daysOverSLA = 20;
+          last.completedAt = new Date(); // Ensure it's not pending
+          last.status = "approved";
+        }
+      }
 
       const prepared = i + 1
       if (prepared % 100 === 0) {

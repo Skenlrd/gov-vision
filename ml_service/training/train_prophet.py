@@ -59,7 +59,7 @@ def get_decisions() -> pd.DataFrame:
 	db = get_database(client)
 
 	decisions = list(
-		db["m1_decisions"].find(
+		db["m1_training_decisions"].find(
 			{
 				"completedAt": {"$exists": True, "$ne": None},
 				"createdAt": {"$exists": True, "$ne": None},
@@ -84,7 +84,7 @@ def get_decisions() -> pd.DataFrame:
 	client.close()
 
 	if not decisions:
-		print("ERROR: No completed decisions found in m1_decisions.")
+		print("ERROR: No completed decisions found in m1_training_decisions.")
 		sys.exit(1)
 
 	df = pd.DataFrame(decisions)

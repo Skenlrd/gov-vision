@@ -6,12 +6,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const Anomaly_1 = __importDefault(require("../models/Anomaly"));
 const cacheService_1 = require("../services/cacheService");
+const validateJWT_1 = require("../middleware/validateJWT");
+const requireRole_1 = require("../middleware/requireRole");
 const router = (0, express_1.Router)();
-router.get("/anomalies", 
-// validateJWT, // TEMP: commented for development testing
-// requireRole(["admin", "manager", "executive", "analyst"]), // TEMP: commented for development testing
-async (req, res) => {
+// Role-based access configuration
+const ROLE_ANOMALY_ACCESS = {
+    admin: { canView: true, canAcknowledge: true },
+    manager: { canView: true, canAcknowledge: true },
+    executive: { canView: false, canAcknowledge: false },
+    analyst: { canView: true, canAcknowledge: true }
+};
+router.get("/anomalies", validateJWT_1.validateJWT, (0, requireRole_1.requireRole)(["admin", "manager", "executive", "analyst"]), async (req, res) => {
     try {
+        const userRole = req.user?.role || req.headers['x-test-role'] || 'analyst';
+        const roleAccess = ROLE_ANOMALY_ACCESS[userRole.toLowerCase()] || ROLE_ANOMALY_ACCESS.analyst;
+        // Executives cannot view anomalies
+        if (!roleAccess.canView) {
+            return res.json({
+                Critical: [],
+                High: [],
+                Medium: [],
+                Low: [],
+                total: 0,
+                note: `${userRole} role: anomalies access denied`
+            });
+        }
         const cacheKey = "m3:anomalies:active";
         const data = await (0, cacheService_1.getOrSet)(cacheKey, 300, async () => {
             const anomalies = await Anomaly_1.default.find({ isAcknowledged: false })
@@ -40,10 +59,7 @@ async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch anomalies" });
     }
 });
-router.put("/anomalies/:id/acknowledge", 
-// validateJWT, // TEMP: commented for development testing
-// requireRole(["admin", "manager", "executive"]), // TEMP: commented for development testing
-async (req, res) => {
+router.put("/anomalies/:id/acknowledge", validateJWT_1.validateJWT, (0, requireRole_1.requireRole)(["admin", "manager", "executive", "analyst"]), async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.userId;

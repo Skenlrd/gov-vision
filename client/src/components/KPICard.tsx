@@ -12,6 +12,7 @@ interface KPICardProps {
   invertTrend?: boolean   // true = up is bad (violations, anomalies)
   tone?: "hero" | "soft"
   size?: "lg" | "md"
+  helperValue?: string
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -38,7 +39,8 @@ export default function KPICard({
   isBadge = false,
   invertTrend = false,
   tone = "soft",
-  size = "md"
+  size = "md",
+  helperValue
 }: KPICardProps) {
   const [displayValue, setDisplayValue] = useState<number>(0)
   const prevRef = useRef<number>(0)
@@ -226,6 +228,11 @@ export default function KPICard({
           {unit && (
             <span style={{ fontSize: isLarge ? "38px" : "32px", fontWeight: 500, color: unitColor, marginLeft: "4px" }}>
               {unit}
+            </span>
+          )}
+          {helperValue && (
+            <span style={{ fontSize: isLarge ? "32px" : "28px", fontWeight: 500, color: unitColor, marginLeft: "12px" }}>
+              {helperValue}
             </span>
           )}
         </div>

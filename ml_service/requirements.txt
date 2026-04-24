@@ -7,3 +7,7 @@ prophet
 joblib
 pymongo
 python-dotenv
+
+# Testing dependencies
+pytest
+pytest-cov

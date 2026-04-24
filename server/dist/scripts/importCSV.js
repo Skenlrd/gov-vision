@@ -9,8 +9,8 @@ const readline_1 = __importDefault(require("readline"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const m1Decisions_1 = __importDefault(require("../models/m1Decisions"));
-dotenv_1.default.config();
-const CSV_PATH = path_1.default.resolve(process.cwd(), "scripts", "AI_Workflow_Optimization_Dataset_2500_Rows_v1.csv");
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
+const CSV_PATH = path_1.default.resolve(__dirname, "../Dataset", "AI_Workflow_Optimization_Dataset_2500_Rows_v1.csv");
 function splitCsvLine(line) {
     const out = [];
     let current = "";
@@ -59,13 +59,14 @@ function parseNumber(value) {
     return Number.isFinite(n) ? n : 0;
 }
 function mapStatus(taskType, completedAt) {
+    // FIX: Check completedAt first - if null, decision is still pending
+    if (completedAt === null)
+        return "pending";
     if (taskType === "Approval")
         return "approved";
     if (taskType === "Escalation")
         return "rejected";
-    if (completedAt !== null)
-        return "approved";
-    return "pending";
+    return "approved";
 }
 function mapStageCount(level) {
     if (level === "Level 1")
@@ -91,69 +92,31 @@ function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
 }
 function deriveCycleTime(original) {
+    // Center around 43h to match BPI model's 12x scaled distribution
+    const base = randomBetween(20, 60, 2);
     if (original < 2.5)
-        return randomBetween(0.5, 8, 2);
+        return base * 0.8;
     if (original < 4.5)
-        return randomBetween(4, 24, 2);
-    return randomBetween(20, 120, 2);
+        return base * 1.0;
+    return base * 1.5;
 }
 function deriveRejectionCount(original) {
+    // Match BPI model's 0-1 rejection distribution
     if (original === 0)
-        return randomBetween(0, 1.5, 1);
+        return 0;
     if (original === 1)
-        return randomBetween(1, 3.5, 1);
-    if (original === 2)
-        return randomBetween(2, 5.5, 1);
-    return randomBetween(4, 8, 1);
+        return randomBetween(0, 1, 0);
+    return 1;
 }
-function recalcDaysOverSLA(cycleTimeHours, revisionCount) {
-    const estimatedHours = revisionCount * 0.8;
+function recalcDaysOverSLA(cycleTimeHours, stageCount, priority) {
+    let estimatedDays = Math.max(1, stageCount * 2);
+    if (stageCount === 1 && priority.toLowerCase() === 'high') {
+        estimatedDays = 1;
+    }
+    const estimatedHours = estimatedDays * 24;
     return Math.max(0, Number(((cycleTimeHours - estimatedHours) / 24).toFixed(4)));
 }
-// Pure unsupervised distribution
-// No labels or pre-selected anomalies are assigned.
-// A random roll places each row into a realistic tier.
-// The model then discovers unusual rows statistically.
-function enrichOriginalDistribution(base) {
-    const roll = Math.random();
-    let cycleTimeHours = base.cycleTimeHours;
-    let rejectionCount = base.rejectionCount;
-    let revisionCount = base.revisionCount;
-    let stageCount = base.stageCount;
-    if (roll < 0.82) {
-        // 82% normal decisions with slight variation.
-        cycleTimeHours = cycleTimeHours * randomBetween(0.9, 1.15, 3);
-        rejectionCount = rejectionCount + randomBetween(0, 0.8, 1);
-        revisionCount = revisionCount + randomBetween(0, 1.2, 1);
-    }
-    else if (roll < 0.94) {
-        // 12% borderline decisions.
-        cycleTimeHours = cycleTimeHours * randomBetween(1.2, 2.0, 3);
-        rejectionCount = rejectionCount + randomBetween(0.8, 2.5, 1);
-        revisionCount = revisionCount + randomBetween(1, 3.5, 1);
-        stageCount = Math.max(stageCount, randomInt(2, 3));
-    }
-    else if (roll < 0.99) {
-        // 5% elevated decisions.
-        cycleTimeHours = cycleTimeHours * randomBetween(2.0, 3.8, 3);
-        rejectionCount = rejectionCount + randomBetween(2, 5, 1);
-        revisionCount = revisionCount + randomBetween(3, 7, 1);
-        stageCount = 3;
-    }
-    else {
-        // 1% critical outliers.
-        cycleTimeHours = randomBetween(60, 160, 2);
-        rejectionCount = randomBetween(6, 12, 1);
-        revisionCount = randomBetween(8, 16, 1);
-        stageCount = 3;
-    }
-    return {
-        cycleTimeHours: clamp(Number(cycleTimeHours.toFixed(2)), 0.3, 200),
-        rejectionCount: clamp(Number(rejectionCount.toFixed(1)), 0, 15),
-        revisionCount: clamp(Number(revisionCount.toFixed(1)), 0, 20),
-        stageCount: clamp(Math.round(stageCount), 1, 3)
-    };
-}
+// Removed enrichOriginalDistribution to maintain distribution alignment
 function normalize(value) {
     return String(value ?? "").trim().toLowerCase();
 }
@@ -203,7 +166,9 @@ const DEPT_ALIAS_TO_CANONICAL = {
     "customer services": "customer service",
     "customer support": "customer service",
     "support": "customer service",
-    "cs": "customer service"
+    "cs": "customer service",
+    "legal": "finance", // Assign Legal to Finance for heatmap coverage
+    "compliance": "finance"
 };
 function normalizeDepartmentKey(value) {
     return normalize(value)
@@ -259,8 +224,8 @@ async function main() {
         }
         const sourceMinMs = Math.min(...sourceStartTimes);
         const sourceMaxMs = Math.max(...sourceStartTimes);
-        const targetMinMs = Date.UTC(2025, 0, 1, 0, 0, 0, 0);
-        const targetMaxMs = Date.UTC(2026, 2, 15, 23, 59, 59, 999);
+        const targetMaxMs = Date.now();
+        const targetMinMs = targetMaxMs - (365 * 24 * 60 * 60 * 1000); // 1 year ago
         await m1Decisions_1.default.deleteMany({});
         console.log("Cleared existing m1_decisions collection");
         const docs = [];
@@ -275,9 +240,13 @@ async function main() {
             const durationMs = originalStart && originalEnd
                 ? originalEnd.getTime() - originalStart.getTime()
                 : null;
-            const completedAt = createdAt && durationMs !== null
+            let completedAt = createdAt && durationMs !== null
                 ? new Date(createdAt.getTime() + durationMs)
                 : null;
+            // Simulate 5% pending cases for recent tasks
+            if (Math.random() < 0.05 && createdAt && (Date.now() - createdAt.getTime() < 30 * 24 * 60 * 60 * 1000)) {
+                completedAt = null;
+            }
             const actualMinutes = parseNumber(row.Actual_Time_Minutes);
             const departmentMeta = mapDepartmentMeta(row.Department);
             if (!departmentMeta) {
@@ -289,20 +258,16 @@ async function main() {
             const baseCycleTimeHours = deriveCycleTime(originalCycleTimeHours);
             const baseRejectionCount = deriveRejectionCount(originalRejectionCount);
             const baseStageCount = mapStageCount(row.Approval_Level);
-            // Pure unsupervised enrichment.
-            const enriched = enrichOriginalDistribution({
-                cycleTimeHours: baseCycleTimeHours,
-                rejectionCount: baseRejectionCount,
-                revisionCount: baseRevisionCount,
-                stageCount: baseStageCount
-            });
-            const cycleTimeHours = createdAt && completedAt
-                ? parseFloat(((completedAt.getTime() - createdAt.getTime())
-                    / 1000 / 3600).toFixed(2))
-                : parseFloat((actualMinutes / 60).toFixed(2));
-            const rejectionCount = enriched.rejectionCount;
-            const revisionCount = enriched.revisionCount;
-            const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, revisionCount);
+            const priority = normalize(row.Priority_Level);
+            // Use BPI-scaled cycle time hours to match Isolation Forest training distribution
+            const cycleTimeHours = parseFloat(baseCycleTimeHours.toFixed(2));
+            // Override completedAt based on BPI-scaled cycle time if task is complete
+            if (createdAt && completedAt !== null) {
+                completedAt = new Date(createdAt.getTime() + (cycleTimeHours * 3600 * 1000));
+            }
+            const rejectionCount = baseRejectionCount;
+            const revisionCount = baseRevisionCount;
+            const daysOverSLA = recalcDaysOverSLA(cycleTimeHours, baseStageCount, priority);
             docs.push({
                 status: mapStatus(row.Task_Type, completedAt),
                 departmentId: departmentMeta?.departmentId ?? null,
@@ -313,9 +278,11 @@ async function main() {
                 rejectionCount,
                 revisionCount,
                 daysOverSLA,
-                stageCount: enriched.stageCount,
+                stageCount: baseStageCount,
                 hourOfDaySubmitted: createdAt ? createdAt.getHours() : null,
-                priority: normalize(row.Priority_Level)
+                priority: priority,
+                source: 'ai_workflow',
+                isScored: false
             });
             const prepared = i + 1;
             if (prepared % 100 === 0) {

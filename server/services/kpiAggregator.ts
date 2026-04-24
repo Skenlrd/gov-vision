@@ -6,6 +6,14 @@ import Anomaly from "../models/Anomaly"
 import { IKpiSummary } from "../types"
 
 const DEPARTMENTS = ["FI001", "HR002", "OP003", "IT004", "CS005"] as const
+const DEPT_NAME_MAP: Record<string, string> = {
+  FI001: "Finance",
+  HR002: "Human Resources",
+  OP003: "Operations",
+  IT004: "Information Technology",
+  CS005: "Customer Service",
+  ORG: "Organization Wide"
+}
 const COMPLIANCE_SLA_GRACE_DAYS = 0
 
 function dayStart(date: Date): Date {
@@ -21,6 +29,10 @@ function getSlaDays(decision: Record<string, unknown>): number {
   }
 
   const stageCount = Number((decision as any).stageCount ?? 1)
+  const priority = String((decision as any).priority ?? "normal").toLowerCase()
+  if (stageCount === 1 && priority === 'high') {
+    return 1;
+  }
   return Math.max(1, stageCount * 2)
 }
 
@@ -46,19 +58,30 @@ async function calculateKPIs(
   departmentId?: string
 ): Promise<Record<string, unknown>> {
   const decisionFilter: Record<string, unknown> = {
-    createdAt: { $gte: startDate, $lte: endDate }
+    createdAt: { $gte: startDate, $lte: endDate },
+    source: 'ai_workflow'  // Only include live AI Workflow data
+  }
+
+  // Separate filter for pending - counts ALL pending regardless of createdAt
+  const pendingFilter: Record<string, unknown> = {
+    status: 'pending',
+    source: 'ai_workflow'
   }
 
   if (departmentId && departmentId !== "ORG") {
     decisionFilter.departmentId = departmentId
+    pendingFilter.departmentId = departmentId
   }
 
   const decisions = await m1Decision.find(decisionFilter)
+  
+  // Count ALL pending cases (not filtered by date)
+  const allPending = await m1Decision.find(pendingFilter)
+  const pendingCount = allPending.length
 
-  const totalDecisions = decisions.length
+  const totalDecisions = decisions.length  // Fixed double-counting of pending tasks
   const approvedCount = decisions.filter(d => d.status === "approved").length
   const rejectedCount = decisions.filter(d => d.status === "rejected").length
-  const pendingCount = decisions.filter(d => d.status === "pending").length
 
   const completed = decisions.filter(d => d.completedAt)
   const compliantDecisionCount = decisions.filter(
@@ -66,16 +89,11 @@ async function calculateKPIs(
   ).length
 
   const avgCycleTimeHours =
-    completed.reduce((sum, d) => {
-      const diff =
-        (new Date(d.completedAt!).getTime() -
-          new Date(d.createdAt!).getTime()) / (1000 * 60 * 60)
-
-      return sum + diff
-    }, 0) / (completed.length || 1)
+    completed.reduce((sum, d) => sum + (Number((d as any).cycleTimeHours) || 0), 0) / (completed.length || 1)
 
   const violationFilter: Record<string, unknown> = {
-    createdAt: { $gte: startDate, $lte: endDate }
+    createdAt: { $gte: startDate, $lte: endDate },
+    source: 'ai_workflow'  // Only include live data violations
   }
 
   if (departmentId && departmentId !== "ORG") {
@@ -100,11 +118,8 @@ async function calculateKPIs(
   const bottleneckThresholds: Record<string, number> = {}
   const now = new Date()
 
-  const bottleneckCount = decisions.filter((d) => {
-    if (String(d.status ?? "").toLowerCase() !== "pending") {
-      return false
-    }
-
+  // Use ALL pending for bottleneck calculation (not just date-filtered)
+  const bottleneckCount = allPending.filter((d) => {
     return getPendingDaysOverSLA(d as unknown as Record<string, unknown>, now) > 0
   }).length
 
@@ -142,6 +157,7 @@ async function saveSnapshot(
       $set: {
         ...kpis,
         departmentId: scopeId,
+        departmentName: DEPT_NAME_MAP[scopeId] || scopeId,
         snapshotDate: today
       }
     },

@@ -21,7 +21,9 @@ FEATURE_COLS = [
 
 LEVEL_MAP = {
     0: "low",
-    1: "high", # Binary model: 0=Safe, 1=At Risk (mapped to high)
+    1: "medium",
+    2: "high",
+    3: "critical",
 }
 
 
@@ -36,7 +38,6 @@ def _load_model():
 
 def _normalize_features(features: list[dict]) -> pd.DataFrame:
     frame = pd.DataFrame(features)
-    # Ensure all required columns exist, even if as None/NaN
     for col in FEATURE_COLS:
         if col not in frame.columns:
             frame[col] = None
@@ -55,15 +56,19 @@ def score_departments(features: list[dict]) -> list[dict]:
 	results: list[dict] = []
 	for index, row in enumerate(features):
 		predicted_class = int(predictions[index])
-		# Use the probability of being 'At Risk' (class 1) as the base score
-		at_risk_prob = float(probabilities[index][1])
-		risk_score = at_risk_prob * 100.0
+		# Score = weighted probability across classes (0-100)
+		# Weight: low=0, medium=33, high=66, critical=100
+		weights = [0.0, 33.0, 66.0, 100.0]
+		probs = probabilities[index]
+		# Pad weights in case model has fewer classes
+		effective_weights = weights[:len(probs)]
+		risk_score = sum(p * w for p, w in zip(probs, effective_weights))
 
 		results.append(
 			{
 				"dept": row.get("dept", "unknown"),
 				"score": round(risk_score, 1),
-				"level": LEVEL_MAP[predicted_class],
+				"level": LEVEL_MAP.get(predicted_class, "low"),
 				"featureImportance": {
 					name: round(float(importance), 4)
 					for name, importance in zip(FEATURE_COLS, importances)

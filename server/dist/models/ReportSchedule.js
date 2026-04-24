@@ -36,16 +36,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const ReportScheduleSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
-    cronExpression: { type: String, required: true },
-    reportType: { type: String, required: true },
-    format: { type: String, required: true },
-    recipients: [{ type: String, required: true }],
+    reportConfig: { type: mongoose_1.Schema.Types.Mixed, required: true },
+    frequency: { type: String, enum: ["daily", "weekly", "monthly"], required: true },
+    nextRunAt: { type: Date, required: true },
+    lastRunAt: { type: Date },
+    lastRunStatus: { type: String, enum: ["success", "failed", "pending"], default: "pending" },
     isActive: {
         type: Boolean,
         required: true,
         default: true
     },
-    lastRun: Date,
-    nextRun: Date
-});
+    createdBy: { type: String, default: "unknown" },
+    recipients: [{ type: String }]
+}, { timestamps: true });
 exports.default = mongoose_1.default.model("m3_report_schedules", ReportScheduleSchema);

@@ -104,7 +104,7 @@ export default function TopBar({ anomalyCount = 0, openViolations = 0 }: TopBarP
           type="button"
           aria-label="Refresh"
           title="Refresh"
-          onClick={() => void checkLiveStatus()}
+          onClick={() => window.location.reload()}
           style={{
             display: "inline-flex",
             alignItems: "center",

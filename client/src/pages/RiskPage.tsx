@@ -184,7 +184,9 @@ export default function RiskPage() {
   }, []);
 
   // Filter options
-  const departmentOptions = Array.from(new Set(data.map(d => d.department))).sort();
+  const departmentOptions = Array.from(new Set(data.map(d => d.department)))
+    .filter(d => d !== "Organization Wide")
+    .sort();
 
   // Apply filters
   const filteredData = data.filter((row) => {
@@ -193,12 +195,13 @@ export default function RiskPage() {
     return levelMatch && deptMatch;
   });
 
-  // Summary counts for the header stat cards
+  // Summary counts for the header stat cards (exclude organization wide aggregate)
+  const dataForCounts = data.filter(r => r.department !== "Organization Wide");
   const counts = {
-    Critical: data.filter((r) => r.riskLevel === 'Critical').length,
-    High: data.filter((r) => r.riskLevel === 'High').length,
-    Medium: data.filter((r) => r.riskLevel === 'Medium').length,
-    Low: data.filter((r) => r.riskLevel === 'Low').length,
+    Critical: dataForCounts.filter((r) => r.riskLevel === 'Critical').length,
+    High: dataForCounts.filter((r) => r.riskLevel === 'High').length,
+    Medium: dataForCounts.filter((r) => r.riskLevel === 'Medium').length,
+    Low: dataForCounts.filter((r) => r.riskLevel === 'Low').length,
   };
 
   return (

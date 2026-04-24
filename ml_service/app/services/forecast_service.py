@@ -8,10 +8,12 @@ This module is intentionally small so the FastAPI route layer can stay thin.
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
 
 import joblib
+import pandas as pd
 from prophet import Prophet
 
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "forecast"
@@ -60,8 +62,13 @@ def generate_forecast(payload: dict) -> Dict[str, object]:
 		)
 
 	model = load_prophet_model(dept_id, target)
-	future = model.make_future_dataframe(periods=horizon, freq="D")
-	forecast = model.predict(future).tail(horizon)
+	
+	# FIX: Create future dataframe starting from today, not training end date
+	today = datetime.now().date()
+	future_dates = pd.date_range(start=today, periods=horizon, freq='D')
+	future = pd.DataFrame({'ds': future_dates})
+	
+	forecast = model.predict(future)
 
 	forecast_data: List[Dict[str, object]] = []
 	for _, row in forecast.iterrows():

@@ -35,24 +35,21 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const ReportSchema = new mongoose_1.Schema({
-    reportName: { type: String, required: true },
-    reportType: {
+    type: {
         type: String,
-        enum: ["Executive", "Compliance", "Decision", "Department", "Custom"],
+        enum: ["executive_summary", "compliance", "anomaly", "risk"],
         required: true
     },
     format: { type: String, enum: ["pdf", "excel", "csv"], required: true },
     status: {
         type: String,
-        enum: ["Completed", "Failed", "Generating"],
-        default: "Generating",
+        enum: ["completed", "pending", "failed"],
+        default: "pending",
         required: true
     },
     filePath: { type: String, required: true },
-    dateFrom: { type: Date, required: true },
-    dateTo: { type: Date, required: true },
-    departments: [{ type: String, required: true }],
+    parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
     generatedAt: { type: Date, required: true, default: Date.now },
-    generatedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "users", required: true }
+    generatedBy: { type: String, required: true }
 });
 exports.default = mongoose_1.default.model("m3_reports", ReportSchema);

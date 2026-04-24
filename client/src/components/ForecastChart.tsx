@@ -38,7 +38,7 @@ export default function ForecastChart({ data, target, horizon, department }: For
 
     return {
       backgroundColor: "transparent",
-      grid: { top: 24, right: 28, bottom: 52, left: 56 },
+      grid: { top: 48, right: 28, bottom: 52, left: 56 },
       tooltip: {
         trigger: "axis",
         backgroundColor: "white",
@@ -90,8 +90,10 @@ export default function ForecastChart({ data, target, horizon, department }: For
         }
       },
       legend: {
-        top: 0,
-        right: 0,
+        show: true,
+        top: 8,
+        right: 12,
+        itemGap: 16,
         textStyle: {
           fontFamily: "Outfit",
           fontSize: 11,

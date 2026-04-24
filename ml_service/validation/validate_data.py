@@ -26,7 +26,7 @@ if not MONGODB_URI:
 
 client = MongoClient(MONGODB_URI)
 db = client["govvision"]
-collection = db["m1_decisions"]
+collection = db["m1_training_decisions"]
 
 FEATURE_COLUMNS = [
     "cycleTimeHours",

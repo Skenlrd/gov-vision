@@ -10,9 +10,7 @@ const TARGETS = [
 	"volume",
 	"delay",
 	"approval_rate",
-	"rejection_rate",
-	"pending_workload",
-	"sla_misses",
+	"rejection_rate"
 ] as const
 
 export async function runForecastJob(): Promise<void> {
@@ -64,7 +62,7 @@ export async function runForecastJob(): Promise<void> {
 					{ headers: { "x-service-key": process.env.SERVICE_KEY } }
 				)
 
-				const forecast = response.data.forecast || []
+				const forecast = (response.data as any).forecastData || response.data.forecast || []
 
 				if (forecast.length === 0) {
 					console.warn(
@@ -81,7 +79,7 @@ export async function runForecastJob(): Promise<void> {
 							target,
 							horizon,
 							generatedAt: new Date(),
-							forecastData: forecast.map((point) => ({
+							forecastData: forecast.map((point: any) => ({
 								ds: new Date(point.ds),
 								yhat: point.yhat,
 								yhat_lower: point.yhat_lower,

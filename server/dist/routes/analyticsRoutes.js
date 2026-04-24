@@ -8,6 +8,13 @@ const cacheService_1 = require("../services/cacheService");
 const kpiAggregator_1 = require("../services/kpiAggregator");
 const m1Decisions_1 = __importDefault(require("../models/m1Decisions"));
 const KPI_Snapshot_1 = __importDefault(require("../models/KPI_Snapshot"));
+const Forecast_1 = __importDefault(require("../models/Forecast"));
+const FORECAST_TARGETS = [
+    'volume',
+    'delay',
+    'approval_rate',
+    'rejection_rate',
+];
 const router = (0, express_1.Router)();
 // ─────────────────────────────────────────────
 // GET /api/analytics/kpi-summary
@@ -71,7 +78,7 @@ async (req, res) => {
                 monthly: '%Y-%m',
             };
             const format = formatMap[granularity] || '%Y-%m-%d';
-            const matchStage = {};
+            const matchStage = { source: 'ai_workflow' };
             if (dateFrom)
                 matchStage.createdAt = { $gte: new Date(dateFrom) };
             if (dateTo)
@@ -93,7 +100,7 @@ async (req, res) => {
                 },
                 { $sort: { _id: 1 } },
                 { $project: { _id: 0, date: '$_id', count: 1 } },
-            ]);
+            ]).exec();
         });
         return res.json(data);
     }
@@ -113,7 +120,7 @@ async (req, res) => {
     const cacheKey = `m3:cycletime:${deptId || 'all'}`;
     try {
         const data = await (0, cacheService_1.getOrSet)(cacheKey, 300, async () => {
-            const match = { completedAt: { $exists: true, $ne: null } };
+            const match = { completedAt: { $exists: true, $ne: null }, source: 'ai_workflow' };
             if (deptId)
                 match.departmentId = deptId;
             const decisions = await m1Decisions_1.default
@@ -171,7 +178,7 @@ async (req, res) => {
                     },
                 },
                 { $project: { department: '$_id', data: 1, _id: 0 } },
-            ]);
+            ]).exec();
         });
         return res.json(data);
     }
@@ -198,6 +205,7 @@ async (req, res) => {
                 match.snapshotDate = { ...match.snapshotDate, $lte: new Date(dateTo) };
             return KPI_Snapshot_1.default.aggregate([
                 { $match: match },
+                { $sort: { snapshotDate: -1 } },
                 {
                     $group: {
                         _id: '$departmentId',
@@ -205,6 +213,9 @@ async (req, res) => {
                         Medium: { $sum: { $cond: [{ $eq: ['$riskLevel', 'medium'] }, 1, 0] } },
                         High: { $sum: { $cond: [{ $eq: ['$riskLevel', 'high'] }, 1, 0] } },
                         Critical: { $sum: { $cond: [{ $eq: ['$riskLevel', 'critical'] }, 1, 0] } },
+                        riskScore: { $first: '$riskScore' },
+                        riskLevel: { $first: '$riskLevel' },
+                        featureImportance: { $first: '$featureImportance' },
                     },
                 },
                 {
@@ -216,14 +227,61 @@ async (req, res) => {
                         Medium: 1,
                         High: 1,
                         Critical: 1,
+                        riskScore: { $ifNull: ['$riskScore', 0] },
+                        riskLevel: { $ifNull: ['$riskLevel', 'low'] },
+                        featureImportance: { $ifNull: ['$featureImportance', null] },
                     },
                 },
-            ]);
+            ]).exec();
         });
         return res.json(data);
     }
     catch (err) {
         console.error('[GET /api/analytics/risk-heatmap]', err.message);
+        return res.status(500).json({ error: err.message });
+    }
+});
+// ─────────────────────────────────────────────
+// GET /api/analytics/forecast
+// Forecast data for a department and horizon
+// ─────────────────────────────────────────────
+router.get('/forecast', 
+// validateJWT, // TEMP: commented for development testing
+// requireRole(['admin', 'manager', 'executive', 'analyst']), // TEMP: commented for development testing
+async (req, res) => {
+    const { deptId = 'org', horizon = '30', target = 'volume' } = req.query;
+    const parsedHorizon = Number.parseInt(horizon, 10);
+    const parsedTarget = String(target).toLowerCase();
+    if (![7, 14, 30].includes(parsedHorizon)) {
+        return res.status(400).json({ error: 'horizon must be 7, 14, or 30' });
+    }
+    if (!FORECAST_TARGETS.includes(parsedTarget)) {
+        return res.status(400).json({
+            error: "target must be one of 'volume', 'delay', 'approval_rate', 'rejection_rate', 'pending_workload', or 'sla_misses'",
+        });
+    }
+    const horizonNum = parsedHorizon;
+    const targetValue = parsedTarget;
+    const cacheKey = `m3:forecast:${deptId}:${targetValue}:${horizonNum}`;
+    try {
+        const data = await (0, cacheService_1.getOrSet)(cacheKey, 3600, async () => {
+            const forecast = await Forecast_1.default.findOne({
+                department: deptId,
+                target: targetValue,
+                horizon: horizonNum,
+            }).lean();
+            if (!forecast) {
+                return null;
+            }
+            return forecast;
+        });
+        if (!data) {
+            return res.status(404).json({ error: 'No forecast found. Run the forecast job first.' });
+        }
+        return res.json(data);
+    }
+    catch (err) {
+        console.error('[GET /api/analytics/forecast]', err.message);
         return res.status(500).json({ error: err.message });
     }
 });

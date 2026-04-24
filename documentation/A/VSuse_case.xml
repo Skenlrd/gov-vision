@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Use Case Diagram - Module 3">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- Actors -->
+        <mxCell id="admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="manager" value="Manager" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="executive" value="Executive" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="analyst" value="Analyst" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="employee" value="Employee/Viewer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="580" width="40" height="60" as="geometry" />
+        </mxCell>
+        <!-- Use Cases -->
+        <mxCell id="uc1" value="View All Dashboards" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="100" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc2" value="Configure KPI Thresholds" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="180" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc3" value="Trigger AI/ML Model Retraining" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="260" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc4" value="Manage Users" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc5" value="Build &amp; Schedule Reports" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="420" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc6" value="View AI/ML Insights" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="500" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc7" value="View Report History" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="580" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc8" value="View Department Performance" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="220" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc9" value="Acknowledge Anomaly Alerts" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="300" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc10" value="View Executive Dashboard" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="380" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc11" value="View Decision Analytics" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="460" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc12" value="Generate Reports" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="540" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc13" value="Download Reports" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="620" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc14" value="View Summary Dashboard" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="580" width="180" height="60" as="geometry" />
+        </mxCell>
+        <!-- Associations -->
+        <mxCell id="a1" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a2" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a3" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a4" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a5" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a6" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a7" style="endArrow=none;html=1;" edge="1" parent="1" source="admin" target="uc7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a8" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a9" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc8"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a10" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a11" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc9"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a12" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a13" style="endArrow=none;html=1;" edge="1" parent="1" source="manager" target="uc7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a14" style="endArrow=none;html=1;" edge="1" parent="1" source="executive" target="uc10"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a15" style="endArrow=none;html=1;" edge="1" parent="1" source="executive" target="uc11"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a16" style="endArrow=none;html=1;" edge="1" parent="1" source="executive" target="uc12"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a17" style="endArrow=none;html=1;" edge="1" parent="1" source="executive" target="uc13"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a18" style="endArrow=none;html=1;" edge="1" parent="1" source="executive" target="uc6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a19" style="endArrow=none;html=1;" edge="1" parent="1" source="analyst" target="uc1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a20" style="endArrow=none;html=1;" edge="1" parent="1" source="analyst" target="uc5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a21" style="endArrow=none;html=1;" edge="1" parent="1" source="analyst" target="uc6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a22" style="endArrow=none;html=1;" edge="1" parent="1" source="analyst" target="uc7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="a23" style="endArrow=none;html=1;" edge="1" parent="1" source="employee" target="uc14"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

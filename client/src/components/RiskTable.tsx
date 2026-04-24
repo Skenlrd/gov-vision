@@ -8,9 +8,9 @@ interface Props {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 75) return RISK_LEVEL_COLORS.Critical
-  if (score >= 50) return RISK_LEVEL_COLORS.High
-  if (score >= 25) return RISK_LEVEL_COLORS.Medium
+  if (score >= 80) return RISK_LEVEL_COLORS.Critical
+  if (score >= 60) return RISK_LEVEL_COLORS.High
+  if (score >= 40) return RISK_LEVEL_COLORS.Medium
   return RISK_LEVEL_COLORS.Low
 }
 

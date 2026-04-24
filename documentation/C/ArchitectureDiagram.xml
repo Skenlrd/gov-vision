@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-04-24T00:00:00.000Z" agent="GovVision UML Generator" etag="architecture_v1" version="21.0.0" type="device">
+  <diagram name="Architecture Diagram" id="architecture_diagram">
+    <mxGraphModel dx="2000" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <mxCell id="title" value="GovVision Module 3: Software Architecture Diagram&#xa;Analytics, Reporting &amp; AI/ML Monitoring System&#xa;Reference: Software Architecture in Practice (Bass, 2012) - Layered Architecture Pattern" style="text;html=1;whiteSpace=wrap;align=center;fontSize=14;fontStyle=1;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="800" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Layer Containers -->
+        <mxCell id="layer_presentation" value="PRESENTATION LAYER (Layer 1)&#xa;React.js 18 + TypeScript + TailwindCSS&#xa;Recharts + Apache ECharts Visualization" style="swimlane;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#512DA8;strokeWidth=3;fontSize=12;fontStyle=1;startSize=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="120" width="2000" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="layer_gateway" value="API GATEWAY LAYER (Layer 2)&#xa;Node.js + Express.js + TypeScript&#xa;JWT Authentication + Rate Limiting + CORS" style="swimlane;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1976D2;strokeWidth=3;fontSize=12;fontStyle=1;startSize=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="2000" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="layer_service" value="SERVICE LAYER (Layer 3)&#xa;Business Logic + Domain Services&#xa;Node.js Services (Port 5002) + Python ML Service (Port 8000)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;strokeWidth=3;fontSize=12;fontStyle=1;startSize=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="560" width="2000" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="layer_data" value="DATA LAYER (Layer 4)&#xa;MongoDB (Mongoose ODM) + Redis Cache&#xa;Shared Collections: m1_decisions, m2_violations" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#E64A19;strokeWidth=3;fontSize=12;fontStyle=1;startSize=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="880" width="2000" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="layer_external" value="EXTERNAL SYSTEMS (Cross-Cutting)&#xa;Module 1 (Decision Management) + Module 2 (Compliance)&#xa;Service-to-Service Communication via REST + SERVICE_KEY" style="swimlane;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00796B;strokeWidth=3;fontSize=12;fontStyle=1;startSize=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1100" width="2000" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- Presentation Layer Components -->
+        <mxCell id="comp_dashboard" value="&lt;b&gt;Dashboard Component&lt;/b&gt;&#xa;(AnalyticsOverview.tsx)&#xa;--&#xa;+ KPI Cards&#xa;+ Real-time Charts&#xa;+ Anomaly Alerts&#xa;+ Risk Indicators" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_presentation">
+          <mxGeometry x="60" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_reporting_ui" value="&lt;b&gt;Reporting UI&lt;/b&gt;&#xa;(ReportGenerator.tsx)&#xa;--&#xa;+ PDF/Excel/CSV Export&#xa;+ Scheduled Reports&#xa;+ Report History" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_presentation">
+          <mxGeometry x="280" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_ai_panel" value="&lt;b&gt;AI/ML Panel&lt;/b&gt;&#xa;(AIMLInsights.tsx)&#xa;--&#xa;+ Anomaly Detection View&#xa;+ Risk Score Display&#xa;+ Forecast Charts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_presentation">
+          <mxGeometry x="500" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_charts" value="&lt;b&gt;Chart Components&lt;/b&gt;&#xa;(Recharts + ECharts)&#xa;--&#xa;+ Volume Trends&#xa;+ Cycle Time Histogram&#xa;+ Compliance Heatmap&#xa;+ Risk Radar Chart" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_presentation">
+          <mxGeometry x="720" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- API Gateway Components -->
+        <mxCell id="comp_analytics_routes" value="&lt;b&gt;AnalyticsRoutes&lt;/b&gt;&#xa;(analyticsRoutes.ts)&#xa;--&#xa;GET /kpi-summary&#xa;GET /decision-volume&#xa;GET /compliance-trend&#xa;GET /risk-heatmap&#xa;GET /forecast" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90CAF9;strokeColor=#1565C0;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_gateway">
+          <mxGeometry x="60" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_ai_routes" value="&lt;b&gt;AIRoutes&lt;/b&gt;&#xa;(aiRoutes.ts)&#xa;--&#xa;GET /anomalies&#xa;PUT /anomalies/:id/ack&#xa;POST /anomalies/detect" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90CAF9;strokeColor=#1565C0;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_gateway">
+          <mxGeometry x="260" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_report_routes" value="&lt;b&gt;ReportRoutes&lt;/b&gt;&#xa;(reportRoutes.ts)&#xa;--&#xa;POST /reports/generate&#xa;GET /reports/download/:id&#xa;GET /reports/history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90CAF9;strokeColor=#1565C0;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_gateway">
+          <mxGeometry x="460" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_event_routes" value="&lt;b&gt;EventRoutes&lt;/b&gt;&#xa;(eventRoutes.ts)&#xa;--&#xa;POST /events/decision-update&#xa;POST /events/compliance-update&#xa;(Webhooks from M1/M2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90CAF9;strokeColor=#1565C0;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_gateway">
+          <mxGeometry x="660" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_auth_middleware" value="&lt;b&gt;Auth Middleware&lt;/b&gt;&#xa;(auth.ts)&#xa;--&#xa;JWT Token Validation&#xa;SERVICE_KEY Check&#xa;(service-to-service)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_gateway">
+          <mxGeometry x="900" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Service Layer - Node.js -->
+        <mxCell id="comp_kpi_aggregator" value="&lt;b&gt;kpiAggregator&lt;/b&gt;&#xa;(kpiAggregator.ts)&#xa;--&#xa;+ aggregateKPI()&#xa;+ aggregateOrgKPI()&#xa;+ calculateComplianceRate()&#xa;+ calculateBottleneckRate()&#xa;+ calculateApprovalRate()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="60" y="70" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_anomaly_job" value="&lt;b&gt;AnomalyJob&lt;/b&gt;&#xa;(anomalyJob.ts)&#xa;--&#xa;Cron: 0 0 * * *&#xa;(Daily @ Midnight)&#xa;--&#xa;+ runAnomalyDetection()&#xa;+ detectBatch()&#xa;+ Isolation Forest (Python)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="280" y="70" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_risk_job" value="&lt;b&gt;RiskJob&lt;/b&gt;&#xa;(riskJob.ts)&#xa;--&#xa;Cron: 30 1 * * *&#xa;(Daily @ 01:30)&#xa;--&#xa;+ runRiskScoring()&#xa;+ scoreDepartments()&#xa;+ Random Forest (Python)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="500" y="70" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_forecast_job" value="&lt;b&gt;ForecastJob&lt;/b&gt;&#xa;(forecastJob.ts)&#xa;--&#xa;Cron: 0 2 * * *&#xa;(Daily @ 02:00)&#xa;--&#xa;+ runForecasting()&#xa;+ generateForecasts()&#xa;+ Prophet (Python)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="720" y="70" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_retrain_job" value="&lt;b&gt;RetrainJob&lt;/b&gt;&#xa;(retrainJob.ts)&#xa;--&#xa;Cron: 0 3 * * 0&#xa;(Weekly Sunday 03:00)&#xa;--&#xa;+ runRetraining()&#xa;+ retrainAllModels()&#xa;+ Model Persistence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="940" y="70" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_ml_service_caller" value="&lt;b&gt;mlService&lt;/b&gt;&#xa;(mlService.ts)&#xa;--&#xa;HTTP Client to Python&#xa;--&#xa;+ callAnomalyPredict()&#xa;+ callRiskScore()&#xa;+ callForecast()&#xa;+ SERVICE_KEY Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="1160" y="70" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_cache_service" value="&lt;b&gt;cacheService&lt;/b&gt;&#xa;(cacheService.ts)&#xa;--&#xa;Redis Integration&#xa;--&#xa;+ getOrSet()&#xa;+ invalidate()&#xa;+ getCacheKey()&#xa;(TTL: 300s default)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81D4FA;strokeColor=#0277BD;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="1360" y="70" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_report_generator" value="&lt;b&gt;reportGenerator&lt;/b&gt;&#xa;(reportGenerator.ts)&#xa;--&#xa;PDF/Excel/CSV Gen&#xa;--&#xa;+ generatePDF()&#xa;+ generateExcel()&#xa;+ generateCSV()&#xa;(jsPDF, ExcelJS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="1560" y="70" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="comp_kpi_snapshot_job" value="&lt;b&gt;KPISnapshotJob&lt;/b&gt;&#xa;(kpiSnapshotJob.ts)&#xa;--&#xa;Cron: 0 0 * * *&#xa;(Daily @ Midnight)&#xa;--&#xa;+ createSnapshots()&#xa;+ aggregateOrgWide()&#xa;+ per-Department" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_service">
+          <mxGeometry x="60" y="210" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Service Layer - Python ML (Separate Box) -->
+        <mxCell id="python_service_box" value="PYTHON ML MICROSERVICE (FastAPI + uvicorn)&#xa;Port 8000 | HTTP/REST | joblib + scikit-learn + Prophet + pandas + numpy" style="swimlane;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00796B;strokeWidth=2;fontSize=11;fontStyle=1;startSize=40;" vertex="1" parent="layer_service">
+          <mxGeometry x="280" y="210" width="700" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="py_anomaly_service" value="&lt;b&gt;AnomalyService&lt;/b&gt;&#xa;(anomaly_service.py)&#xa;Isolation Forest&#xa;contamination=0.05" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#004D40;strokeWidth=2;fontSize=10;" vertex="1" parent="python_service_box">
+          <mxGeometry x="20" y="50" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="py_risk_service" value="&lt;b&gt;RiskService&lt;/b&gt;&#xa;(risk_service.py)&#xa;Random Forest&#xa;Classifier" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#004D40;strokeWidth=2;fontSize=10;" vertex="1" parent="python_service_box">
+          <mxGeometry x="190" y="50" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="py_forecast_service" value="&lt;b&gt;ForecastService&lt;/b&gt;&#xa;(forecast_service.py)&#xa;Facebook Prophet&#xa;Time Series" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#004D40;strokeWidth=2;fontSize=10;" vertex="1" parent="python_service_box">
+          <mxGeometry x="360" y="50" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="py_training_scripts" value="&lt;b&gt;TrainingScripts&lt;/b&gt;&#xa;(training/)&#xa;Model Training &amp;amp;&#xa;Persistence (joblib)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#004D40;strokeWidth=2;fontSize=10;" vertex="1" parent="python_service_box">
+          <mxGeometry x="530" y="50" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Layer Components -->
+        <mxCell id="db_m1_decisions" value="&lt;b&gt;m1_decisions&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Shared with Module 1&#xa;Decision Documents&#xa;--&#xa;Read-only access for&#xa;KPI aggregation" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFAB91;strokeColor=#D84315;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="60" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m2_violations" value="&lt;b&gt;m2_violations&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Shared with Module 2&#xa;Compliance Violations&#xa;--&#xa;Read-only access for&#xa;KPI aggregation" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFAB91;strokeColor=#D84315;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="260" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m3_kpi_snapshots" value="&lt;b&gt;m3_kpi_snapshots&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Module 3 Owned&#xa;Daily KPI Aggregates&#xa;--&#xa;+ totalDecisions&#xa;+ riskScore&#xa;+ complianceRate" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF176;strokeColor=#F57F17;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="460" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m3_anomalies" value="&lt;b&gt;m3_anomalies&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Module 3 Owned&#xa;Anomaly Records&#xa;--&#xa;+ anomalyScore&#xa;+ severity&#xa;+ isAcknowledged" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF176;strokeColor=#F57F17;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="660" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m3_forecasts" value="&lt;b&gt;m3_forecasts&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Module 3 Owned&#xa;Prophet Predictions&#xa;--&#xa;+ yhat (prediction)&#xa;+ yhat_lower&#xa;+ yhat_upper" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF176;strokeColor=#F57F17;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="860" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m3_reports" value="&lt;b&gt;m3_reports&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Module 3 Owned&#xa;Generated Reports&#xa;--&#xa;+ type, format&#xa;+ filePath&#xa;+ generatedAt" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF176;strokeColor=#F57F17;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="1060" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_m3_report_schedules" value="&lt;b&gt;m3_report_schedules&lt;/b&gt;&#xa;(MongoDB Collection)&#xa;--&#xa;Module 3 Owned&#xa;Scheduled Reports&#xa;--&#xa;+ cronExpression&#xa;+ parameters&#xa;+ nextRunAt" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF176;strokeColor=#F57F17;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="1260" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="db_redis" value="&lt;b&gt;Redis Cache&lt;/b&gt;&#xa;(In-Memory Store)&#xa;--&#xa;Key-Value Cache&#xa;--&#xa;Keys:&#xa;m3:kpi:{deptId}:{date}&#xa;m3:anomalies:active&#xa;m3:forecast:{deptId}&#xa;(TTL: 300s)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#4FC3F7;strokeColor=#0277BD;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_data">
+          <mxGeometry x="1500" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- External Systems -->
+        <mxCell id="ext_module1" value="&lt;b&gt;Module 1&lt;/b&gt;&#xa;(Decision Management)&#xa;--&#xa;Node.js Microservice&#xa;Port 5000&#xa;--&#xa;+ Decision CRUD&#xa;+ Decision Lifecycle&#xa;+ Webhook to Module 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_external">
+          <mxGeometry x="60" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ext_module2" value="&lt;b&gt;Module 2&lt;/b&gt;&#xa;(Compliance Management)&#xa;--&#xa;Node.js Microservice&#xa;Port 5001&#xa;--&#xa;+ Violation Tracking&#xa;+ Compliance Rules&#xa;+ Webhook to Module 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_external">
+          <mxGeometry x="300" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ext_auth_service" value="&lt;b&gt;Auth Service&lt;/b&gt;&#xa;(Shared Across Modules)&#xa;--&#xa;JWT Token Issuance&#xa;+ User Authentication&#xa;+ Token Validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;strokeWidth=2;fontSize=10;" vertex="1" parent="layer_external">
+          <mxGeometry x="540" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Communication Arrows - Layer Flow -->
+        <mxCell id="flow_presentation_to_api" value="HTTP/REST&#xa;+ JWT Token&#xa;(Port 5002)" style="endArrow=block;html=1;strokeColor=#512DA8;strokeWidth=3;fontSize=10;" edge="1" parent="1" source="layer_presentation" target="layer_gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow_api_to_service" value="Internal Calls&#xa;(Controller-Service)" style="endArrow=block;html=1;strokeColor=#1565C0;strokeWidth=3;fontSize=10;" edge="1" parent="1" source="layer_gateway" target="layer_service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow_service_to_data" value="Mongoose ODM&#xa;+ Redis Client" style="endArrow=block;html=1;strokeColor=#2E7D32;strokeWidth=3;fontSize=10;" edge="1" parent="1" source="layer_service" target="layer_data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow_external_to_data" value="Service-to-Service&#xa;+ SERVICE_KEY Header&#xa;(Read-Only Queries)" style="endArrow=block;html=1;strokeColor=#00695C;strokeWidth=2;dashed=1;fontSize=10;" edge="1" parent="1" source="layer_external" target="layer_data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow_module1_to_events" value="Webhooks&#xa;(Decision Events)" style="endArrow=block;html=1;strokeColor=#00695C;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="ext_module1" target="comp_event_routes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="1100" />
+              <mxPoint x="150" y="960" />
+              <mxPoint x="750" y="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="flow_module2_to_events" value="Webhooks&#xa;(Compliance Events)" style="endArrow=block;html=1;strokeColor=#00695C;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="ext_module2" target="comp_event_routes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="1100" />
+              <mxPoint x="390" y="980" />
+              <mxPoint x="750" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="flow_node_to_python" value="HTTP POST&#xa;+ SERVICE_KEY&#xa;(Port 8000)" style="endArrow=block;html=1;strokeColor=#00695C;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="comp_ml_service_caller" target="python_service_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1240" y="700" />
+              <mxPoint x="630" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend_title" value="&lt;b&gt;LEGEND&lt;/b&gt;&#xa;&#xa;Architectural Pattern:&#xa;Layered Architecture&#xa;(Bass et al., 2012)&#xa;&#xa;Color Coding:&#xa;&#128993; Node.js Services&#xa;&#128994; Python ML Service&#xa;&#129001; MongoDB Collections&#xa;&#128992; Shared External&#xa;&#129003; API Gateway&#xa;&#129002; Presentation Layer&#xa;&#128995; Cache/Infrastructure&#xa;&#xa;Communication:&#xa;&#8212;&#9654; Synchronous HTTP&#xa;- - &#9654; Service-to-Service&#xa;&#9660;&#8212; Data Access" style="text;html=1;whiteSpace=wrap;align=left;fontSize=10;fillColor=#F5F5F5;strokeColor=#616161;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="120" width="200" height="350" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="note_books" value="&lt;b&gt;Academic References Used:&lt;/b&gt;&#xa;&#xa;1. Bass, L., Clements, P., &amp;amp; Kazman, R. (2012).&#xa;   Software Architecture in Practice (3rd Ed.).&#xa;   Addison-Wesley. - Chapter 4:&#xa;   Understanding Quality Attributes&#xa;&#xa;2. Richards, M., &amp;amp; Ford, N. (2020).&#xa;   Fundamentals of Software Architecture:&#xa;   An Engineering Approach. O'Reilly Media.&#xa;   - Chapter 5: Layered Architecture&#xa;&#xa;3. Fowler, M. (2002).&#xa;   Patterns of Enterprise Application Architecture.&#xa;   Addison-Wesley. - Chapter 9:&#xa;   Domain Logic Patterns&#xa;&#xa;4. Newman, S. (2021).&#xa;   Building Microservices (2nd Ed.).&#xa;   O'Reilly Media. - Chapter 2:&#xa;   Evolutionary Architects&#xa;&#xa;5. Hohpe, G., &amp;amp; Woolf, B. (2003).&#xa;   Enterprise Integration Patterns.&#xa;   Addison-Wesley. - Chapter 3:&#xa;   Messaging Systems" style="text;html=1;whiteSpace=wrap;align=left;fontSize=9;fillColor=#FFF9C4;strokeColor=#FBC02D;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="500" width="240" height="380" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

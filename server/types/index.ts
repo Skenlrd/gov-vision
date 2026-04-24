@@ -1,45 +1,62 @@
 import { Request } from "express"
 
 /*
+  Server TypeScript types for GovVision.
+  
+  NOTE: Shared API contracts are now in /contracts/index.ts
+  and re-exported here for convenience. Server-specific types
+  (like Mongoose document extensions) are defined locally.
+  
+  Import from contracts for shared types:
+  import { IKpiSummary, IAnomaly } from '../../contracts'
+*/
+
+// Re-export all shared types from contracts for server use
+export type {
+  Severity,
+  RiskLevel,
+  IKpiSummary,
+  IAnomaly,
+  IAnomalyResult,
+  IFeatureValues,
+  IAnomalyGroup,
+  IRiskEntry,
+  IRiskHeatmapRow,
+  ForecastTarget,
+  IForecastPoint,
+  IForecastData,
+  ReportFormat,
+  ReportType,
+  ReportStatus,
+  IReportConfig,
+  IGenerateReportResponse,
+  IReportRecord,
+  IReportSchedule,
+  IFilter,
+  IDecisionVolumePoint,
+  ICycleTimeBucket,
+  IComplianceTrendPoint,
+  IComplianceTrendSeries,
+  IFeatureImportance,
+  IUser,
+  RISK_LEVEL_COLORS
+} from '../../contracts'
+
+/*
+  Server-specific type extensions
+*/
+
+/*
   IUser represents the decoded JWT payload.
   This is what sits on req.user after validateJWT runs.
+  
+  NOTE: Also defined in contracts/index.ts - this is the server
+  implementation interface (may have additional server-only fields).
 */
 export interface IUser {
   userId: string
-  role:   string
+  role: string
   department: string
-}
-
-/*
-  IKpiSummary is the shape returned by the aggregation engine
-  and served by the KPI endpoints.
-*/
-export interface IKpiSummary {
-  department:         string | null
-  snapshotDate:       Date
-  totalDecisions:     number
-  approvedCount:      number
-  rejectedCount:      number
-  pendingCount:       number
-  avgCycleTimeHours:  number
-  violationCount:     number
-  openViolations:     number
-  complianceRate:     number
-  anomalyCount?:      number
-  riskScore?:         number
-  riskLevel?:         "low" | "medium" | "high" | "critical"
-}
-
-/*
-  IAnomalyResult is the shape of a single prediction
-  returned from the Python FastAPI service.
-  Used starting Day 6.
-*/
-export interface IAnomalyResult {
-  id:           string
-  anomalyScore: number
-  isAnomaly:    boolean
-  severity:     "Low" | "Medium" | "High" | "Critical" | "Normal"
 }
 
 /*

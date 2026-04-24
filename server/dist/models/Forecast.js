@@ -38,6 +38,12 @@ const ForecastSchema = new mongoose_1.Schema({
     department: { type: String, required: true },
     generatedAt: { type: Date, required: true, default: Date.now },
     horizon: { type: Number, enum: [7, 14, 30], required: true },
+    target: {
+        type: String,
+        enum: ["volume", "delay", "approval_rate", "rejection_rate", "pending_workload", "sla_misses"],
+        required: true,
+        default: "volume"
+    },
     forecastData: [
         {
             ds: { type: Date, required: true },

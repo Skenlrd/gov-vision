@@ -22,10 +22,11 @@ export async function runAnomalyDetection(): Promise<void> {
 	console.log("[AnomalyJob] Starting anomaly detection run...")
 
 	const decisions = await m1Decision.find({
-		completedAt: { $exists: true, $ne: null }
+		completedAt: { $exists: true, $ne: null },
+		isScored: false
 	})
 		.select(
-			"_id cycleTimeHours rejectionCount revisionCount daysOverSLA department"
+			"_id cycleTimeHours rejectionCount revisionCount daysOverSLA departmentName"
 		)
 		.lean<ILeanDecision[]>()
 
@@ -68,6 +69,21 @@ export async function runAnomalyDetection(): Promise<void> {
 	const anomalies = results.filter((r) => r.isAnomaly === true)
 	console.log(`[AnomalyJob] ${anomalies.length} anomalies detected.`)
 
+	const bulkOps = results.map(r => ({
+		updateOne: {
+			filter: { _id: new mongoose.Types.ObjectId(r.id) },
+			update: { 
+				$set: { 
+					isScored: true, 
+					anomalyScore: r.anomalyScore,
+					isAnomaly: r.isAnomaly,
+					lastScoredAt: new Date()
+				} 
+			}
+		}
+	}))
+	await m1Decision.bulkWrite(bulkOps)
+
 	for (const anomaly of anomalies) {
 		const original = decisions.find((d) => d._id.toString() === anomaly.id)
 		const featureValues = original
@@ -92,7 +108,7 @@ export async function runAnomalyDetection(): Promise<void> {
 					anomalyScore: anomaly.anomalyScore,
 					severity: anomaly.severity,
 					isAnomaly: true,
-					department: original?.department || "unknown",
+					department: original?.departmentName || "unknown",
 					featureValues,
 					description: `Anomaly detected: score ${anomaly.anomalyScore.toFixed(3)}, severity ${anomaly.severity}`
 				},

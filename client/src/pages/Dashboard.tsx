@@ -33,7 +33,7 @@ function getDefaultFilters(): IFilter {
 }
 
 const DEPARTMENTS = [
-  { label: "All Departments", value: "" },
+  { label: "Organization Wide", value: "" },
   { label: "Finance", value: "Finance" },
   { label: "Human Resources", value: "Human Resources" },
   { label: "Operations", value: "Operations" },
@@ -409,7 +409,17 @@ export default function Dashboard() {
             <KPICard key={`kpi-throughput-${refreshTick}`} title="Decision Throughput" value={throughput} unit="/day" icon={Icons.throughput} accentColor="#7D67DA" bgGradient="linear-gradient(140deg,#A181FF,#8050E2)" tone="soft" size="md" />
 
             <div style={{ gridColumn:"span 2" }}>
-              <KPICard key={`kpi-pending-${refreshTick}`} title="Decisions Pending Count" value={kpi?.pendingCount ?? 0} icon={Icons.pending} accentColor="#3E78F0" bgGradient="linear-gradient(140deg,#6A95FF,#4179E5)" tone="soft" size="md" />
+              <KPICard 
+                key={`kpi-pending-${refreshTick}`} 
+                title="Decisions Pending Count" 
+                value={kpi?.pendingCount ?? 0} 
+                helperValue={totalDecisions > 0 ? `${((kpi!.pendingCount / totalDecisions) * 100).toFixed(1)}%` : ""}
+                icon={Icons.pending} 
+                accentColor="#3E78F0" 
+                bgGradient="linear-gradient(140deg,#6A95FF,#4179E5)" 
+                tone="soft" 
+                size="md" 
+              />
             </div>
             <KPICard key={`kpi-anomaly-${refreshTick}`} title="Anomaly Count" value={kpi?.anomalyCount??0} icon={Icons.anomaly} accentColor="#DF9A4B" bgGradient="linear-gradient(140deg,#FF9142,#F07021)" invertTrend tone="soft" size="md" />
             <KPICard key={`kpi-risk-${refreshTick}`} title="AI Risk Score" value={kpi?.riskLevel??"Low"} icon={Icons.risk} accentColor="#E16A73" bgGradient="linear-gradient(140deg,#F8707C,#D74D5C)" isBadge tone="soft" size="md" />

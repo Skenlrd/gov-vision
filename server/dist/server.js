@@ -12,9 +12,13 @@ const morgan_1 = __importDefault(require("morgan"));
 const db_1 = require("./config/db");
 const redis_1 = require("./config/redis");
 require("./jobs/anomalyJob");
+require("./jobs/forecastJob");
+require("./jobs/riskScoringJob");
+require("./jobs/reportScheduleJob");
 const analyticsRoutes_1 = __importDefault(require("./routes/analyticsRoutes"));
 const eventRoutes_1 = __importDefault(require("./routes/eventRoutes"));
 const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
+const reportRoutes_1 = __importDefault(require("./routes/reportRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5002;
 /*
@@ -55,6 +59,7 @@ app.use(express_1.default.json());
 app.use("/api/analytics", analyticsRoutes_1.default);
 app.use("/api/events", eventRoutes_1.default);
 app.use("/api/ai", aiRoutes_1.default);
+app.use("/api/reports", reportRoutes_1.default);
 /*
   Health check — useful to confirm the server is running
   before testing in Postman.

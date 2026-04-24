@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -41,7 +41,7 @@ def normalize_scores(raw_scores, score_min, score_max):
 def print_section(title, show_line=True):
     print(f"\n{title}")
     if show_line:
-        print("─" * 72)
+        print("-" * 72)
 
 
 def print_kv(label, value, width=30):
@@ -78,7 +78,7 @@ if not MONGODB_URI:
 
 client = MongoClient(MONGODB_URI)
 db = client["govvision"]
-collection = db["m1_decisions"]
+collection = db["m1_training_decisions"]
 
 cursor = collection.find(
     {"completedAt": {"$exists": True}},
@@ -108,22 +108,27 @@ print_kv("Feature rows used for training", len(X_all))
 
 print_section("3. Normalize Data")
 
-scaler = StandardScaler()
+# Use RobustScaler to handle different distributions between training and live data
+scaler = RobustScaler()
 X_all_scaled = scaler.fit_transform(X_all)
 
 print_kv("Scaler fit", "PASS")
-print_kv("Training mean", scaler.mean_.round(2))
-print_kv("Training standard deviation", scaler.scale_.round(2))
+print_kv("Scaler type", "RobustScaler (handles outliers)")
+print_kv("Training center", scaler.center_.round(2) if hasattr(scaler, 'center_') else "N/A")
+print_kv("Training scale", scaler.scale_.round(2) if hasattr(scaler, 'scale_') else "N/A")
 
 print_section("4. Train Isolation Forest on Full Dataset")
 
 contamination_setting = resolve_contamination()
 print_kv("Contamination setting", contamination_setting)
 
+# Use higher n_estimators for more stable predictions
 model = IsolationForest(
-    n_estimators=100,
+    n_estimators=200,
     contamination=contamination_setting,
     random_state=42,
+    max_samples='auto',
+    bootstrap=False,
 )
 model.fit(X_all_scaled)
 print_kv("Training complete", "PASS")
@@ -315,24 +320,24 @@ ax3.set_title("Chart 3: Sanity Test Cases", fontsize=12)
 
 sanity_profiles = [
     {
-        "label": "Normal baseline\n(120h, 0 rej)",
-        "features": [120, 0, 0, 0],
+        "label": "Normal baseline\n(10h, 0 rej)",
+        "features": [10, 0, 0, 0],
     },
     {
-        "label": "Normal busy\n(200h, 1 rej)",
-        "features": [200, 1, 1, 0],
+        "label": "Normal busy\n(35h, 1 rej)",
+        "features": [35, 1, 1, 0],
     },
     {
-        "label": "Borderline delay\n(350h, 3 rej)",
-        "features": [350, 3, 3, 2.0],
+        "label": "Borderline delay\n(65h, 3 rej)",
+        "features": [65, 3, 3, 2.0],
     },
     {
-        "label": "Elevated risk\n(500h, 5 rej)",
-        "features": [500, 5, 5, 5.0],
+        "label": "Elevated risk\n(100h, 5 rej)",
+        "features": [100, 5, 5, 5.0],
     },
     {
-        "label": "Critical delay\n(650h, 8 rej)",
-        "features": [650, 8, 8, 12.0],
+        "label": "Critical delay\n(150h, 8 rej)",
+        "features": [150, 8, 8, 12.0],
     },
 ]
 
@@ -488,7 +493,7 @@ print_kv("Score range", f"{norm_scores.min():.4f} to {norm_scores.max():.4f}")
 print_section("Generated visuals")
 print("  1. Score distribution by severity band")
 print("  2. Feature separation (predicted anomaly vs normal)")
-print("  3. Sanity test (test cases: normal → critical)")
+print("  3. Sanity test (test cases: normal -> critical)")
 print("  4. Histogram of anomaly score distribution")
 print("  5. Scatter map (cycle time vs rejection count)")
 print("Visualization generation complete.")

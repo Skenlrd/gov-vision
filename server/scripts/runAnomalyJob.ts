@@ -1,8 +1,9 @@
 import dotenv from "dotenv"
+import path from "path"
 import { connectMongo } from "../config/db"
 import { runAnomalyJob } from "../jobs/anomalyJob"
 
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, "../.env") })
 
 async function main(): Promise<void> {
   await connectMongo()

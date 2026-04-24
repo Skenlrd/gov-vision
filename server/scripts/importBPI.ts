@@ -6,13 +6,24 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-import DecisionModel from "../models/m1Decisions";
+import DecisionModel from "../models/m1TrainingDecisions";
 
 const DB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/govvision";
 const CSV_FILE = path.resolve(__dirname, "../Dataset/bpi_aggregated_cases.csv");
 const BATCH_SIZE = 500;
 
-const DEPARTMENTS = ["Finance", "HR", "Operations", "IT", "CS"];
+type DepartmentMeta = {
+  departmentId: string;
+  departmentName: string;
+};
+
+const DEPARTMENTS: DepartmentMeta[] = [
+  { departmentId: "FI001", departmentName: "Finance" },
+  { departmentId: "HR002", departmentName: "Human Resources" },
+  { departmentId: "OP003", departmentName: "Operations" },
+  { departmentId: "IT004", departmentName: "Information Technology" },
+  { departmentId: "CS005", departmentName: "Customer Service" }
+];
 
 // Hash function to consistently map User_* to a Department
 function hashString(str: string): number {
@@ -25,8 +36,8 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-function getDepartment(userStr: string): string {
-  if (!userStr) return "Operations";
+function getDepartment(userStr: string): DepartmentMeta {
+  if (!userStr) return DEPARTMENTS[2]; // Operations
   const index = hashString(userStr) % DEPARTMENTS.length;
   return DEPARTMENTS[index];
 }
@@ -61,7 +72,7 @@ function balanceStatus(
 
 function adjustFeaturesForApproved(doc: any, wasFlipped: boolean, slaHours: number): any {
   // 1. Compress time for ALL cases (make the system look 3x faster)
-  const timeCompressionFactor = 3; 
+  const timeCompressionFactor = 12; 
   let newCycleTime = doc.cycleTimeHours / timeCompressionFactor;
   
   // 2. Adjust the completedAt date to match the new shorter cycle time
@@ -136,7 +147,7 @@ async function runImport() {
     const hourOfDaySubmitted = newCreatedAt.getHours();
     
     // Map abstract Resource to canonical department
-    const deptName = getDepartment(row.departmentId);
+    const deptMeta = getDepartment(row.departmentId);
     
     const originalStatus = row.status;
     const newStatus = balanceStatus(originalStatus, row.caseId);
@@ -145,8 +156,9 @@ async function runImport() {
     let doc: any = {
       decisionId: row.caseId.replace("Application_", "Decision_"),
       status: newStatus,
-      department: deptName,
-      departmentName: deptName,
+      department: deptMeta.departmentName,
+      departmentId: deptMeta.departmentId,
+      departmentName: deptMeta.departmentName,
       createdAt: newCreatedAt,
       completedAt: newCompletedAt,
       cycleTimeHours: originalCycleTimeHours,
@@ -155,7 +167,8 @@ async function runImport() {
       daysOverSLA: 0,
       stageCount: stageCount,
       hourOfDaySubmitted: hourOfDaySubmitted,
-      priority: row.priority
+      priority: row.priority,
+      source: "bpi_aggregated"
     };
     
     doc = adjustFeaturesForApproved(doc, wasFlipped, slaHours);

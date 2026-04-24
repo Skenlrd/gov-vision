@@ -25,6 +25,11 @@ const kpiSnapshotSchema = new Schema(
       default: null
     },
 
+    departmentName: {
+      type: String,
+      default: "Organization Wide"
+    },
+
     snapshotDate: {
       type: Date,
       required: true
@@ -113,11 +118,18 @@ const kpiSnapshotSchema = new Schema(
     featureImportance: {
       type: Schema.Types.Mixed,
       default: null
+    },
+
+    // Data source for filtering
+    source: {
+      type: String,
+      default: "ai_workflow"
     }
 
   },
   {
-    collection: "m3_kpi_snapshots"
+    collection: "m3_kpi_snapshots",
+    timestamps: true
   }
 )
 

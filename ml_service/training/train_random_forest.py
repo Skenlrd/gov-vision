@@ -28,6 +28,30 @@ MODELS_DIR = Path(__file__).resolve().parents[1] / "models" / "risk"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_PATH = MODELS_DIR / "random_forest.pkl"
 
+# Map BPI department names to canonical IDs (same mapping as importCSV.ts)
+# BPI uses exact values: 'CS', 'Finance', 'HR', 'IT', 'Operations'
+DEPT_NAME_TO_ID = {
+    # BPI exact values
+    "cs": "CS005",
+    "finance": "FI001",
+    "hr": "HR002",
+    "it": "IT004",
+    "operations": "OP003",
+    # Common variations
+    "financial": "FI001",
+    "human resources": "HR002",
+    "human resource": "HR002",
+    "operation": "OP003",
+    "ops": "OP003",
+    "information technology": "IT004",
+    "technology": "IT004",
+    "customer service": "CS005",
+    "customer services": "CS005",
+    "customer support": "CS005",
+    "legal": "FI001",
+    "compliance": "FI001",
+}
+
 # New features as per NEWDATASET.MD
 # Note: We keep hourOfDaySubmitted and stageCount here as supervised models (RF) 
 # can learn patterns from them even if they are 'noisy' for unsupervised models.
@@ -36,18 +60,19 @@ CATEGORICAL_COLS = ["department", "priority"]
 FEATURE_COLS = NUMERIC_COLS + CATEGORICAL_COLS
 
 
-def fetch_bpi_dataset() -> pd.DataFrame:
-    """Fetch the BPI Challenge 2017 data from MongoDB."""
+def fetch_dataset() -> pd.DataFrame:
+    """Fetch the BPI training data from MongoDB and normalize fields to match live inference format."""
     mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/govvision")
     client = MongoClient(mongo_uri)
     db = client.get_database()
-    collection = db["m1_decisions"]
-    
-    print("Querying MongoDB for m1_decisions...")
+    collection = db["m1_training_decisions"]
+
+    print("Querying MongoDB for m1_training_decisions (BPI data)...")
     cursor = collection.find(
         {},
         {
             "department": 1,
+            "departmentName": 1,
             "priority": 1,
             "hourOfDaySubmitted": 1,
             "revisionCount": 1,
@@ -62,32 +87,59 @@ def fetch_bpi_dataset() -> pd.DataFrame:
     client.close()
     
     if df.empty:
-        raise ValueError("No data found in govvision.m1_decisions collection.")
+        raise ValueError("No data found in govvision.m1_training_decisions collection.")
         
     print(f"Loaded {len(df)} records from MongoDB.")
+
+    # Normalize department name → canonical ID (to match live inference which sends departmentId)
+    def normalize_dept(val):
+        if pd.isna(val):
+            return "unknown"
+        key = str(val).strip().lower()
+        return DEPT_NAME_TO_ID.get(key, "unknown")
+
+    dept_col = "departmentName" if "departmentName" in df.columns else "department"
+    df["department"] = df[dept_col].apply(normalize_dept)
+
+    # Normalize priority to lowercase (live data uses lowercase)
+    if "priority" in df.columns:
+        df["priority"] = df["priority"].astype(str).str.strip().str.lower()
     
     # Drop rows with missing essential features
     df = df.dropna(subset=FEATURE_COLS + ["daysOverSLA", "status"])
     print(f"Rows after dropping missing values: {len(df)}")
     
-    # Calculate binary risk label: 1 if daysOverSLA > 0 OR status == 'rejected'
-    df["is_at_risk"] = ((df["daysOverSLA"] > 0) | (df["status"] == "rejected")).astype(int)
+    # 4-class risk label per Module 3 spec:
+    # 0=Low, 1=Medium, 2=High, 3=Critical
+    def assign_risk_label(row):
+        days = float(row["daysOverSLA"] or 0)
+        status = str(row["status"]).lower()
+        if days == 0 and status == "approved":
+            return 0  # Low
+        elif days > 0 and days <= 1 and status != "rejected":
+            return 1  # Medium
+        elif (days > 1 and days <= 5) or status == "rejected":
+            return 2  # High
+        else:  # days > 5
+            return 3  # Critical
+
+    df["risk_label"] = df.apply(assign_risk_label, axis=1)
+    
+    print("Class distribution (BPI training data):")
+    label_names = {0: "Low", 1: "Medium", 2: "High", 3: "Critical"}
+    for label, name in label_names.items():
+        count = (df["risk_label"] == label).sum()
+        print(f"  {name} ({label}): {count} ({count/len(df)*100:.1f}%)")
     
     return df
 
 
 def main() -> None:
-    print("Fetching BPI Challenge 2017 dataset...")
-    df = fetch_bpi_dataset()
+    print("Fetching BPI historical dataset for training...")
+    df = fetch_dataset()
     
-    labels = df["is_at_risk"]
+    labels = df["risk_label"]
     features = df[FEATURE_COLS]
-    
-    print(
-        "Class distribution:",
-        f"Safe (0)={sum(labels == 0)}",
-        f"At Risk (1)={sum(labels == 1)}",
-    )
     
     x_train, x_test, y_train, y_test = train_test_split(
         features,
@@ -130,7 +182,9 @@ def main() -> None:
         classification_report(
             y_test,
             predictions,
-            target_names=["Safe (0)", "At Risk (1)"],
+            target_names=["Low (0)", "Medium (1)", "High (2)", "Critical (3)"],
+            labels=[0, 1, 2, 3],
+            zero_division=0,
         )
     )
     
@@ -140,10 +194,11 @@ def main() -> None:
     # 1. Confusion Matrix Heatmap
     plt.figure(figsize=(8, 6))
     cm = confusion_matrix(y_test, predictions)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                xticklabels=['Safe', 'At Risk'], 
-                yticklabels=['Safe', 'At Risk'])
-    plt.title('Chart 1: Risk Model Confusion Matrix')
+    class_names = ['Low', 'Medium', 'High', 'Critical']
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=class_names,
+                yticklabels=class_names)
+    plt.title('Chart 1: Risk Model Confusion Matrix (4-Class)')
     plt.xlabel('Predicted Label')
     plt.ylabel('True Label')
     plt.show()

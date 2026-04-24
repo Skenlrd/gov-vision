@@ -7,7 +7,7 @@ import type { ForecastTarget, IForecastData, IForecastPoint } from "../types"
 import SkeletonLoader from "../components/SkeletonLoader"
 
 const DEPARTMENT_PRESETS = [
-  { label: "Organization", value: "org" },
+  { label: "Organization Wide", value: "org" },
   { label: "Finance", value: "finance" },
   { label: "Operations", value: "operations" },
   { label: "Human Resources", value: "hr" },
